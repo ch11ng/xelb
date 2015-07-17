@@ -1,0 +1,9 @@
+X protocol Emacs Lisp Binding
+=============================
+
+XELB (X protocol Emacs Lisp Binding) is a pure Elisp implementation of the X
+protocol based on the XML description files from XCB project. It features an
+object-oriented API and permits a certain degree of concurrency.
+
+While XELB is developed and tested on Emacs 25, it should also work on recent
+versions of Emacs 24.
