@@ -1,0 +1,12 @@
+Utility libraries for XELB
+==========================
+
+This project provides utitlity libraries for working with XELB. Most of them
+are the Elisp ports of the utility libraries of XCB. They are:
+  + xcb-curosr: port of xcb/util-cursor
+  + xcb-icccm and xcb-ewmh: port of xcb/util-wm
+  + xcb-keysyms: port of xcb/util-keysyms
+
+This project also includes other utility libraries:
+  + xcb-xim: an implementation of XIM protocl
+  + xcb-xlib: constants defined in "Xlib.h" but not found in XCB
