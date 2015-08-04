@@ -56,6 +56,9 @@
 (defvar event-alist nil "Record X events in this module.")
 (make-variable-buffer-local 'event-alist)
 
+(defvar pad-count 0 "<pad> node counter.")
+(make-variable-buffer-local 'pad-count)
+
 ;;;; Helper functions
 
 (defsubst node-name (node)
@@ -150,6 +153,7 @@
 
 (defun parse-top-level-element (node)
   "Parse a top-level element."
+  (setq pad-count 0)
   (pcase (node-name node)
     (`import (parse-import node))
     (`struct (parse-struct node))
@@ -176,7 +180,6 @@
   "Parse <struct>."
   (let ((name (intern (concat prefix (node-attr node 'name))))
         (contents (node-subnodes node))
-        (pad-count 0)
         result)
     (setq contents
           (apply 'nconc
@@ -240,7 +243,6 @@ The `combine-adjacent' attribute is simply ignored."
          (opcode (string-to-int (node-attr node 'opcode)))
          (contents `((~opcode :initform ,opcode :type xcb:-u1)))
          (subnodes (node-subnodes node))
-         (pad-count 0)
          (reply-pad-count 0)
          expressions
          result reply-result reply-name reply-contents)
@@ -297,7 +299,6 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
         (event-number (string-to-int (node-attr node 'number)))
         (xge (node-attr node 'xge))
         (contents (node-subnodes node))
-        (pad-count 0)
         result)
     (setq contents
           (apply 'nconc
@@ -325,7 +326,6 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let ((name (intern (concat prefix (node-attr node 'name))))
         (error-number (string-to-int (node-attr node 'number)))
         (contents (node-subnodes node))
-        (pad-count 0)
         result)
     (setq contents
           (apply 'nconc
@@ -432,7 +432,6 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let ((name (intern (node-attr-escape node 'name)))
         (expression (parse-expression (car (node-subnodes node))))
         (cases (cdr (node-subnodes node)))
-        (pad-count 10) ;avoid naming duplication (as only one <swith> allowed)
         fields fields-name)
     ;; Avoid duplicated slot names by appending "*" if necessary
     (let (names name)

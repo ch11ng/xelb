@@ -323,10 +323,6 @@ classes of EVENT (since they have the same event number)."
     (setf (slot-value obj 'event-plist)
           (plist-put plist event-number (append listeners (list listener))))))
 
-;; (cl-defmethod xcb:connection-has-error ((obj xcb:connection))
-;;   "Determine if X connection has error."
-;;   (not (slot-value obj 'connected)))
-
 (cl-defmethod xcb:flush ((obj xcb:connection))
   "Flush request data to X server."
   (let ((cache (slot-value obj 'request-cache)))

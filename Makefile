@@ -5,7 +5,6 @@ EMACS_BIN := emacs -Q
 EXTENSIONS := bigreq dpms ge present render shape xf86dri xinerama xprint \
 xtest composite dri2 glx randr res shm xc_misc xf86vidmode xinput xvmc \
 damage dri3 record screensaver sync xevie xfixes xkb xselinux xv
-# EXTENSIONS := render randr xkb
 
 LIBS = xcb-xproto.el $(addprefix xcb-,$(addsuffix .el,$(EXTENSIONS)))
 
