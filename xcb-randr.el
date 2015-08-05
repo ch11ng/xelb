@@ -6,7 +6,7 @@
 (defconst xcb:randr:-extension-xname "RANDR")
 (defconst xcb:randr:-extension-name "RandR")
 (defconst xcb:randr:-major-version 1)
-(defconst xcb:randr:-minor-version 4)
+(defconst xcb:randr:-minor-version 5)
 
 (require 'xcb-xproto)
 
@@ -928,6 +928,54 @@
   (xcb:-event)
   ((subCode :initarg :subCode :type xcb:CARD8)
    (u :initarg :u :type xcb:randr:NotifyData)))
+
+(defclass xcb:randr:MonitorInfo
+  (xcb:-struct)
+  ((name :initarg :name :type xcb:ATOM)
+   (primary :initarg :primary :type xcb:BOOL)
+   (automatic :initarg :automatic :type xcb:BOOL)
+   (nOutput :initarg :nOutput :type xcb:CARD16)
+   (x :initarg :x :type xcb:INT16)
+   (y :initarg :y :type xcb:INT16)
+   (width :initarg :width :type xcb:CARD16)
+   (height :initarg :height :type xcb:CARD16)
+   (width-in-millimeters :initarg :width-in-millimeters :type xcb:CARD32)
+   (height-in-millimeters :initarg :height-in-millimeters :type xcb:CARD32)
+   (outputs :initarg :outputs :type xcb:-ignore)
+   (outputs~ :initform
+	     '(name outputs type xcb:randr:OUTPUT size
+		    (xcb:-fieldref 'nOutput))
+	     :type xcb:-list)))
+
+(defclass xcb:randr:GetMonitors
+  (xcb:-request)
+  ((~opcode :initform 42 :type xcb:-u1)
+   (window :initarg :window :type xcb:WINDOW)
+   (get-active :initarg :get-active :type xcb:BOOL)))
+(defclass xcb:randr:GetMonitors~reply
+  (xcb:-reply)
+  ((pad~0 :initform 1 :type xcb:-pad)
+   (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
+   (nMonitors :initarg :nMonitors :type xcb:CARD32)
+   (nOutputs :initarg :nOutputs :type xcb:CARD32)
+   (pad~1 :initform 12 :type xcb:-pad)
+   (monitors :initarg :monitors :type xcb:-ignore)
+   (monitors~ :initform
+	      '(name monitors type xcb:randr:MonitorInfo size
+		     (xcb:-fieldref 'nMonitors))
+	      :type xcb:-list)))
+
+(defclass xcb:randr:SetMonitor
+  (xcb:-request)
+  ((~opcode :initform 43 :type xcb:-u1)
+   (window :initarg :window :type xcb:WINDOW)
+   (monitorinfo :initarg :monitorinfo :type xcb:randr:MonitorInfo)))
+
+(defclass xcb:randr:DeleteMonitor
+  (xcb:-request)
+  ((~opcode :initform 44 :type xcb:-u1)
+   (window :initarg :window :type xcb:WINDOW)
+   (name :initarg :name :type xcb:ATOM)))
 
 (defconst xcb:randr:error-number-class-alist
   '((0 . xcb:randr:BadOutput)
