@@ -206,7 +206,8 @@ Concurrency is prevented as it breaks the orders of errors and replies."
                  (setq obj (make-instance 'xcb:SetupFailed))
                  (xcb:unmarshal obj cache)
                  (setq cache [])
-                 (error "[XELB] %s" obj))
+                 (error "[XELB] Connection failed: %s"
+                        (slot-value obj 'reason)))
                 (1                      ;success
                  (setq obj (make-instance 'xcb:Setup))
                  (setq cache (substring cache (xcb:unmarshal obj cache)))
@@ -215,7 +216,8 @@ Concurrency is prevented as it breaks the orders of errors and replies."
                 (2                      ;authentication
                  (setq obj (make-instance 'xcb:SetupAuthenticate))
                  (setq cache (substring cache (xcb:unmarshal obj cache)))
-                 (error "[XELB] %s" obj))
+                 (error "[XELB] Authentication not supported: %s"
+                        (slot-value obj 'reason)))
                 (x (error "Unrecognized setup status: %d" x))))))
         (setf (slot-value connection 'lock) nil)
         (throw 'return 'setup))
