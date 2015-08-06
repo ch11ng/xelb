@@ -131,7 +131,7 @@
         (vector (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
                 (logand (lsh value -8) #xFF) (logand value #xFF))
       (let* ((msw (truncate value #x10000))
-             (lsw (truncate (- value (lsh msw 16)))))
+             (lsw (truncate (- value (* msw 65536.0)))))
         (vector (logand (lsh msw -8) #xFF) (logand msw #xFF)
                 (logand (lsh lsw -8) #xFF) (logand lsw #xFF)))))
   (defsubst xcb:-pack-u4-lsb (value)
@@ -140,7 +140,7 @@
         (vector (logand value #xFF) (logand (lsh value -8) #xFF)
                 (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF))
       (let* ((msw (truncate value #x10000))
-             (lsw (truncate (- value (* msw #x10000)))))
+             (lsw (truncate (- value (* msw 65536.0)))))
         (vector (logand lsw #xFF) (logand (lsh lsw -8) #xFF)
                 (logand msw #xFF) (logand (lsh msw -8) #xFF))))))
 
