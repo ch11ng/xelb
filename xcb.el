@@ -78,6 +78,8 @@
    (setup-data :initform nil)           ;X connection setup data
    (request-cache :initform [])         ;cache for outgoing requests
    (message-cache :initform [])         ;cache for incoming messages
+   (event-lock :initform nil)
+   (event-queue :initform nil)
    (error-plist :initform nil)
    (reply-plist :initform nil)
    (event-plist :initform nil)
@@ -180,11 +182,10 @@ SCREEN."
 (defun xcb:-connection-filter (process message)
   "Filter function for an X connection.
 
-Concurrency is prevented as it breaks the orders of errors and replies."
+Concurrency is disabled as it breaks the orders of errors, replies and events."
   (let* ((connection (plist-get (process-plist process) 'connection))
          (cache (vconcat (slot-value connection 'message-cache) message))
-         (cache-length (length cache))
-         events)
+         (cache-length (length cache)))
     (setf (slot-value connection 'message-cache) cache)
     (catch 'return
       ;; Queue message when locked
@@ -194,7 +195,6 @@ Concurrency is prevented as it breaks the orders of errors and replies."
       (setf (slot-value connection 'lock) t)
       ;; Connection setup
       (unless (slot-value connection 'connected)
-        ;; Connection setup
         (when (<= 8 (length cache)) ;at least setup header is available
           (let ((data-len (+ 8 (* 4 (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                                'xcb:-unpack-u2)
@@ -274,10 +274,11 @@ Concurrency is prevented as it breaks the orders of errors and replies."
                (setq listener
                      (plist-get (slot-value connection 'event-plist) x))
                (when listener
-                 (setq events (nconc events
-                                     (list (vector listener
-                                                   (substring cache 0 32)
-                                                   synthetic))))))
+                 (with-slots (event-queue) connection
+                   (setf event-queue (nconc event-queue
+                                            `([,listener
+                                               ,(substring cache 0 32)
+                                               ,synthetic]))))))
              (setq cache (substring cache 32))))))
       (setf (slot-value connection 'lock) nil))
     (unless (slot-value connection 'lock)
@@ -287,9 +288,16 @@ Concurrency is prevented as it breaks the orders of errors and replies."
                 (substring message-cache (- cache-length (length cache))))
           (when (/= current-cache-lenght cache-length)
             (xcb:-connection-filter process []))))
-      (dolist (i events)                ;for each event
-        (dolist (j (elt i 0))           ;for each listener
-          (funcall j (elt i 1) (elt i 2)))))))
+      (with-slots (event-lock event-queue) connection
+        (unless event-lock
+          (setf event-lock t)
+          (let (event data synthetic)
+            (while (setq event (pop event-queue))
+              (setq data (elt event 1)
+                    synthetic (elt event 2))
+              (dolist (listener (elt event 0))
+                (funcall listener data synthetic))))
+          (setf event-lock nil))))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
   "Disconnect from X server."
