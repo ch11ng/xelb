@@ -251,9 +251,8 @@
                   (with-temp-buffer
                     (set-buffer-multibyte nil)
                     (insert-file-contents path) (buffer-string))))
-          (best-size 0)
           xcb:lsb                       ;override global byte order
-          chunks
+          best-size chunks
           magic file-header file-header-toc chunk-header chunk)
       ;; Determine byte order
       (setq magic (substring data 0 4))
@@ -281,8 +280,9 @@
                   (when (= target subtype)
                     (setq best-size target)
                     (throw 'break nil))
-                  (when (> (abs (- target best-size))
-                           (abs (- target subtype)))
+                  (when (or (not best-size)
+                            (> (abs (- target best-size))
+                               (abs (- target subtype))))
                     (setq best-size subtype)))))))
         ;; Collect chunks fitting this size
         (setq chunk-header (make-instance 'xcb:cursor:-file-chunk-header))
