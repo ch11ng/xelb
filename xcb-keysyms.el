@@ -112,7 +112,12 @@ This method must be called before using any other method in this module."
             ((memq 'kp-numlock events)
              (setq xcb:keysyms:num-lock-mask (elt mode-masks i))))))
   ;; Determine remaining keys
-  (let* ((id (string-to-int (frame-parameter nil 'window-id)))
+  (let* ((frame (unless (frame-parameter nil 'window-id)
+                  (catch 'break
+                    (dolist (i (frame-list))
+                      (when (frame-parameter i 'window-id)
+                        (throw 'break i))))))
+         (id (string-to-int (frame-parameter frame 'window-id)))
          (root
           (slot-value (car (slot-value (xcb:get-setup obj) 'roots)) 'root))
          (keycode (xcb:keysyms:keysym->keycode obj ?a))
