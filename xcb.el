@@ -137,17 +137,26 @@ SCREEN."
 (defun xcb:connect-to-socket (&optional socket auth-info)
   "Connect to X server with socket SOCKET and authentication info AUTH-INFO."
   (unless (or socket x-display-name) (error "[XELB] No X display available"))
-  (unless socket (setq socket (concat "/tmp/.X11-unix/X"
-                                      (replace-regexp-in-string
-                                       ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1"
-                                       x-display-name))))
-  (let* ((process (make-network-process :name "XELB" :remote socket))
-         (auth (if auth-info auth-info (make-instance 'xcb:auth-info)))
-         (connection (make-instance 'xcb:connection
-                                    :process process
-                                    :auth-info auth :socket socket)))
-    (xcb:-connect connection)
-    connection))
+  (let (display)
+    (if socket
+        ;; As there is no general way to deduce the display name from an X11
+        ;; socket, we assume a standard SOCKET name and hope for the best.
+        (setq display
+              (concat ":"               ;local
+                      (replace-regexp-in-string "^.*?\\([0-9.]+\\)$" "\\1"
+                                                socket)))
+      (setq display x-display-name
+            socket (concat "/tmp/.X11-unix/X"
+                           (replace-regexp-in-string
+                            ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1"
+                            x-display-name))))
+    (let* ((process (make-network-process :name "XELB" :remote socket))
+           (auth (if auth-info auth-info (make-instance 'xcb:auth-info)))
+           (connection (make-instance 'xcb:connection
+                                      :process process :display display
+                                      :auth-info auth :socket socket)))
+      (xcb:-connect connection)
+      connection)))
 
 (cl-defmethod xcb:-connect ((obj xcb:connection))
   "Connect to X server."
