@@ -100,6 +100,8 @@ This method must be called before using any other method in this module."
                            xcb:ModMask:Control xcb:ModMask:1 xcb:ModMask:2
                            xcb:ModMask:3 xcb:ModMask:4 xcb:ModMask:5))
          events keycode keysym)
+    (setq xcb:keysyms:mode-switch-mask nil
+          xcb:keysyms:num-lock-mask nil)
     (cl-assert (= (length keycodes) (* 8 keycodes-per-modifier)))
     (dotimes (i 8)
       (setq events nil)
@@ -135,8 +137,8 @@ This method must be called before using any other method in this module."
          event)
     (dolist (i (list xcb:ModMask:1 xcb:ModMask:2 xcb:ModMask:3
                      xcb:ModMask:4 xcb:ModMask:5))
-      (unless (or (= i xcb:keysyms:mode-switch-mask) ;already determined
-                  (= i xcb:keysyms:num-lock-mask))
+      (unless (or (equal i xcb:keysyms:mode-switch-mask) ;already determined
+                  (equal i xcb:keysyms:num-lock-mask))
         (setf (slot-value key-press 'state) i
               (slot-value fake-event 'event) (xcb:marshal key-press obj))
         (run-with-idle-timer 0 nil (lambda ()
