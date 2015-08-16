@@ -210,21 +210,24 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                                              (substring cache 6 8)))))
                 obj)
             (when (>= (length cache) data-len)
+              (xcb:-log "Setup response: %s" cache)
               (pcase (elt cache 0)
                 (0                      ;failed
                  (setq obj (make-instance 'xcb:SetupFailed))
                  (xcb:unmarshal obj cache)
-                 (setq cache [])
+                 (setq cache (substring cache data-len))
                  (error "[XELB] Connection failed: %s"
                         (slot-value obj 'reason)))
                 (1                      ;success
                  (setq obj (make-instance 'xcb:Setup))
-                 (setq cache (substring cache (xcb:unmarshal obj cache)))
+                 (xcb:unmarshal obj cache)
+                 (setq cache (substring cache data-len))
                  (setf (slot-value connection 'setup-data) obj)
                  (setf (slot-value connection 'connected) t))
                 (2                      ;authentication
                  (setq obj (make-instance 'xcb:SetupAuthenticate))
-                 (setq cache (substring cache (xcb:unmarshal obj cache)))
+                 (xcb:unmarshal obj cache)
+                 (setq cache (substring cache data-len))
                  (error "[XELB] Authentication not supported: %s"
                         (slot-value obj 'reason)))
                 (x (error "Unrecognized setup status: %d" x))))))
@@ -235,6 +238,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
         (while (<= 32 (length cache))
           (pcase (elt cache 0)
             (0                          ;error
+             (xcb:-log "Error received: %s" (substring cache 0 32))
              (let ((sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                         'xcb:-unpack-u2)
                                       (substring cache 2 4)))
@@ -257,6 +261,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                     struct sequence plist)
                (when (< (length cache) reply-length) ;too short, do next time
                  (throw 'break nil))
+               (xcb:-log "Reply received: %s" (substring cache 0 reply-length))
                (setq sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                          'xcb:-unpack-u2)
                                        (substring cache 2 4)))
@@ -276,6 +281,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                (setq cache (substring cache reply-length))
                (setf (slot-value connection 'reply-sequence) sequence)))
             (x                          ;event
+             (xcb:-log "Event received: %s" (substring cache 0 32))
              (let (synthetic listener)
                (when (/= 0 (logand x #x80)) ;synthetic event
                  (setq synthetic t
@@ -292,10 +298,10 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
       (setf (slot-value connection 'lock) nil))
     (unless (slot-value connection 'lock)
       (with-slots (message-cache) connection
-        (let ((current-cache-lenght (length message-cache)))
+        (let ((current-cache-length (length message-cache)))
           (setf message-cache
                 (substring message-cache (- cache-length (length cache))))
-          (when (/= current-cache-lenght cache-length)
+          (when (/= current-cache-length cache-length)
             (xcb:-connection-filter process []))))
       (with-slots (event-lock event-queue) connection
         (unless event-lock
