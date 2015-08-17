@@ -293,7 +293,8 @@ Consider let-bind it rather than change its global value.")
 (defclass xcb:-struct ()
   ((~lsb :initarg :~lsb
          :initform (symbol-value 'xcb:lsb) ;see `eieio-default-eval-maybe'
-         :type xcb:-ignore))
+         :type xcb:-ignore)
+   (~auto-padding :initarg :~auto-padding :initform t :type xcb:-ignore))
   :documentation "Struct type.")
 
 (cl-defmethod xcb:marshal ((obj xcb:-struct))
@@ -350,7 +351,7 @@ The optional POS argument indicates current byte index of the field (used by
             (data (slot-value obj list-name))
             implicit-padding)
        (unless (integerp list-size)
-         (setq implicit-padding t)
+         (when (slot-value obj '~auto-padding) (setq implicit-padding t))
          (setq list-size (eval list-size `((obj . ,obj))))
          (unless list-size
            (setq list-size (length data)))) ;list-size can be nil
@@ -467,7 +468,7 @@ and the second the consumed length."
            (list-size (plist-get initform 'size))
            implicit-padding)
        (unless (integerp list-size)
-         (setq implicit-padding t)
+         (when (slot-value obj '~auto-padding) (setq implicit-padding t))
          (setq list-size (eval list-size `((obj . ,obj) (ctx . ,ctx)))))
        (cl-assert (integerp list-size))
        (pcase list-type
