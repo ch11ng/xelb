@@ -441,7 +441,7 @@ classes of EVENT (since they have the same event number)."
              (+ (length msg) (length cache))) ;flush on cache full
       (xcb:flush obj)
       (setq cache []))
-    (xcb:-log "%s" request)
+    (xcb:-log "Cache request: %s" request)
     (with-slots (request-cache request-sequence) obj
       (setf request-cache (vconcat cache msg)
             request-sequence (1+ request-sequence))

@@ -340,20 +340,31 @@ The optional POS argument indicates current byte index of the field (used by
     (`xcb:-pad-align
      (unless (integerp value)
        (setq value (eval value `((obj . ,obj)))))
-     (make-vector (% (- 4 (% pos value)) 4) 0))
+     ;; The length slot in xcb:-request is left out
+     (let ((len (if (object-of-class-p obj xcb:-request) (+ pos 2) pos)))
+       (make-vector (% (- value (% len value)) value) 0)))
     (`xcb:-list
      (let* ((list-name (plist-get value 'name))
             (list-type (plist-get value 'type))
             (list-size (plist-get value 'size))
-            (data (slot-value obj list-name)))
+            (data (slot-value obj list-name))
+            implicit-padding)
        (unless (integerp list-size)
+         (setq implicit-padding t)
          (setq list-size (eval list-size `((obj . ,obj))))
          (unless list-size
            (setq list-size (length data)))) ;list-size can be nil
        (cl-assert (= list-size (length data)))
-       (mapconcat (lambda (i)
-                    (xcb:-marshal-field obj list-type i))
-                  data [])))
+       (let ((result (mapconcat (lambda (i)
+                                  (xcb:-marshal-field obj list-type i))
+                                data []))
+             len)
+         (if (not implicit-padding)
+             result
+           ;; The length slot in xcb:-request is left out
+           (setq len (if (object-of-class-p obj xcb:-request) (+ pos 2) pos))
+           (vconcat result
+                    (make-vector (logand (- 0 len (length result)) #x3) 0))))))
     (`xcb:-switch
      (let ((slots (eieio-class-slots (eieio-object-class obj)))
            (expression (plist-get value 'expression))
@@ -453,8 +464,10 @@ and the second the consumed length."
        (setq initform (cadr initform)))
      (let ((list-name (plist-get initform 'name))
            (list-type (plist-get initform 'type))
-           (list-size (plist-get initform 'size)))
+           (list-size (plist-get initform 'size))
+           implicit-padding)
        (unless (integerp list-size)
+         (setq implicit-padding t)
          (setq list-size (eval list-size `((obj . ,obj) (ctx . ,ctx)))))
        (cl-assert (integerp list-size))
        (pcase list-type
@@ -463,11 +476,9 @@ and the second the consumed length."
                 (decode-coding-string
                  (apply 'unibyte-string
                         (append (substring data 0 list-size) nil))
-                 'iso-latin-1))
-          (list initform list-size))
+                 'iso-latin-1)))
          (`xcb:void                     ;for further unmarshalling
-          (setf (slot-value obj list-name) (substring data 0 list-size))
-          (list initform list-size))
+          (setf (slot-value obj list-name) (substring data 0 list-size)))
          (x
           (let ((count 0)
                 result tmp)
@@ -477,7 +488,11 @@ and the second the consumed length."
               (setq data (substring data (cadr tmp)))
               (setq count (+ count (cadr tmp))))
             (setf (slot-value obj list-name) result)
-            (list initform count))))))
+            (setq list-size count))))   ;to byte length
+       (list initform (if implicit-padding
+                          ;; Assume DATA is aligned
+                          (+ list-size (% (- (length data) list-size) 4))
+                        list-size))))
     (`xcb:-switch
      (let ((slots (eieio-class-slots (eieio-object-class obj)))
            (expression (plist-get initform 'expression))
