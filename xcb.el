@@ -207,7 +207,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
         (when (<= 8 (length cache)) ;at least setup header is available
           (let ((data-len (+ 8 (* 4 (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                                'xcb:-unpack-u2)
-                                             (substring cache 6 8)))))
+                                             cache 6))))
                 obj)
             (when (>= (length cache) data-len)
               (xcb:-log "Setup response: %s" cache)
@@ -241,7 +241,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
              (xcb:-log "Error received: %s" (substring cache 0 32))
              (let ((sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                         'xcb:-unpack-u2)
-                                      (substring cache 2 4)))
+                                      cache 2))
                    (plist (slot-value connection 'error-plist))
                    struct)
                (when (plist-member plist sequence)
@@ -256,7 +256,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
             (1                          ;reply
              (let* ((reply-words (funcall (if xcb:lsb 'xcb:-unpack-u4-lsb
                                             'xcb:-unpack-u4)
-                                          (substring cache 4 8)))
+                                          cache 4))
                     (reply-length (+ 32 (* 4 reply-words)))
                     struct sequence plist)
                (when (< (length cache) reply-length) ;too short, do next time
@@ -264,7 +264,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                (xcb:-log "Reply received: %s" (substring cache 0 reply-length))
                (setq sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
                                          'xcb:-unpack-u2)
-                                       (substring cache 2 4)))
+                                       cache 2))
                (setq plist (slot-value connection 'reply-plist))
                (setq struct (plist-get plist sequence))
                (when struct

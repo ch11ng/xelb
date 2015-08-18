@@ -156,35 +156,35 @@
                         value
                       (+ value #x100000000)))) ;treated as float for 32-bit
 
-(defsubst xcb:-unpack-u1 (data)
+(defsubst xcb:-unpack-u1 (data offset)
   "Byte array => 1 byte unsigned integer."
-  (elt data 0))
+  (elt data offset))
 
-(defsubst xcb:-unpack-i1 (data)
+(defsubst xcb:-unpack-i1 (data offset)
   "Byte array => 1 byte signed integer."
-  (let ((value (xcb:-unpack-u1 data)))
+  (let ((value (xcb:-unpack-u1 data offset)))
     (if (= 0 (logand #x80 value))
         value
       (- (logand #xFF (lognot (1- value)))))))
 
-(defsubst xcb:-unpack-u2 (data)
+(defsubst xcb:-unpack-u2 (data offset)
   "Byte array => 2 bytes unsigned integer (MSB first)."
-  (logior (lsh (elt data 0) 8) (elt data 1)))
+  (logior (lsh (elt data offset) 8) (elt data (1+ offset))))
 
-(defsubst xcb:-unpack-u2-lsb (data)
+(defsubst xcb:-unpack-u2-lsb (data offset)
   "Byte array => 2 bytes unsigned integer (LSB first)."
-  (logior (elt data 0) (lsh (elt data 1) 8)))
+  (logior (elt data offset) (lsh (elt data (1+ offset)) 8)))
 
-(defsubst xcb:-unpack-i2 (data)
+(defsubst xcb:-unpack-i2 (data offset)
   "Byte array => 2 bytes signed integer (MSB first)."
-  (let ((value (xcb:-unpack-u2 data)))
+  (let ((value (xcb:-unpack-u2 data offset)))
     (if (= 0 (logand #x8000 value))
         value
       (- (logand #xFFFF (lognot (1- value)))))))
 
-(defsubst xcb:-unpack-i2-lsb (data)
+(defsubst xcb:-unpack-i2-lsb (data offset)
   "Byte array => 2 bytes signed integer (LSB first)."
-  (let ((value (xcb:-unpack-u2-lsb data)))
+  (let ((value (xcb:-unpack-u2-lsb data offset)))
     (if (= 0 (logand #x8000 value))
         value
       (- (logand #xFFFF (lognot (1- value)))))))
@@ -192,36 +192,41 @@
 (if (/= 0 (lsh 1 32))
     ;; 64-bit
     (progn
-      (defsubst xcb:-unpack-u4 (data)
+      (defsubst xcb:-unpack-u4 (data offset)
         "Byte array => 4 bytes unsigned integer (MSB first, 64-bit)."
-        (logior (lsh (elt data 0) 24) (lsh (elt data 1) 16)
-                (lsh (elt data 2) 8) (elt data 3)))
-      (defsubst xcb:-unpack-u4-lsb (data)
+        (logior (lsh (elt data offset) 24) (lsh (elt data (1+ offset)) 16)
+                (lsh (elt data (+ offset 2)) 8) (elt data (+ offset 3))))
+      (defsubst xcb:-unpack-u4-lsb (data offset)
         "Byte array => 4 bytes unsigned integer (LSB first, 64-bit)."
-        (logior (elt data 0) (lsh (elt data 1) 8)
-                (lsh (elt data 2) 16) (lsh (elt data 3) 24))))
+        (logior (elt data offset) (lsh (elt data (1+ offset)) 8)
+                (lsh (elt data (+ offset 2)) 16)
+                (lsh (elt data (+ offset 3)) 24))))
   ;; 32-bit (30-bit actually; large numbers are represented as float type)
-  (defsubst xcb:-unpack-u4 (data)
+  (defsubst xcb:-unpack-u4 (data offset)
     "Byte array => 4 bytes unsigned integer (MSB first, 32-bit)."
-    (let ((msb (elt data 0)))
+    (let ((msb (elt data offset)))
       (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-         (logior (lsh (elt data 1) 16) (lsh (elt data 2) 8) (elt data 3)))))
-  (defsubst xcb:-unpack-u4-lsb (data)
+         (logior (lsh (elt data (1+ offset)) 16)
+                 (lsh (elt data (+ offset 2)) 8)
+                 (elt data (+ offset 3))))))
+  (defsubst xcb:-unpack-u4-lsb (data offset)
     "Byte array => 4 bytes unsigned integer (LSB first, 32-bit)."
-    (let ((msb (elt data 3)))
+    (let ((msb (elt data (+ offset 3))))
       (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-         (logior (elt data 0) (lsh (elt data 1) 8) (lsh (elt data 2) 16))))))
+         (logior (elt data offset)
+                 (lsh (elt data (1+ offset)) 8)
+                 (lsh (+ offset 2) 16))))))
 
-(defsubst xcb:-unpack-i4 (data)
+(defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
-  (let ((value (xcb:-unpack-u4 data)))
+  (let ((value (xcb:-unpack-u4 data offset)))
     (if (< value #x80000000)            ;treated as float for 32-bit
         value
       (- value #x100000000))))          ;treated as float for 32-bit
 
-(defsubst xcb:-unpack-i4-lsb (data)
+(defsubst xcb:-unpack-i4-lsb (data offset)
   "Byte array => 4 bytes signed integer (LSB first)."
-  (let ((value (xcb:-unpack-u4-lsb data)))
+  (let ((value (xcb:-unpack-u4-lsb data offset)))
     (if (< value #x80000000)            ;treated as float for 32-bit
         value
       (- value #x100000000))))          ;treated as float for 32-bit
@@ -414,7 +419,7 @@ The optional argument CTX is for <paramref>."
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (or (eq type 'fd) (eq type 'xcb:-ignore))
-        (setq tmp (xcb:-unmarshal-field obj type byte-array
+        (setq tmp (xcb:-unmarshal-field obj type byte-array 0
                                         (cl--slot-descriptor-initform slot)
                                         ctx))
         (setf (slot-value obj (cl--slot-descriptor-name slot)) (car tmp))
@@ -422,8 +427,8 @@ The optional argument CTX is for <paramref>."
         (setq result (+ result (cadr tmp)))))
     result))
 
-(cl-defmethod xcb:-unmarshal-field ((obj xcb:-struct) type data initform
-                                    &optional ctx)
+(cl-defmethod xcb:-unmarshal-field ((obj xcb:-struct) type data offset
+                                    initform &optional ctx)
   "Return the value of a field in struct OBJ of type TYPE, byte-array
 representation DATA, and default value INITFORM.
 
@@ -432,22 +437,26 @@ The optional argument CTX is for <paramref>.
 This method returns a list of two components, with the first being the result
 and the second the consumed length."
   (pcase (indirect-variable type)
-    (`xcb:-u1 (list (elt data 0) 1))
-    (`xcb:-i1 (let ((result (elt data 0)))
+    (`xcb:-u1 (list (elt data offset) 1))
+    (`xcb:-i1 (let ((result (elt data offset)))
                 (list (if (< result 128) result (- result 255)) 1)))
     (`xcb:-u2 (list (if (slot-value obj '~lsb)
-                        (xcb:-unpack-u2-lsb data) (xcb:-unpack-u2 data))
+                        (xcb:-unpack-u2-lsb data offset)
+                      (xcb:-unpack-u2 data offset))
                     2))
     (`xcb:-i2 (list (if (slot-value obj '~lsb)
-                        (xcb:-unpack-i2-lsb data) (xcb:-unpack-i2 data))
+                        (xcb:-unpack-i2-lsb data offset)
+                      (xcb:-unpack-i2 data offset))
                     2))
     (`xcb:-u4 (list (if (slot-value obj '~lsb)
-                        (xcb:-unpack-u4-lsb data) (xcb:-unpack-u4 data))
+                        (xcb:-unpack-u4-lsb data offset)
+                      (xcb:-unpack-u4 data offset))
                     4))
     (`xcb:-i4 (list (if (slot-value obj '~lsb)
-                        (xcb:-unpack-i4-lsb data) (xcb:-unpack-i4 data))
+                        (xcb:-unpack-i4-lsb data offset)
+                      (xcb:-unpack-i4 data offset))
                     4))
-    (`xcb:void (list (elt data 0) 1))
+    (`xcb:void (list (elt data offset) 1))
     (`xcb:-pad
      (unless (integerp initform)
        (when (eq 'quote (car initform))
@@ -459,7 +468,7 @@ and the second the consumed length."
        (when (eq 'quote (car initform))
          (setq initform (cadr initform)))
        (setq initform (eval initform `((obj . ,obj) (ctx . ,ctx)))))
-     (list initform (% (length data) initform)))
+     (list initform (% (- (length data) offset) initform)))
     (`xcb:-list
      (when (eq 'quote (car initform))   ;unquote the form
        (setq initform (cadr initform)))
@@ -476,17 +485,19 @@ and the second the consumed length."
           (setf (slot-value obj list-name)
                 (decode-coding-string
                  (apply 'unibyte-string
-                        (append (substring data 0 list-size) nil))
+                        (append (substring data offset
+                                           (+ offset list-size))
+                                nil))
                  'iso-latin-1)))
          (`xcb:void                     ;for further unmarshalling
-          (setf (slot-value obj list-name) (substring data 0 list-size)))
+          (setf (slot-value obj list-name)
+                (substring data offset (+ offset list-size))))
          (x
           (let ((count 0)
                 result tmp)
             (dotimes (i list-size)
-              (setq tmp (xcb:-unmarshal-field obj x data nil))
+              (setq tmp (xcb:-unmarshal-field obj x data (+ offset count) nil))
               (setq result (nconc result (list (car tmp))))
-              (setq data (substring data (cadr tmp)))
               (setq count (+ count (cadr tmp))))
             (setf (slot-value obj list-name) result)
             (setq list-size count))))   ;to byte length
@@ -521,14 +532,14 @@ and the second the consumed length."
                  (when (eq name (cl--slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq tmp (xcb:-unmarshal-field obj data nil))
+             (setq tmp (xcb:-unmarshal-field obj data offset nil))
              (setf (slot-value obj name) (car tmp))
              (setq count (+ count (cadr tmp)))
              (setq data (substring data (cadr tmp))))))
        (list initform count)))
     ((and x (guard (child-of-class-p x xcb:-struct)))
      (let* ((struct-obj (make-instance x))
-            (tmp (xcb:unmarshal struct-obj data obj)))
+            (tmp (xcb:unmarshal struct-obj (substring data offset) obj)))
        (list struct-obj tmp)))
     (x (error "[XCB] Unsupported type for unmarshalling: %s" x))))
 
@@ -627,7 +638,7 @@ The optional argument CTX is for <paramref>."
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (eq type 'xcb:-ignore)
-        (setq tmp (xcb:-unmarshal-field obj type byte-array
+        (setq tmp (xcb:-unmarshal-field obj type byte-array 0
                                         (cl--slot-descriptor-initform slot)
                                         ctx))
         (setf (slot-value obj (cl--slot-descriptor-name slot)) (car tmp))
