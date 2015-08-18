@@ -138,19 +138,22 @@ This method automatically format the value as 8, 16 or 32 bits array."
            (cl-assert (= (* 2 value-len) (length tmp)))
            (if ~lsb
                (dotimes (i value-len)
-                 (setf value (vconcat value (vector (xcb:-unpack-u2-lsb tmp))))
+                 (setf value (vconcat value
+                                      (vector (xcb:-unpack-u2-lsb tmp 0))))
                  (setq tmp (substring tmp 2)))
              (dotimes (i value-len)
-               (setf value (vconcat value (vector (xcb:-unpack-u2 tmp))))
+               (setf value (vconcat value
+                                    (vector (xcb:-unpack-u2 tmp 0))))
                (setq tmp (substring tmp 2)))))
           (32
            (cl-assert (= (* 4 value-len) (length tmp)))
            (if ~lsb
                (dotimes (i value-len)
-                 (setf value (vconcat value (vector (xcb:-unpack-u4-lsb tmp))))
+                 (setf value (vconcat value
+                                      (vector (xcb:-unpack-u4-lsb tmp 0))))
                  (setq tmp (substring tmp 4)))
              (dotimes (i value-len)
-               (setf value (vconcat value (vector (xcb:-unpack-u4 tmp))))
+               (setf value (vconcat value (vector (xcb:-unpack-u4 tmp 0))))
                (setq tmp (substring tmp 4)))))
           (_ (cl-assert nil)))))
     retval))
