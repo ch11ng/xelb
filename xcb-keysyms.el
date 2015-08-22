@@ -308,6 +308,7 @@ This function returns nil when it fails to convert an event."
           (push 'control event))
         (when (and (/= 0 (logand mask xcb:keysyms:shift-mask))
                    ;; Emacs only set shift bit for letters
+                   (integerp (car (last event)))
                    (<= ?A (car (last event))) (>= ?Z (car (last event))))
           (push 'shift event))
         (when (and xcb:keysyms:hyper-mask
