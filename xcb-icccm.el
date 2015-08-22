@@ -291,9 +291,8 @@ explicitly listed out."
          (slots (nthcdr (length slots-orig) slots))
          (value (slot-value obj 'value)))
     (unless value (setq value (make-vector (length slots) nil))) ;fallback
-    (cl-assert (= (length value) (length slots)))
     ;; Set explicit fields from value field
-    (dotimes (i (length slots))
+    (dotimes (i (length value))
       (setf (slot-value obj (cl--slot-descriptor-name (elt slots i)))
             (elt value i)))
     retval))
