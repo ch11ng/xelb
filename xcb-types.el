@@ -215,7 +215,7 @@
       (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
          (logior (elt data offset)
                  (lsh (elt data (1+ offset)) 8)
-                 (lsh (+ offset 2) 16))))))
+                 (lsh (elt data (+ offset 2)) 16))))))
 
 (defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
