@@ -569,6 +569,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 (if (not argv)
     (error "Usage: el_client.el <protocol.xml> [additional_load_paths]")
   (add-to-list 'load-path default-directory)
+  (add-to-list 'load-path (concat default-directory "/../"))
   (dolist (i (cdr argv))
     (add-to-list 'load-path i))
   (require 'xcb-types)
