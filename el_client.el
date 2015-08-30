@@ -56,7 +56,7 @@
 (defvar event-alist nil "Record X events in this module.")
 (make-variable-buffer-local 'event-alist)
 
-(defvar pad-count 0 "<pad> node counter.")
+(defvar pad-count -1 "<pad> node counter.")
 (make-variable-buffer-local 'pad-count)
 
 ;;;; Helper functions
@@ -81,9 +81,24 @@
   "Return the attribute ATTR of node NODE and escape it."
   (escape-name (node-attr node attr)))
 
-(defsubst node-subnodes (node)
-  "Return all the subnodes of node NODE as a list."
-  (cddr node))
+(defsubst node-subnodes (node &optional mark-auto-padding)
+  "Return all the subnodes of node NODE as a list.
+
+If MARK-AUTO-PADDING is non-nil, all <list>'s fitting for padding will include
+an `xelb-auto-padding' attribute."
+  (let ((subnodes (cddr node)))
+    (when mark-auto-padding
+      ;; Remove all <comment>'s and <doc>'s
+      (cl-delete-if (lambda (i) (or (eq 'comment (car i)) (eq 'doc (car i))))
+                    subnodes)
+      (dotimes (i (1- (length subnodes)))
+        (when (and (eq 'list (node-name (elt subnodes i)))
+                   (pcase (node-name (elt subnodes (1+ i)))
+                     ((or `reply `pad))
+                     (_ t)))
+          (setf (cadr (elt subnodes i))
+                (nconc (cadr (elt subnodes i)) `((xelb-auto-padding . t)))))))
+    subnodes))
 
 (defsubst node-subnode (node)
   "Return the (only) subnode of node NODE with useless contents skipped."
@@ -93,6 +108,10 @@
         (unless (and (listp i)
                      (or (eq (node-name i) 'comment) (eq (node-name i) 'doc)))
           (throw 'break i))))))
+
+(defsubst generate-pad-name ()
+  "Generate a new slot name for <pad>."
+  (make-symbol (format "pad~%d" (cl-incf pad-count))))
 
 ;;;; Entry & root element
 
@@ -153,7 +172,7 @@
 
 (defun parse-top-level-element (node)
   "Parse a top-level element."
-  (setq pad-count 0)
+  (setq pad-count -1)
   (pcase (node-name node)
     (`import (parse-import node))
     (`struct (parse-struct node))
@@ -179,31 +198,16 @@
 (defun parse-struct (node)
   "Parse <struct>."
   (let ((name (intern (concat prefix (node-attr node 'name))))
-        (contents (node-subnodes node))
-        result)
-    (setq contents
-          (apply 'nconc
-                 (mapcar (lambda (i)
-                           (setq result (parse-structure-content i))
-                           (when (eq (node-name i) 'pad) ;rename pad~
-                             (setq result
-                                   `((,(intern (format "pad~%d" pad-count))
-                                      ,@(cdar result))))
-                             (setq pad-count (1+ pad-count)))
-                           result)
-                         contents)))
-    `((defclass ,name (xcb:-struct) ,contents))))
+        (contents (node-subnodes node t)))
+    `((defclass ,name (xcb:-struct)
+        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
 
 (defun parse-union (node)
   "Parse <union>."
   (let ((name (intern (concat prefix (node-attr node 'name))))
         (contents (node-subnodes node)))
-    (setq contents
-          (apply 'nconc
-                 (mapcar (lambda (i)
-                           (parse-structure-content i))
-                         contents)))
-    `((defclass ,name (xcb:-union) ,contents))))
+    `((defclass ,name (xcb:-union)
+        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
 
 (defun parse-xidtype (node)
   "Parse <xidtype>."
@@ -242,41 +246,26 @@ The `combine-adjacent' attribute is simply ignored."
   (let* ((name (intern (concat prefix (node-attr node 'name))))
          (opcode (string-to-int (node-attr node 'opcode)))
          (contents `((~opcode :initform ,opcode :type xcb:-u1)))
-         (subnodes (node-subnodes node))
-         (reply-pad-count 0)
+         (subnodes (node-subnodes node t))
          expressions
-         result reply-result reply-name reply-contents)
+         result reply-name reply-contents)
     (dolist (i subnodes)
       (if (not (eq (node-name i) 'reply))
           (progn
             (setq result (parse-structure-content i))
-            (pcase (node-name i)
-              (`pad                     ;rename pad~
-               (setq result
-                     `((,(intern (format "pad~%d" pad-count))
-                        ,@(cdar result))))
-               (setq pad-count (1+ pad-count))
-               (setq contents (nconc contents result)))
-              (`exprfield             ;split into field and expression
-               (setq contents (nconc contents (list (car result))))
-               (setq expressions (nconc expressions (list (cadr result)))))
-              (_ (setq contents (nconc contents result)))))
+            (if (eq 'exprfield (node-name i))
+                ;; Split into field and expression
+                (setq contents (nconc contents (list (car result)))
+                      expressions (nconc expressions (list (cadr result))))
+              (setq contents (nconc contents result))))
         ;; Parse <reply>
+        (setq pad-count -1)             ;reset padding counter
         (setq reply-name
               (intern (concat prefix (node-attr node 'name) "~reply")))
-        (setq reply-contents (node-subnodes i))
+        (setq reply-contents (node-subnodes i t))
         (setq reply-contents
               (apply 'nconc
-                     (mapcar (lambda (j)
-                               (setq reply-result (parse-structure-content j))
-                               (when (eq (node-name j) 'pad) ;rename pad~
-                                 (setq reply-result
-                                       `((,(intern (format "pad~%d"
-                                                           reply-pad-count))
-                                          ,@(cdar reply-result))))
-                                 (setq reply-pad-count (1+ reply-pad-count)))
-                               reply-result)
-                             reply-contents)))))
+                     (mapcar 'parse-structure-content reply-contents)))))
     (delq nil contents)
     (delq nil
           `((defclass ,name (xcb:-request) ,contents)
@@ -298,19 +287,8 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let ((name (intern (concat prefix (node-attr node 'name))))
         (event-number (string-to-int (node-attr node 'number)))
         (xge (node-attr node 'xge))
-        (contents (node-subnodes node))
-        result)
-    (setq contents
-          (apply 'nconc
-                 (mapcar (lambda (i)
-                           (setq result (parse-structure-content i))
-                           (when (eq (node-name i) 'pad) ;rename pad~
-                             (setq result
-                                   `((,(intern (format "pad~%d" pad-count))
-                                      ,@(cdar result))))
-                             (setq pad-count (1+ pad-count)))
-                           result)
-                         contents)))
+        (contents (node-subnodes node t)))
+    (setq contents (apply 'nconc (mapcar 'parse-structure-content contents)))
     (when xge                           ;generic event
       (setq contents
             (append
@@ -325,21 +303,10 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <error>."
   (let ((name (intern (concat prefix (node-attr node 'name))))
         (error-number (string-to-int (node-attr node 'number)))
-        (contents (node-subnodes node))
-        result)
-    (setq contents
-          (apply 'nconc
-                (mapcar (lambda (i)
-                          (setq result (parse-structure-content i))
-                          (when (eq (node-name i) 'pad) ;rename pad~
-                            (setq result
-                                  `((,(intern (format "pad~%d" pad-count))
-                                     ,@(cdar result))))
-                            (setq pad-count (1+ pad-count)))
-                          result)
-                        contents)))
+        (contents (node-subnodes node t)))
     (setq error-alist (nconc error-alist `((,error-number . ,name))))
-    `((defclass ,name (xcb:-error) ,contents))))
+    `((defclass ,name (xcb:-error)
+        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
 
 (defun parse-eventcopy (node)
   "Parse <eventcopy>."
@@ -381,9 +348,11 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let ((bytes (node-attr node 'bytes))
         (align (node-attr node 'align)))
     (if bytes
-        `((pad~ :initform ,(string-to-int bytes) :type xcb:-pad))
+        `((,(generate-pad-name)
+           :initform ,(string-to-int bytes) :type xcb:-pad))
       (if align
-          `((pad~ :initform ,(string-to-int align) :type xcb:-pad-align))
+          `((,(generate-pad-name)
+             :initform ,(string-to-int align) :type xcb:-pad-align))
         (error "Invalid <pad> field")))))
 
 (defun parse-field (node)
@@ -410,7 +379,12 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
     `((,name :initarg ,(intern (concat ":" (symbol-name name)))
              :type xcb:-ignore)
       (,name-alt :initform '(name ,name type ,type size ,size)
-                 :type xcb:-list))))
+                 :type xcb:-list)
+      ;; Auto padding after variable-length list
+      ;; FIXME: according to the definition of `XCB_TYPE_PAD' in xcb.h, it does
+      ;;        not always padding to 4 bytes.
+      ,@(when (and (node-attr node 'xelb-auto-padding) (not (integerp size)))
+          `((,(generate-pad-name) :initform 4 :type xcb:-pad-align))))))
 
 ;; The car of result is the field declaration, and the cadr is the expression
 ;; to be evaluated.
@@ -453,18 +427,13 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                     (let ((case-name (node-name i))
                           condition name-list tmp)
                       (when (or (eq case-name 'bitcase) (eq case-name 'case))
-                        (dolist (j (node-subnodes i))
+                        (dolist (j (node-subnodes i t))
                           (pcase (node-name j)
                             (`enumref
                              (setq condition
                                    (nconc condition (list (parse-enumref j)))))
                             (x
                              (setq tmp (parse-structure-content j))
-                             (when (eq x 'pad) ;rename pad~
-                               (setq tmp
-                                     `((,(intern (format "pad~%d" pad-count))
-                                        ,@(cdar tmp))))
-                               (setq pad-count (1+ pad-count)))
                              (setq fields (nconc fields tmp))
                              (setq name-list
                                    (nconc name-list (list (caar tmp)))))))

@@ -308,6 +308,7 @@
 			  (xcb:-fieldref 'width)
 			  (xcb:-fieldref 'height)))
 		  :type xcb:-list)
+   (pad~2 :initform 4 :type xcb:-pad-align)
    (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size

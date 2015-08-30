@@ -520,11 +520,13 @@
 			 (xcb:-fieldref 'num-versions)
 			 2))
 		 :type xcb:-list)
+   (pad~0 :initform 4 :type xcb:-pad-align)
    (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
    (gl-extension-string~ :initform
 			 '(name gl-extension-string type xcb:char size
 				(xcb:-fieldref 'gl-str-len))
 			 :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
    (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)
    (glx-extension-string~ :initform
 			  '(name glx-extension-string type xcb:char size
@@ -564,11 +566,13 @@
 			 (xcb:-fieldref 'num-versions)
 			 3))
 		 :type xcb:-list)
+   (pad~0 :initform 4 :type xcb:-pad-align)
    (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
    (gl-extension-string~ :initform
 			 '(name gl-extension-string type xcb:char size
 				(xcb:-fieldref 'gl-str-len))
 			 :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
    (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)
    (glx-extension-string~ :initform
 			  '(name glx-extension-string type xcb:char size

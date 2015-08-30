@@ -120,6 +120,7 @@
 		    '(name object-context type xcb:char size
 			   (xcb:-fieldref 'object-context-len))
 		    :type xcb:-list)
+   (pad~0 :initform 4 :type xcb:-pad-align)
    (data-context :initarg :data-context :type xcb:-ignore)
    (data-context~ :initform
 		  '(name data-context type xcb:char size

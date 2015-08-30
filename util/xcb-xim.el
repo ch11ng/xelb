@@ -111,8 +111,7 @@
 Consider let-bind it rather than change its global value.")
 
 (defclass xim:-struct (xcb:-struct)
-  ((~lsb :initform (symbol-value 'xim:lsb))
-   (~auto-padding :initform nil))       ;disable auto padding
+  ((~lsb :initform (symbol-value 'xim:lsb)))
   :documentation "Struct type for XIM.")
 
 (defclass xim:-request (xim:-struct)

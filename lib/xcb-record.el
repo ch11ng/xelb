@@ -87,6 +87,7 @@
 		  '(name client-specs type xcb:record:ClientSpec size
 			 (xcb:-fieldref 'num-client-specs))
 		  :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
    (ranges :initarg :ranges :type xcb:-ignore)
    (ranges~ :initform
 	    '(name ranges type xcb:record:Range size
@@ -106,6 +107,7 @@
 		  '(name client-specs type xcb:record:ClientSpec size
 			 (xcb:-fieldref 'num-client-specs))
 		  :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
    (ranges :initarg :ranges :type xcb:-ignore)
    (ranges~ :initform
 	    '(name ranges type xcb:record:Range size
