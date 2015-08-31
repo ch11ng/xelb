@@ -353,8 +353,11 @@ classes of EVENT (since they have the same event number)."
   (let ((cache (slot-value obj 'request-cache)))
     (when (< 0 (length cache))
       (setf (slot-value obj 'request-cache) []) ;should be cleared ASAP
-      (process-send-string (slot-value obj 'process)
-                           (apply 'unibyte-string (append cache nil))))))
+      (let ((old-lock (slot-value obj 'event-lock)))
+        (set-slot-value obj 'event-lock t)
+        (process-send-string (slot-value obj 'process)
+                             (apply 'unibyte-string (append cache nil)))
+        (set-slot-value obj 'event-lock old-lock)))))
 
 (cl-defmethod xcb:get-extension-data ((obj xcb:connection) namespace)
   "Fetch the extension data from X server (block until data is retrieved)."
@@ -506,14 +509,20 @@ Otherwise no error will ever be reported."
       ;; Multiple replies
       (when (and (>= sequence (slot-value obj 'reply-sequence))
                  (>= sequence (slot-value obj 'error-sequence)))
-        (xcb:aux:sync obj))
+        (let ((old-lock (slot-value obj 'event-lock)))
+          (set-slot-value obj 'event-lock t)
+          (xcb:aux:sync obj)
+          (set-slot-value obj 'event-lock old-lock)))
     ;; Single reply
     (let ((process (slot-value obj 'process)))
       ;; Wait until the request processed
       (with-timeout (xcb:connection-timeout (error "[XELB] Retrieve reply timeout"))
         (while (and (> sequence (slot-value obj 'reply-sequence))
                     (> sequence (slot-value obj 'error-sequence)))
-          (accept-process-output process 1)))))
+          (let ((old-lock (slot-value obj 'event-lock)))
+            (set-slot-value obj 'event-lock t)
+            (accept-process-output process 1)
+            (set-slot-value obj 'event-lock old-lock))))))
   (let* ((reply-plist (slot-value obj 'reply-plist))
          (reply-data (plist-get reply-plist sequence))
          (error-plist (slot-value obj 'error-plist))
