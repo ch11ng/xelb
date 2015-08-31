@@ -422,8 +422,7 @@ classes of EVENT (since they have the same event number)."
          (extension-opcode
           (plist-get (slot-value obj 'extension-opcode-plist) namespace))
          (msg (xcb:marshal request))
-         (len (+ 2 (length msg)))
-         (cache (slot-value obj 'request-cache)))
+         (len (+ 2 (length msg))))
     (when extension-opcode
       (setq msg (vconcat (vector extension-opcode) msg))
       (setq len (1+ len)))
@@ -438,12 +437,12 @@ classes of EVENT (since they have the same event number)."
                    (substring msg 2)
                    (make-vector (% (- 4 (% len 4)) 4) 0))) ;required sometimes
     (when (< (xcb:get-maximum-request-length obj)
-             (+ (length msg) (length cache))) ;flush on cache full
+             (+ (length msg) (length (slot-value obj 'request-cache)))) ;flush on cache full
       (xcb:flush obj)
       (setq cache []))
     (xcb:-log "Cache request: %s" request)
     (with-slots (request-cache request-sequence) obj
-      (setf request-cache (vconcat cache msg)
+      (setf request-cache (vconcat request-cache msg)
             request-sequence (1+ request-sequence))
       request-sequence)))
 
