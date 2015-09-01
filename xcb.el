@@ -78,7 +78,7 @@
    (setup-data :initform nil)           ;X connection setup data
    (request-cache :initform [])         ;cache for outgoing requests
    (message-cache :initform [])         ;cache for incoming messages
-   (event-lock :initform nil)
+   (event-lock :initform 0)
    (event-queue :initform nil)
    (error-plist :initform nil)
    (reply-plist :initform nil)
@@ -186,7 +186,7 @@ SCREEN."
     (with-timeout (xcb:connection-timeout (xcb:disconnect obj)
                                (error "[XELB] Connection timeout"))
       (while (not (slot-value obj 'setup-data))
-        (accept-process-output process 1)))))
+        (accept-process-output process 1 nil 1)))))
 
 (defun xcb:-connection-filter (process message)
   "Filter function for an X connection.
@@ -304,15 +304,15 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
           (when (/= current-cache-length cache-length)
             (xcb:-connection-filter process []))))
       (with-slots (event-lock event-queue) connection
-        (unless event-lock
-          (setf event-lock t)
+        (unless (< 0 event-lock)
+          (cl-incf event-lock)
           (let (event data synthetic)
             (while (setq event (pop event-queue))
               (setq data (elt event 1)
                     synthetic (elt event 2))
               (dolist (listener (elt event 0))
                 (funcall listener data synthetic))))
-          (setf event-lock nil))))))
+          (cl-decf event-lock))))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
   "Disconnect from X server."
@@ -441,10 +441,10 @@ classes of EVENT (since they have the same event number)."
              (+ (length msg) (length cache))) ;flush on cache full
       (xcb:flush obj)
       (setq cache []))
-    (xcb:-log "Cache request: %s" request)
     (with-slots (request-cache request-sequence) obj
       (setf request-cache (vconcat cache msg)
             request-sequence (1+ request-sequence))
+      (xcb:-log "Cache request #%d: %s" request-sequence request)
       request-sequence)))
 
 (cl-defmethod xcb:-+request ((obj xcb:connection) request)
@@ -510,10 +510,12 @@ Otherwise no error will ever be reported."
     ;; Single reply
     (let ((process (slot-value obj 'process)))
       ;; Wait until the request processed
-      (with-timeout (xcb:connection-timeout (error "[XELB] Retrieve reply timeout"))
+      (cl-incf (slot-value obj 'event-lock))
+      (with-timeout (xcb:connection-timeout (warn "[XELB] Retrieve reply timeout"))
         (while (and (> sequence (slot-value obj 'reply-sequence))
                     (> sequence (slot-value obj 'error-sequence)))
-          (accept-process-output process 1)))))
+          (accept-process-output process 1 nil 1)))
+      (cl-decf (slot-value obj 'event-lock))))
   (let* ((reply-plist (slot-value obj 'reply-plist))
          (reply-data (plist-get reply-plist sequence))
          (error-plist (slot-value obj 'error-plist))
@@ -622,9 +624,11 @@ Sync by sending a GetInputFocus request and waiting until it's processed."
         (process (slot-value obj 'process)))
     (xcb:flush obj)
     ;; Wait until request processed
-    (with-timeout (xcb:connection-timeout (error "[XELB] Sync timeout"))
+    (cl-incf (slot-value obj 'event-lock))
+    (with-timeout (xcb:connection-timeout (warn "[XELB] Sync timeout"))
       (while (> sequence (slot-value obj 'reply-sequence))
-        (accept-process-output process 1)))))
+        (accept-process-output process 1 nil 1)))
+    (cl-decf (slot-value obj 'event-lock))))
 
 (cl-defmethod xcb:-error-or-event-class->number ((obj xcb:connection) class)
   "Return the error/event number of a error/event class CLASS."
