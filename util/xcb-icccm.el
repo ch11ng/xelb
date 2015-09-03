@@ -44,10 +44,14 @@
 
 ;;;; ICCCM atoms
 
-(defconst xcb:icccm:-atoms
-  '(UTF8_STRING COMPOUND_TEXT TEXT C_STRING
-    WM_PROTOCOLS WM_TAKE_FOCUS WM_DELETE_WINDOW WM_STATE)
-  "Atoms involved in ICCCM.")
+(eval-and-compile
+  (defconst xcb:icccm:-atoms
+    '(UTF8_STRING COMPOUND_TEXT TEXT C_STRING
+                  WM_PROTOCOLS WM_TAKE_FOCUS WM_DELETE_WINDOW WM_STATE)
+    "Atoms involved in ICCCM.")
+
+  (dolist (atom xcb:icccm:-atoms)
+    (eval `(defvar ,(intern (concat "xcb:Atom:" (symbol-name atom))) nil))))
 
 (cl-defmethod xcb:icccm:init ((obj xcb:connection))
   "Initialize ICCCM module.
@@ -60,16 +64,16 @@ This method must be called before using any other method in this module."
 
 The value of these atoms will be available in `xcb:Atom' namespace."
   (dolist (atom atoms)
-    (let ((name (symbol-name atom))
-          reply)
-      (unless (boundp atom)
-        (setq reply (xcb:+request-unchecked+reply obj
-                        (make-instance 'xcb:InternAtom
-                                       :only-if-exists 0
-                                       :name-len (length name)
-                                       :name name)))
-        (eval `(defvar ,(intern (concat "xcb:Atom:" name)) ;add prefix
-                 (slot-value ,reply 'atom)))))))
+    (let* ((name (symbol-name atom))
+           (var-name (intern (concat "xcb:Atom:" name))))
+      (unless (and (boundp var-name) (symbol-value var-name))
+        (set var-name
+             (slot-value (xcb:+request-unchecked+reply obj
+                             (make-instance 'xcb:InternAtom
+                                            :only-if-exists 0
+                                            :name-len (length name)
+                                            :name name))
+                         'atom))))))
 
 ;;;; Client message
 

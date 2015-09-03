@@ -60,7 +60,7 @@
 
 (require 'xcb-xproto)
 
-(eval-and-compile
+(eval-when-compile
   (defvar xcb:debug-on nil "Non-nil to turn on debug."))
 
 (defmacro xcb:-log (format-string &rest args)
