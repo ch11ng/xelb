@@ -1,32 +1,31 @@
 ;;; xcb-xim.el --- XIM Protocol  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This library implements the X Input Method Protocol.
 
 ;; Please note that the byte order of an XIM packet can be different from that
-;; of X packets. Moreover, if you are writing an XIM server, the byte order is
-;; actually specified by the client. Therefore we provide a different global
+;; of X packets.  Moreover, if you are writing an XIM server, the byte order is
+;; actually specified by the client.  Therefore we provide a different global
 ;; variable `xim:lsb' to indicate the byte order of classes in this library.
 ;; You should let-bind it whenever creating new objects.
 
@@ -106,7 +105,7 @@
 
 ;;;; Basic requests packet format
 
-(defvar xim:lsb xcb:lsb "t for LSB first, nil otherwise.
+(defvar xim:lsb xcb:lsb "Non-nil for LSB first, nil otherwise.
 
 Consider let-bind it rather than change its global value.")
 
@@ -125,8 +124,8 @@ Consider let-bind it rather than change its global value.")
   (let ((result (cl-call-next-method obj)))
     (vconcat (substring result 0 2)
              (funcall (if (slot-value obj '~lsb)
-                          'xcb:-pack-u2-lsb
-                        'xcb:-pack-u2)
+                          #'xcb:-pack-u2-lsb
+                        #'xcb:-pack-u2)
                       (1- (/ (length result) 4)))
              (substring result 4))))
 
@@ -137,6 +136,7 @@ Consider let-bind it rather than change its global value.")
 (xcb:deftypealias 'xim:BITMASK32 'xcb:CARD32)
 
 (defsubst xim:PADDING (N)
+  "Pad N to 4 bytes."
   (% (- 4 (% N 4)) 4))
 
 (xcb:deftypealias 'xim:LPCE 'xcb:char)
@@ -459,8 +459,8 @@ Consider let-bind it rather than change its global value.")
               :type xcb:-list)))
 
 (cl-defmethod xcb:marshal ((obj xim:open-reply))
-  (let ((im-attrs (mapconcat 'xcb:marshal (slot-value obj 'im-attrs) []))
-        (ic-attrs (mapconcat 'xcb:marshal (slot-value obj 'ic-attrs) [])))
+  (let ((im-attrs (mapconcat #'xcb:marshal (slot-value obj 'im-attrs) []))
+        (ic-attrs (mapconcat #'xcb:marshal (slot-value obj 'ic-attrs) [])))
     (setf (slot-value obj 'im-attrs-length) (length im-attrs)
           (slot-value obj 'im-attrs) im-attrs
           (slot-value obj 'ic-attrs-length) (length ic-attrs)
@@ -553,8 +553,8 @@ Consider let-bind it rather than change its global value.")
                :type xcb:-list)))
 
 (cl-defmethod xcb:marshal ((obj xim:encoding-negotiation))
-  (let ((names (mapconcat 'xcb:marshal (slot-value obj 'names) []))
-        (encodings (mapconcat 'xcb:marshal (slot-value obj 'encodings) [])))
+  (let ((names (mapconcat #'xcb:marshal (slot-value obj 'names) []))
+        (encodings (mapconcat #'xcb:marshal (slot-value obj 'encodings) [])))
     (setf (slot-value obj 'names-length) (length names)
           (slot-value obj 'names) names
           (slot-value obj 'encodings-length) (length encodings)
@@ -602,7 +602,7 @@ Consider let-bind it rather than change its global value.")
    (pad~0 :initform '(xim:PADDING (xcb:-fieldref 'length)) :type xcb:-pad)))
 
 (cl-defmethod xcb:marshal ((obj xim:query-extension))
-  (let ((extensions (mapconcat 'xcb:marshal (slot-value obj 'extensions) [])))
+  (let ((extensions (mapconcat #'xcb:marshal (slot-value obj 'extensions) [])))
     (setf (slot-value obj 'length) (length extensions)
           (slot-value obj 'extensions) extensions)
     (cl-call-next-method obj)))
@@ -656,7 +656,7 @@ Consider let-bind it rather than change its global value.")
                    :type xcb:-list)))
 
 (cl-defmethod xcb:marshal ((obj xim:set-im-values))
-  (let ((im-attributes (mapconcat 'xcb:marshal
+  (let ((im-attributes (mapconcat #'xcb:marshal
                                   (slot-value obj 'im-attributes) [])))
     (setf (slot-value obj 'length) (length im-attributes)
           (slot-value obj 'im-attributes) im-attributes)
@@ -693,7 +693,7 @@ Consider let-bind it rather than change its global value.")
                    :type xcb:-list)))
 
 (cl-defmethod xcb:marshal ((obj xim:create-ic))
-  (let ((ic-attributes (mapconcat 'xcb:marshal
+  (let ((ic-attributes (mapconcat #'xcb:marshal
                                   (slot-value obj 'ic-attributes) [])))
     (setf (slot-value obj 'length) (length ic-attributes)
           (slot-value obj 'ic-attributes) ic-attributes)

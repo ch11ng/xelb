@@ -1,25 +1,24 @@
 ;;; xcb-keysyms.el --- Conversion between  -*- lexical-binding: t -*-
 ;;;                    X keysyms, X keycodes and Emacs key event.
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -105,7 +104,7 @@ This method must be called before using any other method in this module."
     (cl-assert (= (length keycodes) (* 8 keycodes-per-modifier)))
     (dotimes (i 8)
       (setq events nil)
-      (dotimes (j keycodes-per-modifier)
+      (dotimes (_ keycodes-per-modifier)
         (when (and (/= (setq keycode (pop keycodes)) 0)
                    (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
           (setq events
@@ -121,7 +120,7 @@ This method must be called before using any other method in this module."
                     (dolist (i (frame-list))
                       (when (frame-parameter i 'window-id)
                         (throw 'break i))))))
-         (id (string-to-int (frame-parameter frame 'window-id)))
+         (id (string-to-number (frame-parameter frame 'window-id)))
          (root
           (slot-value (car (slot-value (xcb:get-setup obj) 'roots)) 'root))
          (keycode (xcb:keysyms:keysym->keycode obj ?a))
@@ -239,10 +238,10 @@ SHIFT LOCK is ignored."
     lmeta* rmeta* lalt* ralt* lsuper* rsuper* lhyper* rhyper*
                                         ;#xff00 - #xffff
     ,@(make-list 15 nil) delete)
-  "Emacs event representations of X function keys (keysym #xff00 to #xffff)")
+  "Emacs event representations of X function keys (keysym #xff00 to #xffff).")
 
 (defun xcb:keysyms:event->keysym (event)
-  "Translate Emacs key event to X Keysym.
+  "Translate Emacs key event EVENT to X Keysym.
 
 This function returns nil when it fails to convert an event."
   (let ((modifiers (event-modifiers event))
@@ -267,7 +266,7 @@ This function returns nil when it fails to convert an event."
         (setq keysym (logior keysym #xff00)))
       `(,keysym
         ;; state for KeyPress event
-        ,(apply 'logior
+        ,(apply #'logior
                 (mapcar (lambda (i)
                           (pcase i
                             (`meta xcb:keysyms:meta-mask)
@@ -282,7 +281,10 @@ This function returns nil when it fails to convert an event."
                         modifiers))))))
 
 (defun xcb:keysyms:keysym->event (keysym &optional mask allow-modifiers)
-  "Translate X Keysym into Emacs key event."
+  "Translate X Keysym KEYSYM into Emacs key event.
+
+One may use MASK to provide modifier keys.  If ALLOW-MODIFIERS is non-nil,
+this function will also return symbols for pure modifiers keys."
   (let ((event (cond ((and (<= #x20 keysym) (>= #xff keysym))
                       keysym)
                      ((and (<= #xff00 keysym) (>= #xffff keysym))

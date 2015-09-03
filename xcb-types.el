@@ -1,46 +1,45 @@
 ;;; xcb-types.el --- Type definitions for XCB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This library defines various data types frequently used in XELB. Simple
+;; This library defines various data types frequently used in XELB.  Simple
 ;; types are defined with `cl-deftype' while others are defined as classes.
 ;; Basically, data types are used for converting objects to/from byte arrays
-;; rather than for validation purpose. Classes defined elsewhere should also
+;; rather than for validation purpose.  Classes defined elsewhere should also
 ;; support `xcb:marshal' and `xcb:unmarshal' methods in order to be considered
-;; a type. Most classes defined here are direct or indirect subclasses of
+;; a type.  Most classes defined here are direct or indirect subclasses of
 ;; `xcb:-struct', which has implemented the fundamental marshalling and
-;; unmarshalling methods. These classes again act as the superclasses for more
-;; concrete ones. You may use `eieio-browse' to easily get an overview of the
+;; unmarshalling methods.  These classes again act as the superclasses for more
+;; concrete ones.  You may use `eieio-browse' to easily get an overview of the
 ;; inheritance hierarchies of all classes defined.
 
 ;; Please pay special attention to the byte order adopted in your application.
 ;; The global variable `xcb:lsb' specifies the byte order at the time of
-;; instantiating a class (e.g. via `make-instance'). You may let-bind it to
+;; instantiating a class (e.g. via `make-instance').  You may let-bind it to
 ;; temporarily change the byte order locally.
 
 ;; Todo:
 ;; + The current implementation of `eieio-default-eval-maybe' only `eval's a
-;;   certain type of forms. If this is changed in the future, we will have to
+;;   certain type of forms.  If this is changed in the future, we will have to
 ;;   adapt our codes accordingly.
 ;; + STRING16 and CHAR2B should always be big-endian.
 ;; + <paramref> for `xcb:-marshal-field'?
@@ -77,12 +76,7 @@
       result))
   (defsubst cl--slot-descriptor-name (slot) (elt slot 0))
   (defsubst cl--slot-descriptor-initform (slot) (elt slot 1))
-  (defsubst cl--slot-descriptor-type (slot) (elt slot 2))
-  ;; More fixes for Emacs < 24.4
-  (unless (fboundp 'eieio--class-public-a)
-    (defsubst eieio--class-public-a (slot) (aref slot class-public-a))
-    (defsubst eieio--class-public-d (slot) (aref slot class-public-d))
-    (defsubst eieio--class-public-type (slot) (aref slot class-public-type))))
+  (defsubst cl--slot-descriptor-type (slot) (elt slot 2)))
 
 ;;;; Utility functions
 
@@ -113,36 +107,39 @@
   (xcb:-pack-u2-lsb (if (>= value 0) value
                       (1+ (logand #xFFFF (lognot (- value)))))))
 
-(if (/= 0 (lsh 1 32))
-    ;; 64 bit
-    (progn
-      (defsubst xcb:-pack-u4 (value)
-        "4 bytes unsigned integer => byte array (MSB first, 64-bit)."
-        (vector (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
-                (logand (lsh value -8) #xFF) (logand value #xFF)))
-      (defsubst xcb:-pack-u4-lsb (value)
-        "4 byte unsigned integer => byte array (LSB first, 64-bit)."
-        (vector (logand value #xFF) (logand (lsh value -8) #xFF)
-                (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF))))
-  ;; 32 bit (30-bit actually; large numbers are represented as float type)
-  (defsubst xcb:-pack-u4 (value)
-    "4 bytes unsigned integer => byte array (MSB first, 32-bit)."
-    (if (integerp value)
-        (vector (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
-                (logand (lsh value -8) #xFF) (logand value #xFF))
-      (let* ((msw (truncate value #x10000))
-             (lsw (truncate (- value (* msw 65536.0)))))
-        (vector (logand (lsh msw -8) #xFF) (logand msw #xFF)
-                (logand (lsh lsw -8) #xFF) (logand lsw #xFF)))))
-  (defsubst xcb:-pack-u4-lsb (value)
-    "4 bytes unsigned integer => byte array (LSB first, 32-bit)."
-    (if (integerp value)
-        (vector (logand value #xFF) (logand (lsh value -8) #xFF)
-                (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF))
-      (let* ((msw (truncate value #x10000))
-             (lsw (truncate (- value (* msw 65536.0)))))
-        (vector (logand lsw #xFF) (logand (lsh lsw -8) #xFF)
-                (logand msw #xFF) (logand (lsh msw -8) #xFF))))))
+(eval-and-compile
+  (if (/= 0 (lsh 1 32))
+      ;; 64 bit
+      (progn
+        (defsubst xcb:-pack-u4 (value)
+          "4 bytes unsigned integer => byte array (MSB first, 64-bit)."
+          (vector (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
+                  (logand (lsh value -8) #xFF) (logand value #xFF)))
+        (defsubst xcb:-pack-u4-lsb (value)
+          "4 byte unsigned integer => byte array (LSB first, 64-bit)."
+          (vector (logand value #xFF)
+                  (logand (lsh value -8) #xFF)
+                  (logand (lsh value -16) #xFF)
+                  (logand (lsh value -24) #xFF))))
+    ;; 32 bit (30-bit actually; large numbers are represented as float type)
+    (defsubst xcb:-pack-u4 (value)
+      "4 bytes unsigned integer => byte array (MSB first, 32-bit)."
+      (if (integerp value)
+          (vector (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
+                  (logand (lsh value -8) #xFF) (logand value #xFF))
+        (let* ((msw (truncate value #x10000))
+               (lsw (truncate (- value (* msw 65536.0)))))
+          (vector (logand (lsh msw -8) #xFF) (logand msw #xFF)
+                  (logand (lsh lsw -8) #xFF) (logand lsw #xFF)))))
+    (defsubst xcb:-pack-u4-lsb (value)
+      "4 bytes unsigned integer => byte array (LSB first, 32-bit)."
+      (if (integerp value)
+          (vector (logand value #xFF) (logand (lsh value -8) #xFF)
+                  (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF))
+        (let* ((msw (truncate value #x10000))
+               (lsw (truncate (- value (* msw 65536.0)))))
+          (vector (logand lsw #xFF) (logand (lsh lsw -8) #xFF)
+                  (logand msw #xFF) (logand (lsh msw -8) #xFF)))))))
 
 (defsubst xcb:-pack-i4 (value)
   "4 bytes signed integer => byte array (MSB first)."
@@ -189,33 +186,34 @@
         value
       (- (logand #xFFFF (lognot (1- value)))))))
 
-(if (/= 0 (lsh 1 32))
-    ;; 64-bit
-    (progn
-      (defsubst xcb:-unpack-u4 (data offset)
-        "Byte array => 4 bytes unsigned integer (MSB first, 64-bit)."
-        (logior (lsh (elt data offset) 24) (lsh (elt data (1+ offset)) 16)
-                (lsh (elt data (+ offset 2)) 8) (elt data (+ offset 3))))
-      (defsubst xcb:-unpack-u4-lsb (data offset)
-        "Byte array => 4 bytes unsigned integer (LSB first, 64-bit)."
-        (logior (elt data offset) (lsh (elt data (1+ offset)) 8)
-                (lsh (elt data (+ offset 2)) 16)
-                (lsh (elt data (+ offset 3)) 24))))
-  ;; 32-bit (30-bit actually; large numbers are represented as float type)
-  (defsubst xcb:-unpack-u4 (data offset)
-    "Byte array => 4 bytes unsigned integer (MSB first, 32-bit)."
-    (let ((msb (elt data offset)))
-      (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-         (logior (lsh (elt data (1+ offset)) 16)
-                 (lsh (elt data (+ offset 2)) 8)
-                 (elt data (+ offset 3))))))
-  (defsubst xcb:-unpack-u4-lsb (data offset)
-    "Byte array => 4 bytes unsigned integer (LSB first, 32-bit)."
-    (let ((msb (elt data (+ offset 3))))
-      (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-         (logior (elt data offset)
-                 (lsh (elt data (1+ offset)) 8)
-                 (lsh (elt data (+ offset 2)) 16))))))
+(eval-and-compile
+  (if (/= 0 (lsh 1 32))
+      ;; 64-bit
+      (progn
+        (defsubst xcb:-unpack-u4 (data offset)
+          "Byte array => 4 bytes unsigned integer (MSB first, 64-bit)."
+          (logior (lsh (elt data offset) 24) (lsh (elt data (1+ offset)) 16)
+                  (lsh (elt data (+ offset 2)) 8) (elt data (+ offset 3))))
+        (defsubst xcb:-unpack-u4-lsb (data offset)
+          "Byte array => 4 bytes unsigned integer (LSB first, 64-bit)."
+          (logior (elt data offset) (lsh (elt data (1+ offset)) 8)
+                  (lsh (elt data (+ offset 2)) 16)
+                  (lsh (elt data (+ offset 3)) 24))))
+    ;; 32-bit (30-bit actually; large numbers are represented as float type)
+    (defsubst xcb:-unpack-u4 (data offset)
+      "Byte array => 4 bytes unsigned integer (MSB first, 32-bit)."
+      (let ((msb (elt data offset)))
+        (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
+           (logior (lsh (elt data (1+ offset)) 16)
+                   (lsh (elt data (+ offset 2)) 8)
+                   (elt data (+ offset 3))))))
+    (defsubst xcb:-unpack-u4-lsb (data offset)
+      "Byte array => 4 bytes unsigned integer (LSB first, 32-bit)."
+      (let ((msb (elt data (+ offset 3))))
+        (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
+           (logior (elt data offset)
+                   (lsh (elt data (1+ offset)) 8)
+                   (lsh (elt data (+ offset 2)) 16)))))))
 
 (defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
@@ -241,9 +239,9 @@
 
 (defsubst xcb:-popcount (mask)
   "Return the popcount of integer MASK."
-  (apply '+ (mapcar (lambda (i)
-                      (logand (lsh mask i) 1))
-                    (number-sequence -31 0)))) ;32-bit number assumed (CARD32)
+  (apply #'+ (mapcar (lambda (i)
+                       (logand (lsh mask i) 1))
+                     (number-sequence -31 0)))) ;32-bit number assumed (CARD32)
 
 (defsubst xcb:-request-class->reply-class (request)
   "Return the reply class corresponding to the request class REQUEST."
@@ -253,7 +251,7 @@
 
 ;; typedef in C
 (defmacro xcb:deftypealias (new-type old-type)
-  "Define NEW-TYPE as an alias of type OLD-TYPE"
+  "Define NEW-TYPE as an alias of type OLD-TYPE."
   `(progn
      (cl-deftype ,(eval new-type) nil ,old-type)
      (defvaralias ,new-type ,old-type)))
@@ -291,7 +289,7 @@
 
 ;;;; Struct type
 
-(defvar xcb:lsb t "t for LSB first (i.e., little-endian), nil otherwise.
+(defvar xcb:lsb t "Non-nil for LSB first (i.e., little-endian), nil otherwise.
 
 Consider let-bind it rather than change its global value.")
 
@@ -346,7 +344,7 @@ The optional POS argument indicates current byte index of the field (used by
      (unless (integerp value)
        (setq value (eval value `((obj . ,obj)))))
      ;; The length slot in xcb:-request is left out
-     (let ((len (if (object-of-class-p obj xcb:-request) (+ pos 2) pos)))
+     (let ((len (if (object-of-class-p obj 'xcb:-request) (+ pos 2) pos)))
        (make-vector (% (- value (% len value)) value) 0)))
     (`xcb:-list
      (let* ((list-name (plist-get value 'name))
@@ -363,7 +361,7 @@ The optional POS argument indicates current byte index of the field (used by
      (let ((slots (eieio-class-slots (eieio-object-class obj)))
            (expression (plist-get value 'expression))
            (cases (plist-get value 'cases))
-           result condition name-list slot-type)
+           result condition name-list flag slot-type)
        (unless (integerp expression)
          (setq expression (eval expression `((obj . ,obj)))))
        (cl-assert (integerp expression))
@@ -374,7 +372,7 @@ The optional POS argument indicates current byte index of the field (used by
          (if (symbolp condition)
              (setq condition (symbol-value condition))
            (when (and (listp condition) (eq 'logior (car condition)))
-             (setq condition (apply 'logior (cdr condition)))))
+             (setq condition (apply #'logior (cdr condition)))))
          (cl-assert (or (integerp condition) (listp condition)))
          (if (integerp condition)
              (setq flag (/= 0 (logand expression condition)))
@@ -393,7 +391,7 @@ The optional POS argument indicates current byte index of the field (used by
                                                 (slot-value obj name)
                                                 (+ pos (length result))))))))
        result))
-    ((and x (guard (child-of-class-p x xcb:-struct)))
+    ((guard (child-of-class-p type 'xcb:-struct))
      (xcb:marshal value))
     (x (error "[XCB] Unsupported type for marshalling: %s" x))))
 
@@ -470,7 +468,7 @@ and the second the consumed length."
          (`xcb:char                     ;as Latin-1 encoded string
           (setf (slot-value obj list-name)
                 (decode-coding-string
-                 (apply 'unibyte-string
+                 (apply #'unibyte-string
                         (append (substring data offset
                                            (+ offset list-size))
                                 nil))
@@ -481,7 +479,7 @@ and the second the consumed length."
          (x
           (let ((count 0)
                 result tmp)
-            (dotimes (i list-size)
+            (dotimes (_ list-size)
               (setq tmp (xcb:-unmarshal-field obj x data (+ offset count) nil))
               (setq result (nconc result (list (car tmp))))
               (setq count (+ count (cadr tmp))))
@@ -505,7 +503,7 @@ and the second the consumed length."
              (setq flag (/= 0 (logand expression condition)))
            (if (eq 'logior (car condition))
                (setq flag (/= 0 (logand expression
-                                        (apply 'logior (cdr condition)))))
+                                        (apply #'logior (cdr condition)))))
              (while (and (not flag) condition)
                (setq flag (or flag (= expression (pop condition)))))))
          (when flag
@@ -515,12 +513,12 @@ and the second the consumed length."
                  (when (eq name (cl--slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq tmp (xcb:-unmarshal-field obj data offset nil))
+             (setq tmp (xcb:-unmarshal-field obj slot-type data offset nil))
              (setf (slot-value obj name) (car tmp))
              (setq count (+ count (cadr tmp)))
              (setq data (substring data (cadr tmp))))))
        (list initform count)))
-    ((and x (guard (child-of-class-p x xcb:-struct)))
+    ((and x (guard (child-of-class-p x 'xcb:-struct)))
      (let* ((struct-obj (make-instance x))
             (tmp (xcb:unmarshal struct-obj (substring data offset) obj)))
        (list struct-obj tmp)))
@@ -557,14 +555,14 @@ the synthetic event. Otherwise, 0 is assumed.
 Note that this method auto pads the result to 32 bytes, as is always the case."
   (let ((result (cl-call-next-method obj)))
     (setq result (vconcat
-                  `[,(xcb:-error-or-event-class->number
+                  `[,(xcb:-error-or-event-class->number ;defined in 'xcb.el'
                       connection (eieio-object-class obj))]
                   result))
-    (unless (same-class-p obj xcb:KeymapNotify)
+    (unless (same-class-p obj 'xcb:KeymapNotify)
       (setq result
             (vconcat (substring result 0 2)
-                     (funcall (if (slot-value obj '~lsb) 'xcb:-pack-u2-lsb
-                                'xcb:-pack-u2)
+                     (funcall (if (slot-value obj '~lsb) #'xcb:-pack-u2-lsb
+                                #'xcb:-pack-u2)
                               (or sequence 0))
                      (substring result 2))))
     (cl-assert (>= 32 (length result)))
@@ -573,7 +571,7 @@ Note that this method auto pads the result to 32 bytes, as is always the case."
 (cl-defmethod xcb:unmarshal ((obj xcb:-event) byte-array)
   "Fill in event OBJ according to its byte-array representation BYTE-ARRAY."
   (cl-call-next-method obj
-                       (if (same-class-p obj xcb:KeymapNotify)
+                       (if (same-class-p obj 'xcb:KeymapNotify)
                            (substring byte-array 1) ;strip event code
                          ;; Strip event code & sequence number
                          (vconcat (substring byte-array 1 2)

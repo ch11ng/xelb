@@ -1491,7 +1491,7 @@
    (ktLevelNames :initarg :ktLevelNames :type xcb:-ignore)
    (ktLevelNames~ :initform
 		  '(name ktLevelNames type xcb:ATOM size
-			 (apply '+
+			 (apply #'+
 				(slot-value obj 'nLevelsPerType)))
 		  :type xcb:-list)
    (indicatorNames :initarg :indicatorNames :type xcb:-ignore)
@@ -1585,7 +1585,7 @@
    (ktLevelNames :initarg :ktLevelNames :type xcb:-ignore)
    (ktLevelNames~ :initform
 		  '(name ktLevelNames type xcb:ATOM size
-			 (apply '+
+			 (apply #'+
 				(slot-value obj 'nLevelsPerType)))
 		  :type xcb:-list)
    (indicatorNames :initarg :indicatorNames :type xcb:-ignore)
@@ -1905,7 +1905,7 @@
    (ktLevelNames :initarg :ktLevelNames :type xcb:-ignore)
    (ktLevelNames~ :initform
 		  '(name ktLevelNames type xcb:ATOM size
-			 (apply '+
+			 (apply #'+
 				(slot-value obj 'nLevelsPerType)))
 		  :type xcb:-list)
    (indicatorNames :initarg :indicatorNames :type xcb:-ignore)

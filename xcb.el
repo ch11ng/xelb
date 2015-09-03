@@ -1,30 +1,29 @@
 ;;; xcb.el --- X Protocol Emacs Lisp Binding (XELB)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; This library mainly provides methods for `xcb:connection', a opaque class
-;; encapsulating all information concerning an X connection. The most frequently
-;; used methods are:
+;; encapsulating all information concerning an X connection.  The most
+;; frequently used methods are:
 ;; + Open/Close connection
 ;;   - `xcb:connect'
 ;;   - `xcb:connect-to-socket'
@@ -46,6 +45,10 @@
 ;;   - `xcb:generate-id'
 ;; Please refer to their documentations for more details.
 
+;; If you ever encountered errors when using this library, please set
+;; `xcb:debug-on' to `t' before loading it; this should provide you more clues
+;; on what is going wrong.
+
 ;; Todo:
 ;; + Authentication support when connecting to X server.
 ;; + Use XC-MISC extension for `xcb:generate-id' when IDs are used up.
@@ -57,7 +60,8 @@
 
 (require 'xcb-xproto)
 
-(defvar xcb:debug-on nil "non-nil to turn on debug.")
+(eval-and-compile
+  (defvar xcb:debug-on nil "Non-nil to turn on debug."))
 
 (defmacro xcb:-log (format-string &rest args)
   "Print debug info."
@@ -103,16 +107,15 @@
   "Connect to X server with display DISPLAY on screen SCREEN."
   (xcb:connect-to-display-with-auth-info display nil screen))
 
-(defun xcb:connect-to-display-with-auth-info (&optional display auth screen)
-  "Connect to X server with display DISPLAY, authentication info AUTH on screen
-SCREEN."
+(defun xcb:connect-to-display-with-auth-info (&optional display auth _screen)
+  "Connect to X server with display DISPLAY, auth info AUTH on screen _SCREEN."
   (unless display (setq display x-display-name))
   (unless display (error "[XELB] No X display available"))
   (let* ((tmp (xcb:parse-display display))
          (host (cdr (assoc 'host tmp)))
          (host (if (string= "" host) 'local host))
          (dpy (cdr (assoc 'display tmp)))
-         (screen (if screen screen (cdr (assoc 'screen tmp))))
+         ;; (_screen (or _screen (cdr (assoc 'screen tmp))))
          (process (make-network-process :name "XELB"
                                         :host host
                                         :service (+ 6000 dpy)))
@@ -130,8 +133,8 @@ SCREEN."
          (replace-regexp-in-string ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1" name))
         (screen
          (replace-regexp-in-string ".*:[^\\.]+\\.?\\(.*\\)?" "\\1" name)))
-    (setq display (string-to-int display))
-    (setq screen (if (string= "" screen) 0 (string-to-int screen)))
+    (setq display (string-to-number display))
+    (setq screen (if (string= "" screen) 0 (string-to-number screen)))
     `((host . ,host) (display . ,display) (screen . ,screen))))
 
 (defun xcb:connect-to-socket (&optional socket auth-info)
@@ -170,8 +173,8 @@ SCREEN."
     (set-process-filter process 'xcb:-connection-filter)
     (process-send-string                ;send setup packet
      process
-     (apply 'unibyte-string
-            (append ;convert vector to string
+     (apply #'unibyte-string
+            (append                     ;convert vector to string
              (xcb:marshal
               (make-instance 'xcb:SetupRequest
                              :byte-order (if xcb:lsb #x6c #x42)
@@ -205,8 +208,8 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
       ;; Connection setup
       (unless (slot-value connection 'connected)
         (when (<= 8 (length cache)) ;at least setup header is available
-          (let ((data-len (+ 8 (* 4 (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
-                                               'xcb:-unpack-u2)
+          (let ((data-len (+ 8 (* 4 (funcall (if xcb:lsb #'xcb:-unpack-u2-lsb
+                                               #'xcb:-unpack-u2)
                                              cache 6))))
                 obj)
             (when (>= (length cache) data-len)
@@ -239,8 +242,8 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
           (pcase (elt cache 0)
             (0                          ;error
              (xcb:-log "Error received: %s" (substring cache 0 32))
-             (let ((sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
-                                        'xcb:-unpack-u2)
+             (let ((sequence (funcall (if xcb:lsb #'xcb:-unpack-u2-lsb
+                                        #'xcb:-unpack-u2)
                                       cache 2))
                    (plist (slot-value connection 'error-plist))
                    struct)
@@ -254,16 +257,16 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                (setq cache (substring cache 32))
                (setf (slot-value connection 'error-sequence) sequence)))
             (1                          ;reply
-             (let* ((reply-words (funcall (if xcb:lsb 'xcb:-unpack-u4-lsb
-                                            'xcb:-unpack-u4)
+             (let* ((reply-words (funcall (if xcb:lsb #'xcb:-unpack-u4-lsb
+                                            #'xcb:-unpack-u4)
                                           cache 4))
                     (reply-length (+ 32 (* 4 reply-words)))
                     struct sequence plist)
                (when (< (length cache) reply-length) ;too short, do next time
                  (throw 'break nil))
                (xcb:-log "Reply received: %s" (substring cache 0 reply-length))
-               (setq sequence (funcall (if xcb:lsb 'xcb:-unpack-u2-lsb
-                                         'xcb:-unpack-u2)
+               (setq sequence (funcall (if xcb:lsb #'xcb:-unpack-u2-lsb
+                                         #'xcb:-unpack-u2)
                                        cache 2))
                (setq plist (slot-value connection 'reply-plist))
                (setq struct (plist-get plist sequence))
@@ -354,19 +357,18 @@ classes of EVENT (since they have the same event number)."
     (when (< 0 (length cache))
       (setf (slot-value obj 'request-cache) []) ;should be cleared ASAP
       (process-send-string (slot-value obj 'process)
-                           (apply 'unibyte-string (append cache nil))))))
+                           (apply #'unibyte-string (append cache nil))))))
 
 (cl-defmethod xcb:get-extension-data ((obj xcb:connection) namespace)
   "Fetch the extension data from X server (block until data is retrieved)."
   (let* ((plist (slot-value obj 'extension-plist))
          (data (plist-get plist namespace)))
-    (if (object-p data)
+    (if (eieio-object-p data)
         data
       (when (not data)                  ;the request has not been made
         (xcb:prefetch-extension-data obj namespace))
-      (setq data
-            (xcb:+reply obj
-                (plist-get (slot-value obj 'extension-plist) namespace)))
+      (setq data (xcb:-+reply obj (plist-get (slot-value obj 'extension-plist)
+                                             namespace)))
       (when (cadr data)                 ;has error
         (error "[XELB] %s" (cadr data)))
       (setq data (car data))
@@ -392,9 +394,10 @@ classes of EVENT (since they have the same event number)."
             (symbol-value (intern-soft (concat (symbol-name namespace)
                                                ":-extension-xname"))))
            (sequence
-            (xcb:+request obj (make-instance 'xcb:QueryExtension
-                                             :name-len (length extension-xname)
-                                             :name extension-xname))))
+            (xcb:-+request obj
+                           (make-instance 'xcb:QueryExtension
+                                          :name-len (length extension-xname)
+                                          :name extension-xname))))
       (setf (slot-value obj 'extension-plist)
             (plist-put (slot-value obj 'extension-plist) namespace sequence))
       (xcb:flush obj))))
@@ -432,8 +435,8 @@ classes of EVENT (since they have the same event number)."
       (setq len (1+ len)))
     (setq msg
           (vconcat (substring msg 0 2)
-                   (funcall (if (slot-value request '~lsb) 'xcb:-pack-u2-lsb
-                              'xcb:-pack-u2)
+                   (funcall (if (slot-value request '~lsb) #'xcb:-pack-u2-lsb
+                              #'xcb:-pack-u2)
                             (ceiling len 4))
                    (substring msg 2)
                    (make-vector (% (- 4 (% len 4)) 4) 0))) ;required sometimes
@@ -511,7 +514,8 @@ Otherwise no error will ever be reported."
     (let ((process (slot-value obj 'process)))
       ;; Wait until the request processed
       (cl-incf (slot-value obj 'event-lock))
-      (with-timeout (xcb:connection-timeout (warn "[XELB] Retrieve reply timeout"))
+      (with-timeout (xcb:connection-timeout
+                     (warn "[XELB] Retrieve reply timeout"))
         (while (and (> sequence (slot-value obj 'reply-sequence))
                     (> sequence (slot-value obj 'error-sequence)))
           (accept-process-output process 1 nil 1)))
@@ -668,7 +672,7 @@ superclass will be returned."
       (cdr (assoc number xcb:event-number-class-alist))
     ;; Extension event
     (let ((first-event number)
-          namespace index)
+          namespace index alist)
       (while (and (not namespace) (>= first-event 64))
         (setq namespace
               (car (rassoc first-event
@@ -689,7 +693,7 @@ superclass will be returned."
       (cdr (assoc number xcb:error-number-class-alist))
     ;; Extension error
     (let ((first-error number)
-          namespace index)
+          namespace index alist)
       (while (and (not namespace) (>= first-error 128))
         (setq namespace
               (car (rassoc first-error

@@ -1,24 +1,23 @@
 ;;; xcb-cursor.el --- Port of Xcursor  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,7 +47,7 @@
 
 ;;; Code:
 
-(require 'xcb-xproto)
+(require 'xcb)
 (require 'xcb-render)
 
 ;; FIXME: check if resource manager really works
@@ -66,7 +65,7 @@
                                 :long-length 16384))) ;FIXME: xcb/util-cursor
          (rm (split-string
               (decode-coding-string
-               (apply 'unibyte-string (append (slot-value rm 'value) nil))
+               (apply #'unibyte-string (append (slot-value rm 'value) nil))
                'iso-latin-1)
               "\n"))
          theme size dpi)
@@ -77,16 +76,16 @@
                (replace-regexp-in-string "^[^:]+:\\s-*\\(.+$\\)" "\\1" i)))
         ("Xcursor.size"
          (setq size
-               (string-to-int (replace-regexp-in-string "^[^:]+:\\s-*\\(.+$\\)"
-                                                        "\\1" i))))
+               (string-to-number
+                (replace-regexp-in-string "^[^:]+:\\s-*\\(.+$\\)" "\\1" i))))
         ("Xft.dpi"
          (setq dpi
-               (string-to-int (replace-regexp-in-string "^[^:]+:\\s-*\\(.+$\\)"
-                                                        "\\1" i))))))
+               (string-to-number
+                (replace-regexp-in-string "^[^:]+:\\s-*\\(.+$\\)" "\\1" i))))))
     ;; Get cursor size from XCURSOR_SIZE environment variable
     (let ((default-size (getenv "XCURSOR_SIZE")))
       (when default-size
-        (setq default-size (string-to-int default-size)))
+        (setq default-size (string-to-number default-size)))
       (setq size (or default-size size)))
     ;; Alternatives
     (when (and (not size) dpi)
@@ -102,8 +101,7 @@
       (setf (slot-value obj 'extra-plist)
             (plist-put (slot-value obj 'extra-plist) 'cursor plist))))
   ;; Initialize render extension
-  (if (= 0 (slot-value (xcb:get-extension-data exwm--connection 'xcb:render)
-                       'present))
+  (if (= 0 (slot-value (xcb:get-extension-data obj 'xcb:render) 'present))
       (error "[XELB:CURSOR] Render extension is not supported by this server")
     (with-slots (minor-version)
         (xcb:+request-unchecked+reply obj
@@ -159,6 +157,11 @@
                  (split-string (replace-regexp-in-string "^[^=]+=\\(.*\\)$"
                                                          "\\1" line)
                                "[;, \t\n]+" t)))))))
+
+(defsubst xcb:cursor:-shape->id (name)
+  "Return the standard Xcursor font for cursor named NAME."
+  ;; Standard X cursor fonts are defined in Emacs
+  (intern-soft (concat "x-pointer-" (replace-regexp-in-string "_" "-" name))))
 
 (defun xcb:cursor:-find-file (theme name &optional skip)
   "Return the file for cursor named NAME in theme THEME, or nil if not found."
@@ -355,8 +358,8 @@
                                          :data (with-temp-buffer
                                                  (set-buffer-multibyte nil)
                                                  (mapconcat
-                                                  (if lsb 'xcb:-pack-u4-lsb
-                                                    'xcb:-pack-u4)
+                                                  (if lsb #'xcb:-pack-u4-lsb
+                                                    #'xcb:-pack-u4)
                                                   pixels []))))
         (xcb:+request obj (make-instance 'xcb:render:CreatePicture
                                          :pid picture
@@ -390,11 +393,6 @@
                                          :cursor (slot-value i 'cursor))))
       (xcb:flush obj)
       cursor)))
-
-(defsubst xcb:cursor:-shape->id (name)
-  "Return the standard Xcursor font for cursor named NAME."
-  ;; Standard X cursor fonts are defined in Emacs
-  (intern-soft (concat "x-pointer-" (replace-regexp-in-string "_" "-" name))))
 
 (cl-defmethod xcb:cursor:load-cursor ((obj xcb:connection) name)
   "Return a cursor whose name is NAME."

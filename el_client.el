@@ -1,36 +1,35 @@
 ;;; el_client.el --- XELB Code Generator  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; el_client is responsible for converting XCB XML description files into Elisp
-;; libraries. Here are a few design guidelines:
+;; 'el_client' is responsible for converting XCB XML description files into
+;; Elisp libraries.  Here are a few design guidelines:
 ;; + The generated codes should be human-readable and conform to the Elisp
-;;   coding conventions. Names mentioned in X specifications are preferred.
+;;   coding conventions.  Names mentioned in X specifications are preferred.
 ;; + Deprecated features such as <valueparam> should be dropped, for
 ;;   - they would generate incompatible codes, and
 ;;   - they are probably already dropped upstream.
 ;; + All documentations (within <doc> tags) and comments should be stripped
-;;   out to reduce the overall amount of code. XELB application developers are
+;;   out to reduce the overall amount of code.  XELB application developers are
 ;;   then encouraged to refer to the corresponding specifications to get an
 ;;   authoritative explanation.
 
@@ -43,12 +42,10 @@
 
 (require 'cl-lib)
 
-(setq pp-escape-newlines nil)
-
 ;;;; Variables
 
-(defvar prefix "xcb:" "Namespace of this module.")
-(make-variable-buffer-local 'prefix)
+(defvar ec-prefix "xcb:" "Namespace of this module.")
+(make-variable-buffer-local 'ec-prefix)
 
 (defvar error-alist nil "Record X errors in this module.")
 (make-variable-buffer-local 'error-alist)
@@ -117,14 +114,15 @@ an `xelb-auto-padding' attribute."
 
 (defun parse (file)
   "Parse an XCB protocol description file FILE (XML)."
-  (let (result header)
+  (let ((pp-escape-newlines nil)        ;do not escape newlines
+        result header)
     (with-temp-buffer
       (insert-file-contents file)
       (setq result (libxml-parse-xml-region (point-min) (point-max) nil t))
       (cl-assert (eq 'xcb (node-name result)))
       (setq header (node-attr result 'header))
       (unless (string= header "xproto")
-        (setq prefix (concat prefix header ":")))
+        (setq ec-prefix (concat ec-prefix header ":")))
       ;; Print header
       (princ (format "\
 ;;; -*- lexical-binding: t -*-
@@ -136,16 +134,16 @@ an `xelb-auto-padding' attribute."
             (major-version (node-attr result 'major-version))
             (minor-version (node-attr result 'minor-version)))
         (when extension-xname
-          (pp `(defconst ,(intern (concat prefix "-extension-xname"))
+          (pp `(defconst ,(intern (concat ec-prefix "-extension-xname"))
                  ,extension-xname)))
         (when extension-name
-          (pp `(defconst ,(intern (concat prefix "-extension-name"))
+          (pp `(defconst ,(intern (concat ec-prefix "-extension-name"))
                  ,extension-name)))
         (when major-version
-          (pp `(defconst ,(intern (concat prefix "-major-version"))
+          (pp `(defconst ,(intern (concat ec-prefix "-major-version"))
                  ,(string-to-number major-version))))
         (when minor-version
-          (pp `(defconst ,(intern (concat prefix "-minor-version"))
+          (pp `(defconst ,(intern (concat ec-prefix "-minor-version"))
                  ,(string-to-number minor-version))))
         (when (or extension-xname extension-name major-version minor-version)
           (princ "\n")))
@@ -158,11 +156,11 @@ an `xelb-auto-padding' attribute."
             (princ "\n"))))
       ;; Print error/event alists
       (when error-alist
-        (pp `(defconst ,(intern (concat prefix "error-number-class-alist"))
+        (pp `(defconst ,(intern (concat ec-prefix "error-number-class-alist"))
                ',error-alist "(error-number . error-class) alist"))
         (princ "\n"))
       (when event-alist
-        (pp `(defconst ,(intern (concat prefix "event-number-class-alist"))
+        (pp `(defconst ,(intern (concat ec-prefix "event-number-class-alist"))
                ',event-alist "(event-number . event-class) alist"))
         (princ "\n"))
       ;; Print footer
@@ -171,7 +169,7 @@ an `xelb-auto-padding' attribute."
 ;;;; XCB: top-level elements
 
 (defun parse-top-level-element (node)
-  "Parse a top-level element."
+  "Parse a top-level node NODE."
   (setq pad-count -1)
   (pcase (node-name node)
     (`import (parse-import node))
@@ -197,26 +195,26 @@ an `xelb-auto-padding' attribute."
 
 (defun parse-struct (node)
   "Parse <struct>."
-  (let ((name (intern (concat prefix (node-attr node 'name))))
+  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
         (contents (node-subnodes node t)))
     `((defclass ,name (xcb:-struct)
-        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
 
 (defun parse-union (node)
   "Parse <union>."
-  (let ((name (intern (concat prefix (node-attr node 'name))))
+  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
         (contents (node-subnodes node)))
     `((defclass ,name (xcb:-union)
-        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
 
 (defun parse-xidtype (node)
   "Parse <xidtype>."
-  (let ((name (intern (concat prefix (node-attr node 'name)))))
+  (let ((name (intern (concat ec-prefix (node-attr node 'name)))))
     `((xcb:deftypealias ',name 'xcb:-u4))))
 
 (defun parse-enum (node)
   "Parse <enum>."
-  (let ((name-prefix (concat prefix (node-attr node 'name) ":"))
+  (let ((name-prefix (concat ec-prefix (node-attr node 'name) ":"))
         (items (node-subnodes node))
         (value 0))
     (delq nil                ;remove nil's produced by tags like <doc>
@@ -235,16 +233,16 @@ an `xelb-auto-padding' attribute."
   "Parse <typedef>."
   (let* ((oldname (node-attr node 'oldname))
          (oldname (or (intern-soft (concat "xcb:" oldname))
-                      (intern (concat prefix oldname))))
-         (newname (intern (concat prefix (node-attr node 'newname)))))
+                      (intern (concat ec-prefix oldname))))
+         (newname (intern (concat ec-prefix (node-attr node 'newname)))))
     `((xcb:deftypealias ',newname ',oldname))))
 
 (defun parse-request (node)
   "Parse <request>.
 
 The `combine-adjacent' attribute is simply ignored."
-  (let* ((name (intern (concat prefix (node-attr node 'name))))
-         (opcode (string-to-int (node-attr node 'opcode)))
+  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
+         (opcode (string-to-number (node-attr node 'opcode)))
          (contents `((~opcode :initform ,opcode :type xcb:-u1)))
          (subnodes (node-subnodes node t))
          expressions
@@ -261,11 +259,11 @@ The `combine-adjacent' attribute is simply ignored."
         ;; Parse <reply>
         (setq pad-count -1)             ;reset padding counter
         (setq reply-name
-              (intern (concat prefix (node-attr node 'name) "~reply")))
+              (intern (concat ec-prefix (node-attr node 'name) "~reply")))
         (setq reply-contents (node-subnodes i t))
         (setq reply-contents
-              (apply 'nconc
-                     (mapcar 'parse-structure-content reply-contents)))))
+              (apply #'nconc
+                     (mapcar #'parse-structure-content reply-contents)))))
     (delq nil contents)
     (delq nil
           `((defclass ,name (xcb:-request) ,contents)
@@ -284,11 +282,11 @@ The `combine-adjacent' attribute is simply ignored."
 
 The `no-sequence-number' is ignored here since it's only used for
 KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
-  (let ((name (intern (concat prefix (node-attr node 'name))))
-        (event-number (string-to-int (node-attr node 'number)))
+  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
+        (event-number (string-to-number (node-attr node 'number)))
         (xge (node-attr node 'xge))
         (contents (node-subnodes node t)))
-    (setq contents (apply 'nconc (mapcar 'parse-structure-content contents)))
+    (setq contents (apply #'nconc (mapcar #'parse-structure-content contents)))
     (when xge                           ;generic event
       (setq contents
             (append
@@ -301,37 +299,37 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 
 (defun parse-error (node)
   "Parse <error>."
-  (let ((name (intern (concat prefix (node-attr node 'name))))
-        (error-number (string-to-int (node-attr node 'number)))
+  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
+        (error-number (string-to-number (node-attr node 'number)))
         (contents (node-subnodes node t)))
     (setq error-alist (nconc error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error)
-        ,(apply 'nconc (mapcar 'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
 
 (defun parse-eventcopy (node)
   "Parse <eventcopy>."
-  (let* ((name (intern (concat prefix (node-attr node 'name))))
+  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
          (refname (node-attr node 'ref))
          (refname (or (intern-soft (concat "xcb:" refname))
-                      (intern (concat prefix refname))))
-         (event-number (string-to-int (node-attr node 'number))))
+                      (intern (concat ec-prefix refname))))
+         (event-number (string-to-number (node-attr node 'number))))
     (setq event-alist (nconc event-alist `((,event-number . ,name))))
     `((defclass ,name (xcb:-event ,refname) nil)))) ;shadow the method of ref
 
 (defun parse-errorcopy (node)
   "Parse <errorcopy>."
-  (let* ((name (intern (concat prefix (node-attr node 'name))))
+  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
          (refname (node-attr node 'ref))
          (refname (or (intern-soft (concat "xcb:" refname))
-                      (intern (concat prefix refname))))
-         (error-number (string-to-int (node-attr node 'number))))
+                      (intern (concat ec-prefix refname))))
+         (error-number (string-to-number (node-attr node 'number))))
     (setq error-alist (nconc error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error ,refname) nil)))) ;shadow the method of ref
 
 ;;;; XCB: structure contents
 
 (defun parse-structure-content (node)
-  "Parse a structure content."
+  "Parse a structure content node NODE."
   (pcase (node-name node)
     (`pad (parse-pad node))
     (`field (parse-field node))
@@ -349,10 +347,10 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
         (align (node-attr node 'align)))
     (if bytes
         `((,(generate-pad-name)
-           :initform ,(string-to-int bytes) :type xcb:-pad))
+           :initform ,(string-to-number bytes) :type xcb:-pad))
       (if align
           `((,(generate-pad-name)
-             :initform ,(string-to-int align) :type xcb:-pad-align))
+             :initform ,(string-to-number align) :type xcb:-pad-align))
         (error "Invalid <pad> field")))))
 
 (defun parse-field (node)
@@ -360,7 +358,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let* ((name (intern (node-attr-escape node 'name)))
          (type (node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type)) ;extension or xproto
-                   (intern (concat prefix type)))))
+                   (intern (concat ec-prefix type)))))
     `((,name :initarg ,(intern (concat ":" (symbol-name name))) :type ,type))))
 
 (defun parse-fd (node)
@@ -374,7 +372,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
          (name-alt (intern (concat (node-attr-escape node 'name) "~")))
          (type (node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat prefix type))))
+                   (intern (concat ec-prefix type))))
          (size (parse-expression (node-subnode node))))
     `((,name :initarg ,(intern (concat ":" (symbol-name name)))
              :type xcb:-ignore)
@@ -393,7 +391,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let* ((name (intern (node-attr-escape node 'name)))
          (type (node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat prefix type))))
+                   (intern (concat ec-prefix type))))
          (value (parse-expression (node-subnode node))))
     `((,name :type ,type)
       (setf (slot-value obj ',name) ',value))))
@@ -406,7 +404,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (let ((name (intern (node-attr-escape node 'name)))
         (expression (parse-expression (car (node-subnodes node))))
         (cases (cdr (node-subnodes node)))
-        fields fields-name)
+        fields)
     ;; Avoid duplicated slot names by appending "*" if necessary
     (let (names name)
       (dolist (case cases)
@@ -421,7 +419,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                   (while (member name names)
                     (setq name (concat name "*")))
                   (setcdr (assoc 'name (cadr field)) name))
-                (cl-pushnew name names :test 'equal))))))))
+                (cl-pushnew name names :test #'equal))))))))
     (setq cases
           (mapcar (lambda (i)
                     (let ((case-name (node-name i))
@@ -432,7 +430,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                             (`enumref
                              (setq condition
                                    (nconc condition (list (parse-enumref j)))))
-                            (x
+                            (_
                              (setq tmp (parse-structure-content j))
                              (setq fields (nconc fields tmp))
                              (setq name-list
@@ -450,7 +448,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 ;;;; XCB: expressions
 
 (defun parse-expression (node)
-  "Parse an expression."
+  "Parse an expression node NODE."
   (when node
     (pcase (node-name node)
       (`op (parse-op node))
@@ -463,7 +461,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
       (`sumof (parse-sumof node))
       (`popcount (parse-popcount node))
       (`listelement-ref (parse-listelement-ref node))
-      ((or `comment `doc))                ;simply ignored
+      ((or `comment `doc))              ;simply ignored
       (x (error "Unsupported expression: <%s>" x)))))
 
 (defun parse-op (node)
@@ -490,11 +488,11 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 
 (defun parse-value (node)
   "Parse <value>."
-  (string-to-int (replace-regexp-in-string "^0x" "#x" (node-subnode node))))
+  (string-to-number (replace-regexp-in-string "^0x" "#x" (node-subnode node))))
 
 (defun parse-bit (node)
   "Parse <bit>."
-  (let ((bit (string-to-int (node-subnode node))))
+  (let ((bit (string-to-number (node-subnode node))))
     (cl-assert (and (<= 0 bit) (>= 31 bit)))
     (lsh 1 bit)))
 
@@ -502,7 +500,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <enumref>."
   (let ((name (concat (node-attr node 'ref) ":" (node-subnode node))))
     (or (intern-soft (concat "xcb:" name))
-        (intern (concat prefix name)))))
+        (intern (concat ec-prefix name)))))
 
 (defun parse-unop (node)
   "Parse <unop>."
@@ -515,18 +513,18 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
          (expression (node-subnode node))
          (list-data `(slot-value obj ',ref)))
     (if (not expression)
-        `(apply '+ ,list-data)
+        `(apply #'+ ,list-data)
       (setq expression (parse-expression expression))
-      `(apply '+ (mapcar (lambda (i)
-                           (eval ',expression (list (nconc '(obj) i))))
-                         ,list-data)))))
+      `(apply #'+ (mapcar (lambda (i)
+                            (eval ',expression (list (nconc '(obj) i))))
+                          ,list-data)))))
 
 (defun parse-popcount (node)
   "Parse <popcount>."
   (let ((expression (parse-expression (node-subnode node))))
     `(xcb:-popcount ,expression)))
 
-(defun parse-listelement-ref (node)
+(defun parse-listelement-ref (_node)
   "Parse <listelement-ref>."
   'obj)                      ;a list element is internally named 'obj'
 

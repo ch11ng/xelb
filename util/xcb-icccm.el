@@ -1,25 +1,24 @@
 ;;; xcb-icccm.el --- Inter-Client Communication  -*- lexical-binding: t -*-
 ;;;                  Conventions Manual
 
-;; Copyright (C) 2015 Chris Feng
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
-;; Keywords: unix
 
-;; This file is not part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
-;; This file is free software: you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +31,7 @@
 ;;   messages defined in this library.
 
 ;; Todo:
-;; + Interned atoms are actually connection-dependent. Currently they are
+;; + Interned atoms are actually connection-dependent.  Currently they are
 ;;   simply saved as global variables.
 
 ;; References:
@@ -41,7 +40,7 @@
 
 ;;; Code:
 
-(require 'xcb-xproto)
+(require 'xcb)
 
 ;;;; ICCCM atoms
 
@@ -87,9 +86,9 @@ The value of these atoms will be available in `xcb:Atom' namespace."
   (xcb:icccm:--ClientMessage xcb:ClientMessage)
   ((format :initform 32)
    (type :initform xcb:Atom:WM_PROTOCOLS)
-   (protocol :type xcb:ATOM)                  ;new slot
-   (time :initarg :time :type xcb:TIMESTAMP)  ;new slot
-   (pad~0 :initform 12 :type xcb:-pad))       ;new slot
+   (protocol :type xcb:ATOM)                 ;new slot
+   (time :initarg :time :type xcb:TIMESTAMP) ;new slot
+   (pad~0 :initform 12 :type xcb:-pad))      ;new slot
   :documentation "An ICCCM client message with data slot replaced by
 protocol and time.")
 
@@ -137,22 +136,22 @@ This method automatically format the value as 8, 16 or 32 bits array."
           (16
            (cl-assert (= (* 2 value-len) (length tmp)))
            (if ~lsb
-               (dotimes (i value-len)
+               (dotimes (_ value-len)
                  (setf value (vconcat value
                                       (vector (xcb:-unpack-u2-lsb tmp 0))))
                  (setq tmp (substring tmp 2)))
-             (dotimes (i value-len)
+             (dotimes (_ value-len)
                (setf value (vconcat value
                                     (vector (xcb:-unpack-u2 tmp 0))))
                (setq tmp (substring tmp 2)))))
           (32
            (cl-assert (= (* 4 value-len) (length tmp)))
            (if ~lsb
-               (dotimes (i value-len)
+               (dotimes (_ value-len)
                  (setf value (vconcat value
                                       (vector (xcb:-unpack-u4-lsb tmp 0))))
                  (setq tmp (substring tmp 4)))
-             (dotimes (i value-len)
+             (dotimes (_ value-len)
                (setf value (vconcat value (vector (xcb:-unpack-u4 tmp 0))))
                (setq tmp (substring tmp 4)))))
           (_ (cl-assert nil)))))
@@ -204,10 +203,10 @@ This method automatically decodes the value (as string)."
       (when (and value (= format 8))
         (setf value
               (decode-coding-string
-               (apply 'unibyte-string (append value nil))
-               (cond ((eq type xcb:Atom:UTF8_STRING) 'utf-8)
-                     ((eq type xcb:Atom:STRING) 'iso-latin-1)
-                     ((eq type xcb:Atom:COMPOUND_TEXT)
+               (apply #'unibyte-string (append value nil))
+               (cond ((= type xcb:Atom:UTF8_STRING) 'utf-8)
+                     ((= type xcb:Atom:STRING) 'iso-latin-1)
+                     ((= type xcb:Atom:COMPOUND_TEXT)
                       'compound-text-with-extensions)
                      ((or (eq type xcb:Atom:TEXT) (eq type xcb:Atom:C_STRING))
                       'no-conversion)
@@ -231,9 +230,9 @@ This method automatically encodes the data (which is a string)."
           (vconcat
            (encode-coding-string
             data
-            (cond ((eq type xcb:Atom:UTF8_STRING) 'utf-8)
-                  ((eq type xcb:Atom:STRING) 'iso-latin-1)
-                  ((eq type xcb:Atom:COMPOUND_TEXT)
+            (cond ((= type xcb:Atom:UTF8_STRING) 'utf-8)
+                  ((= type xcb:Atom:STRING) 'iso-latin-1)
+                  ((= type xcb:Atom:COMPOUND_TEXT)
                    'compound-text-with-extensions)
                   ((or (eq type xcb:Atom:TEXT) (eq type xcb:Atom:C_STRING))
                    'no-conversion)
@@ -289,7 +288,7 @@ request OBJ."
   "Fill in the reply of an ICCCM GetProperty request whose fields are
 explicitly listed out."
   (let* ((retval (cl-call-next-method obj byte-array))
-         (slots-orig (eieio-class-slots xcb:icccm:-GetProperty~reply))
+         (slots-orig (eieio-class-slots 'xcb:icccm:-GetProperty~reply))
          (slots (eieio-class-slots (eieio-object-class obj)))
          (slots (nthcdr (length slots-orig) slots))
          (value (slot-value obj 'value)))
@@ -308,7 +307,7 @@ out.")
 (cl-defmethod xcb:marshal ((obj xcb:icccm:-ChangeProperty-explicit))
   "Return the byte-array representation of an ICCCM ChangeProperty request
 whose fields are explicitly listed out."
-  (let* ((slots-orig (eieio-class-slots xcb:icccm:-ChangeProperty))
+  (let* ((slots-orig (eieio-class-slots 'xcb:icccm:-ChangeProperty))
          (slots (eieio-class-slots (eieio-object-class obj)))
          (slots (nthcdr (length slots-orig) slots)))
     ;; Set data field from explicit fields

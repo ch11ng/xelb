@@ -157,7 +157,7 @@
    (infos :initarg :infos :type xcb:-ignore)
    (infos~ :initform
 	   '(name infos type xcb:xinput:InputInfo size
-		  (apply '+
+		  (apply #'+
 			 (mapcar
 			  (lambda
 			    (i)
@@ -2256,7 +2256,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2312,7 +2312,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2459,7 +2459,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2475,7 +2475,7 @@
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
-			   (apply '+
+			   (apply #'+
 				  (mapcar
 				   (lambda
 				     (i)
@@ -2513,7 +2513,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2529,7 +2529,7 @@
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
-			   (apply '+
+			   (apply #'+
 				  (mapcar
 				   (lambda
 				     (i)
@@ -2590,7 +2590,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2650,7 +2650,7 @@
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
-		       (apply '+
+		       (apply #'+
 			      (mapcar
 			       (lambda
 				 (i)
@@ -2666,7 +2666,7 @@
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
-			   (apply '+
+			   (apply #'+
 				  (mapcar
 				   (lambda
 				     (i)
