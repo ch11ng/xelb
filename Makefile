@@ -1,4 +1,4 @@
-PROTO_PATH := ../../xcb-proto/src
+PROTO_PATH := ../xcb-proto/src
 
 EMACS_BIN := emacs -Q
 
@@ -12,7 +12,7 @@ all: clean $(LIBS)
 
 xcb-%.el: $(PROTO_PATH)/%.xml xcb-xproto.el
 	@echo -n "\n"Generating $@...
-	@$(EMACS_BIN) --script ../el_client.el $< > $@
+	@$(EMACS_BIN) --script ./el_client.el $< > $@
 
 xcb-composite.el: xcb-xfixes.el
 xcb-damage.el: xcb-xfixes.el
