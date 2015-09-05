@@ -356,8 +356,10 @@ classes of EVENT (since they have the same event number)."
   (let ((cache (slot-value obj 'request-cache)))
     (when (< 0 (length cache))
       (setf (slot-value obj 'request-cache) []) ;should be cleared ASAP
+      (cl-incf (slot-value obj 'event-lock))
       (process-send-string (slot-value obj 'process)
-                           (apply #'unibyte-string (append cache nil))))))
+                           (apply #'unibyte-string (append cache nil)))
+      (cl-decf (slot-value obj 'event-lock)))))
 
 (cl-defmethod xcb:get-extension-data ((obj xcb:connection) namespace)
   "Fetch the extension data from X server (block until data is retrieved)."
