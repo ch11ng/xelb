@@ -1,4 +1,4 @@
-;;; xcb.el --- X Protocol Emacs Lisp Binding (XELB)  -*- lexical-binding: t -*-
+;;; xcb.el --- X protocol Emacs Lisp Binding (XELB)  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
@@ -214,7 +214,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                 obj)
             (when (>= (length cache) data-len)
               (xcb:-log "Setup response: %s" cache)
-              (pcase (elt cache 0)
+              (pcase (aref cache 0)
                 (0                      ;failed
                  (setq obj (make-instance 'xcb:SetupFailed))
                  (xcb:unmarshal obj cache)
@@ -239,7 +239,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
       ;; Process error/reply/event
       (catch 'break
         (while (<= 32 (length cache))
-          (pcase (elt cache 0)
+          (pcase (aref cache 0)
             (0                          ;error
              (xcb:-log "Error received: %s" (substring cache 0 32))
              (let ((sequence (funcall (if xcb:lsb #'xcb:-unpack-u2-lsb
@@ -251,7 +251,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                  (setq struct (plist-get plist sequence))
                  (setf (slot-value connection 'error-plist)
                        (plist-put plist sequence
-                                  (push `(,(elt cache 1) .
+                                  (push `(,(aref cache 1) .
                                           ,(substring cache 0 32))
                                         struct))))
                (setq cache (substring cache 32))
@@ -311,9 +311,9 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
           (cl-incf event-lock)
           (let (event data synthetic)
             (while (setq event (pop event-queue))
-              (setq data (elt event 1)
-                    synthetic (elt event 2))
-              (dolist (listener (elt event 0))
+              (setq data (aref event 1)
+                    synthetic (aref event 2))
+              (dolist (listener (aref event 0))
                 (funcall listener data synthetic))))
           (cl-decf event-lock))))))
 

@@ -74,9 +74,9 @@
                                                  (elt initforms i)
                                                  (elt types i))))))
       result))
-  (defsubst cl--slot-descriptor-name (slot) (elt slot 0))
-  (defsubst cl--slot-descriptor-initform (slot) (elt slot 1))
-  (defsubst cl--slot-descriptor-type (slot) (elt slot 2)))
+  (defsubst cl--slot-descriptor-name (slot) (aref slot 0))
+  (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))
+  (defsubst cl--slot-descriptor-type (slot) (aref slot 2)))
 
 ;;;; Utility functions
 
@@ -155,7 +155,7 @@
 
 (defsubst xcb:-unpack-u1 (data offset)
   "Byte array => 1 byte unsigned integer."
-  (elt data offset))
+  (aref data offset))
 
 (defsubst xcb:-unpack-i1 (data offset)
   "Byte array => 1 byte signed integer."
@@ -166,11 +166,11 @@
 
 (defsubst xcb:-unpack-u2 (data offset)
   "Byte array => 2 bytes unsigned integer (MSB first)."
-  (logior (lsh (elt data offset) 8) (elt data (1+ offset))))
+  (logior (lsh (aref data offset) 8) (aref data (1+ offset))))
 
 (defsubst xcb:-unpack-u2-lsb (data offset)
   "Byte array => 2 bytes unsigned integer (LSB first)."
-  (logior (elt data offset) (lsh (elt data (1+ offset)) 8)))
+  (logior (aref data offset) (lsh (aref data (1+ offset)) 8)))
 
 (defsubst xcb:-unpack-i2 (data offset)
   "Byte array => 2 bytes signed integer (MSB first)."
@@ -192,28 +192,28 @@
       (progn
         (defsubst xcb:-unpack-u4 (data offset)
           "Byte array => 4 bytes unsigned integer (MSB first, 64-bit)."
-          (logior (lsh (elt data offset) 24) (lsh (elt data (1+ offset)) 16)
-                  (lsh (elt data (+ offset 2)) 8) (elt data (+ offset 3))))
+          (logior (lsh (aref data offset) 24) (lsh (aref data (1+ offset)) 16)
+                  (lsh (aref data (+ offset 2)) 8) (aref data (+ offset 3))))
         (defsubst xcb:-unpack-u4-lsb (data offset)
           "Byte array => 4 bytes unsigned integer (LSB first, 64-bit)."
-          (logior (elt data offset) (lsh (elt data (1+ offset)) 8)
-                  (lsh (elt data (+ offset 2)) 16)
-                  (lsh (elt data (+ offset 3)) 24))))
+          (logior (aref data offset) (lsh (aref data (1+ offset)) 8)
+                  (lsh (aref data (+ offset 2)) 16)
+                  (lsh (aref data (+ offset 3)) 24))))
     ;; 32-bit (30-bit actually; large numbers are represented as float type)
     (defsubst xcb:-unpack-u4 (data offset)
       "Byte array => 4 bytes unsigned integer (MSB first, 32-bit)."
-      (let ((msb (elt data offset)))
+      (let ((msb (aref data offset)))
         (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-           (logior (lsh (elt data (1+ offset)) 16)
-                   (lsh (elt data (+ offset 2)) 8)
-                   (elt data (+ offset 3))))))
+           (logior (lsh (aref data (1+ offset)) 16)
+                   (lsh (aref data (+ offset 2)) 8)
+                   (aref data (+ offset 3))))))
     (defsubst xcb:-unpack-u4-lsb (data offset)
       "Byte array => 4 bytes unsigned integer (LSB first, 32-bit)."
-      (let ((msb (elt data (+ offset 3))))
+      (let ((msb (aref data (+ offset 3))))
         (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
-           (logior (elt data offset)
-                   (lsh (elt data (1+ offset)) 8)
-                   (lsh (elt data (+ offset 2)) 16)))))))
+           (logior (aref data offset)
+                   (lsh (aref data (1+ offset)) 8)
+                   (lsh (aref data (+ offset 2)) 16)))))))
 
 (defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
@@ -423,8 +423,8 @@ The optional argument CTX is for <paramref>.
 This method returns a list of two components, with the first being the result
 and the second the consumed length."
   (pcase (indirect-variable type)
-    (`xcb:-u1 (list (elt data offset) 1))
-    (`xcb:-i1 (let ((result (elt data offset)))
+    (`xcb:-u1 (list (aref data offset) 1))
+    (`xcb:-i1 (let ((result (aref data offset)))
                 (list (if (< result 128) result (- result 255)) 1)))
     (`xcb:-u2 (list (if (slot-value obj '~lsb)
                         (xcb:-unpack-u2-lsb data offset)
@@ -442,7 +442,7 @@ and the second the consumed length."
                         (xcb:-unpack-i4-lsb data offset)
                       (xcb:-unpack-i4 data offset))
                     4))
-    (`xcb:void (list (elt data offset) 1))
+    (`xcb:void (list (aref data offset) 1))
     (`xcb:-pad
      (unless (integerp initform)
        (when (eq 'quote (car initform))

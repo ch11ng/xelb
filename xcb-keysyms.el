@@ -197,7 +197,7 @@ SHIFT LOCK is ignored."
 ;; keysyms, which seems not very useful here.
 ;; FIXME: shall we also include 'iso_lispy_function_keys' there?
 (defconst xcb:keysyms:-function-keys
-  `(                                    ;#xff00 - #xff0f
+  `[                                    ;#xff00 - #xff0f
     ,@(make-list 8 nil) backspace tab linefeed clear nil return nil nil
                                         ;#xff10 - #xff1f
     nil nil nil pause nil nil nil nil nil nil nil escape nil nil nil nil
@@ -237,7 +237,7 @@ SHIFT LOCK is ignored."
     f35 lshift* rshift* lcontrol* rcontrol* caps-lock* shift-lock*
     lmeta* rmeta* lalt* ralt* lsuper* rsuper* lhyper* rhyper*
                                         ;#xff00 - #xffff
-    ,@(make-list 15 nil) delete)
+    ,@(make-list 15 nil) delete]
   "Emacs event representations of X function keys (keysym #xff00 to #xffff).")
 
 (defun xcb:keysyms:event->keysym (event)
@@ -288,7 +288,7 @@ this function will also return symbols for pure modifiers keys."
   (let ((event (cond ((and (<= #x20 keysym) (>= #xff keysym))
                       keysym)
                      ((and (<= #xff00 keysym) (>= #xffff keysym))
-                      (elt xcb:keysyms:-function-keys (logand keysym #xff)))
+                      (aref xcb:keysyms:-function-keys (logand keysym #xff)))
                      ((and (<= #x1000100 keysym) (>= #x110ffff keysym))
                       (- keysym #x1000000))
                      ((and (<= 1 keysym) (>= 5 keysym)) ;ButtonPress assuemd

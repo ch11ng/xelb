@@ -1,4 +1,4 @@
-;;; xelb.el --- X Protocol Emacs Lisp Binding  -*- lexical-binding: t -*-
+;;; xelb.el --- X protocol Emacs Lisp Binding  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
