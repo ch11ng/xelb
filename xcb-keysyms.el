@@ -235,7 +235,7 @@ SHIFT LOCK is ignored."
                                         ;#xffe0 - #xffef
     ;; f35 ,@(make-list 15 nil)
     f35 lshift* rshift* lcontrol* rcontrol* caps-lock* shift-lock*
-    lmeta* rmeta* lalt* ralt* lsuper* rsuper* lhyper* rhyper*
+    lmeta* rmeta* lalt* ralt* lsuper* rsuper* lhyper* rhyper* nil
                                         ;#xff00 - #xffff
     ,@(make-list 15 nil) delete]
   "Emacs event representations of X function keys (keysym #xff00 to #xffff).")
