@@ -240,6 +240,63 @@ SHIFT LOCK is ignored."
     ,@(make-list 15 nil) delete]
   "Emacs event representations of X function keys (keysym #xff00 to #xffff).")
 
+;; This list is adapted from 'XF86keysym.h' in X source.
+;; FIXME: We've intentionally left out keysyms outside the range 0x1008FF00 ~
+;;        0x1008FFFF.
+;; REVIEW: Could anybody verify this list?
+(defconst xcb:keysyms:-xf86-keys
+  `[                                    ;#x1008ff00 - #x1008ff0f
+    nil XF86ModeLock XF86MonBrightnessUp XF86MonBrightnessDown
+        XF86KbdLightOnOff XF86KbdBrightnessUp XF86KbdBrightnessDown
+        ,@(make-list 9 0)
+                                        ;#x1008ff10 - #x1008ff1f
+        XF86Standby XF86AudioLowerVolume XF86AudioMute XF86AudioRaiseVolume
+        XF86AudioPlay XF86AudioStop XF86AudioPrev XF86AudioNext XF86HomePage
+        XF86Mail XF86Start XF86Search XF86AudioRecord XF86Calculator XF86Memo
+        XF86ToDoList
+                                        ;#x1008ff20 - #x1008ff2f
+        XF86Calendar XF86PowerDown XF86ContrastAdjust XF86RockerUp
+        XF86RockerDown XF86RockerEnter XF86Back XF86Forward XF86Stop
+        XF86Refresh XF86PowerOff XF86WakeUp XF86Eject XF86ScreenSaver XF86WWW
+        XF86Sleep
+                                        ;#x1008ff30 - #x1008ff3f
+        XF86Favorites XF86AudioPause XF86AudioMedia XF86MyComputer
+        XF86VendorHome XF86LightBulb XF86Shop XF86History XF86OpenURL
+        XF86AddFavorite XF86HotLinks XF86BrightnessAdjust XF86Finance
+        XF86Community XF86AudioRewind XF86BackForward
+                                        ;#x1008ff40 - #x1008ff4f
+        XF86Launch0 XF86Launch1 XF86Launch2 XF86Launch3 XF86Launch4 XF86Launch5
+        XF86Launch6 XF86Launch7 XF86Launch8 XF86Launch9 XF86LaunchA XF86LaunchB
+        XF86LaunchC XF86LaunchD XF86LaunchE XF86LaunchF
+                                        ;#x1008ff50 - #x1008ff5f
+        XF86ApplicationLeft XF86ApplicationRight XF86Book XF86CD XF86Calculater
+        XF86Clear XF86Close XF86Copy XF86Cut XF86Display XF86DOS XF86Documents
+        XF86Excel XF86Explorer XF86Game XF86Go
+                                        ;#x1008ff60 - #x1008ff6f
+        XF86iTouch XF86LogOff XF86Market XF86Meeting nil XF86MenuKB XF86MenuPB
+        XF86MySites XF86New XF86News XF86OfficeHome XF86Open XF86Option
+        XF86Paste XF86Phone nil
+                                        ;#x1008ff70 - #x1008ff7f
+        XF86Q nil XF86Reply XF86Reload XF86RotateWindows XF86RotationPB
+        XF86RotationKB XF86Save XF86ScrollUp XF86ScrollDown XF86ScrollClick
+        XF86Send XF86Spell XF86SplitScreen XF86Support XF86TaskPane
+                                        ;#x1008ff80 - #x1008ff8f
+        XF86Terminal XF86Tools XF86Travel nil XF86UserPB XF86User1KB
+        XF86User2KB XF86Video XF86WheelButton XF86Word XF86Xfer XF86ZoomIn
+        XF86ZoomOut XF86Away XF86Messenger XF86WebCam
+                                        ;#x1008ff90 - #x1008ff9f
+        XF86MailForward XF86Pictures XF86Music XF86Battery XF86Bluetooth
+        XF86WLAN XF86UWB XF86AudioForward XF86AudioRepeat XF86AudioRandomPlay
+        XF86Subtitle XF86AudioCycleTrack XF86CycleAngle XF86FrameBack
+        XF86FrameForward XF86Time
+                                        ;#x1008ffa0 - #x1008ffaf
+        XF86Select XF86View XF86TopMenu XF86Red XF86Green XF86Yellow XF86Blue
+        XF86Suspend XF86Hibernate XF86TouchpadToggle ,@(make-list 6 0)
+                                        ;#x1008ffb0 - #x1008ffbf
+        XF86TouchpadOn XF86TouchpadOff XF86AudioMicMute ,@(make-list 13 0)
+                                        ;everything rest
+        ,@(make-list 64 0)])
+
 (defun xcb:keysyms:event->keysym (event)
   "Translate Emacs key event EVENT to X Keysym.
 
@@ -255,15 +312,19 @@ This function returns nil when it fails to convert an event."
                 (`mouse-3 xcb:ButtonIndex:3)
                 (`mouse-4 xcb:ButtonIndex:4)
                 (`mouse-5 xcb:ButtonIndex:5)
-                ;; Function keys
-                (_ (cl-position event xcb:keysyms:-function-keys))))
+                (_ (if (setq keysym (cl-position event
+                                                 xcb:keysyms:-function-keys))
+                       ;; Function keys
+                       (logior keysym #xff00)
+                     (if (setq keysym (cl-position event
+                                                   xcb:keysyms:-xf86-keys))
+                         ;; XF86 keys
+                         (logior keysym #x1008ff00))))))
       (if (and (<= #x20 event) (>= #xff event)) ;Latin-1
           (setq keysym event)
         (when (and (<= #x100 event) (>= #x10ffff event)) ;Unicode
           (setq keysym (+ #x1000000 event)))))
     (when keysym
-      (when (and (not (integerp event)) (< 5 keysym))
-        (setq keysym (logior keysym #xff00)))
       `(,keysym
         ;; state for KeyPress event
         ,(apply #'logior
@@ -292,7 +353,9 @@ this function will also return symbols for pure modifiers keys."
                      ((and (<= #x1000100 keysym) (>= #x110ffff keysym))
                       (- keysym #x1000000))
                      ((and (<= 1 keysym) (>= 5 keysym)) ;ButtonPress assuemd
-                      (intern-soft (format "down-mouse-%d" keysym))))))
+                      (intern-soft (format "down-mouse-%d" keysym)))
+                     ((and (<= #x1008ff00) (>= #x1008ffff))
+                      (aref xcb:keysyms:-xf86-keys (logand keysym #xff))))))
     (when (and (not allow-modifiers)
                (memq event
                      '(lshift* rshift* lcontrol* rcontrol*
