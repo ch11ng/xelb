@@ -56,27 +56,29 @@
 
 ;; The `cl-generic' package on ELPA does not solve all problems
 
-(unless (fboundp 'cl-defmethod)
-  (defalias 'cl-defmethod 'defmethod))
+(eval-and-compile
+  (unless (fboundp 'cl-defmethod)
+    (defalias 'cl-defmethod 'defmethod))
 
-(unless (fboundp 'cl-call-next-method)
-  (defalias 'cl-call-next-method 'call-next-method))
+  (unless (fboundp 'cl-call-next-method)
+    (defalias 'cl-call-next-method 'call-next-method))
 
-(unless (fboundp 'eieio-class-slots)
-  (defun eieio-class-slots (class)
-    (let* ((tmp (class-v class))
-           (names (eieio--class-public-a tmp))
-           (initforms (eieio--class-public-d tmp))
-           (types (eieio--class-public-type tmp))
-           result)
-      (dotimes (i (length names))
-        (setq result (nconc result (list (vector (elt names i)
-                                                 (elt initforms i)
-                                                 (elt types i))))))
-      result))
-  (defsubst cl--slot-descriptor-name (slot) (aref slot 0))
-  (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))
-  (defsubst cl--slot-descriptor-type (slot) (aref slot 2)))
+  (unless (fboundp 'eieio-class-slots)
+    (eval-and-compile
+      (defun eieio-class-slots (class)
+        (let* ((tmp (class-v class))
+               (names (eieio--class-public-a tmp))
+               (initforms (eieio--class-public-d tmp))
+               (types (eieio--class-public-type tmp))
+               result)
+          (dotimes (i (length names))
+            (setq result (nconc result (list (vector (elt names i)
+                                                     (elt initforms i)
+                                                     (elt types i))))))
+          result))
+      (defsubst cl--slot-descriptor-name (slot) (aref slot 0))
+      (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))
+      (defsubst cl--slot-descriptor-type (slot) (aref slot 2)))))
 
 ;;;; Utility functions
 
