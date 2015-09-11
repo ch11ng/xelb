@@ -41,6 +41,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'pp)
 
 ;;;; Variables
 
@@ -116,7 +117,6 @@ an `xelb-auto-padding' attribute."
   "Parse an XCB protocol description file FILE (XML)."
   (let ((pp-escape-newlines nil)        ;do not escape newlines
         result header)
-    (cl-assert (not pp-escape-newlines)) ;only to remove a compile warning
     (with-temp-buffer
       (insert-file-contents file)
       (setq result (libxml-parse-xml-region (point-min) (point-max) nil t))
