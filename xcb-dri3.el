@@ -1,4 +1,5 @@
 ;;; -*- lexical-binding: t -*-
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 ;; This file was generated from `dri3.xml' by `el_client.el'.
 
 (require 'xcb-types)
