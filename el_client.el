@@ -45,41 +45,41 @@
 
 ;;;; Variables
 
-(defvar ec-prefix "xcb:" "Namespace of this module.")
-(make-variable-buffer-local 'ec-prefix)
+(defvar xelb-prefix "xcb:" "Namespace of this module.")
+(make-variable-buffer-local 'xelb-prefix)
 
-(defvar error-alist nil "Record X errors in this module.")
-(make-variable-buffer-local 'error-alist)
+(defvar xelb-error-alist nil "Record X errors in this module.")
+(make-variable-buffer-local 'xelb-error-alist)
 
-(defvar event-alist nil "Record X events in this module.")
-(make-variable-buffer-local 'event-alist)
+(defvar xelb-event-alist nil "Record X events in this module.")
+(make-variable-buffer-local 'xelb-event-alist)
 
-(defvar pad-count -1 "<pad> node counter.")
-(make-variable-buffer-local 'pad-count)
+(defvar xelb-pad-count -1 "<pad> node counter.")
+(make-variable-buffer-local 'xelb-pad-count)
 
 ;;;; Helper functions
 
-(defsubst node-name (node)
+(defsubst xelb-node-name (node)
   "Return the tag name of node NODE."
   (car node))
 
-(defsubst node-attr (node attr)
+(defsubst xelb-node-attr (node attr)
   "Return the attribute ATTR of node NODE."
   (cdr (assoc attr (cadr node))))
 
-(defsubst escape-name (name)
+(defsubst xelb-escape-name (name)
   "Replace underscores in NAME with dashes."
   (replace-regexp-in-string "_" "-" name))
 
-(defsubst node-name-escape (node)
+(defsubst xelb-node-name-escape (node)
   "Return the tag name of node NODE and escape it."
-  (escape-name (node-name node)))
+  (xelb-escape-name (xelb-node-name node)))
 
-(defsubst node-attr-escape (node attr)
+(defsubst xelb-node-attr-escape (node attr)
   "Return the attribute ATTR of node NODE and escape it."
-  (escape-name (node-attr node attr)))
+  (xelb-escape-name (xelb-node-attr node attr)))
 
-(defsubst node-subnodes (node &optional mark-auto-padding)
+(defsubst xelb-node-subnodes (node &optional mark-auto-padding)
   "Return all the subnodes of node NODE as a list.
 
 If MARK-AUTO-PADDING is non-nil, all <list>'s fitting for padding will include
@@ -90,181 +90,223 @@ an `xelb-auto-padding' attribute."
       (cl-delete-if (lambda (i) (or (eq 'comment (car i)) (eq 'doc (car i))))
                     subnodes)
       (dotimes (i (1- (length subnodes)))
-        (when (and (eq 'list (node-name (elt subnodes i)))
-                   (pcase (node-name (elt subnodes (1+ i)))
+        (when (and (eq 'list (xelb-node-name (elt subnodes i)))
+                   (pcase (xelb-node-name (elt subnodes (1+ i)))
                      ((or `reply `pad))
                      (_ t)))
           (setf (cadr (elt subnodes i))
                 (nconc (cadr (elt subnodes i)) `((xelb-auto-padding . t)))))))
     subnodes))
 
-(defsubst node-subnode (node)
+(defsubst xelb-node-subnode (node)
   "Return the (only) subnode of node NODE with useless contents skipped."
-  (let ((result (node-subnodes node)))
+  (let ((result (xelb-node-subnodes node)))
     (catch 'break
       (dolist (i result)
         (unless (and (listp i)
-                     (or (eq (node-name i) 'comment) (eq (node-name i) 'doc)))
+                     (or (eq (xelb-node-name i) 'comment)
+                         (eq (xelb-node-name i) 'doc)))
           (throw 'break i))))))
 
-(defsubst generate-pad-name ()
+(defsubst xelb-generate-pad-name ()
   "Generate a new slot name for <pad>."
-  (make-symbol (format "pad~%d" (cl-incf pad-count))))
+  (make-symbol (format "pad~%d" (cl-incf xelb-pad-count))))
 
 ;;;; Entry & root element
 
-(defun parse (file)
+(defun xelb-parse (file)
   "Parse an XCB protocol description file FILE (XML)."
   (let ((pp-escape-newlines nil)        ;do not escape newlines
         result header)
     (with-temp-buffer
       (insert-file-contents file)
       (setq result (libxml-parse-xml-region (point-min) (point-max) nil t))
-      (cl-assert (eq 'xcb (node-name result)))
-      (setq header (node-attr result 'header))
+      (cl-assert (eq 'xcb (xelb-node-name result)))
+      (setq header (xelb-node-attr result 'header))
       (unless (string= header "xproto")
-        (setq ec-prefix (concat ec-prefix header ":")))
+        (setq xelb-prefix (concat xelb-prefix header ":")))
       ;; Print header
       (princ (format "\
-;;; -*- lexical-binding: t -*-
-;; This file was generated from `%s' by `el_client.el'.
-\n(require 'xcb-types)\n\n" (file-name-nondirectory file)))
+;;; xcb-%s.el --- X11 %s  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2015 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This file was generated by 'el_client.el' from '%s',
+;; which you can retrieve from <git://anongit.freedesktop.org/xcb/proto>.
+
+;;; Code:
+
+(require 'xcb-types)
+
+" header (let ((extension-name (xelb-node-attr result 'extension-name)))
+           (if extension-name
+               (concat extension-name " extension")
+             "core protocol"))
+                     (file-name-nondirectory file)))
       ;; Print extension info (if any)
-      (let ((extension-xname (node-attr result 'extension-xname))
-            (extension-name (node-attr result 'extension-name))
-            (major-version (node-attr result 'major-version))
-            (minor-version (node-attr result 'minor-version)))
+      (let ((extension-xname (xelb-node-attr result 'extension-xname))
+            (extension-name (xelb-node-attr result 'extension-name))
+            (major-version (xelb-node-attr result 'major-version))
+            (minor-version (xelb-node-attr result 'minor-version)))
         (when extension-xname
-          (pp `(defconst ,(intern (concat ec-prefix "-extension-xname"))
+          (pp `(defconst ,(intern (concat xelb-prefix "-extension-xname"))
                  ,extension-xname)))
         (when extension-name
-          (pp `(defconst ,(intern (concat ec-prefix "-extension-name"))
+          (pp `(defconst ,(intern (concat xelb-prefix "-extension-name"))
                  ,extension-name)))
         (when major-version
-          (pp `(defconst ,(intern (concat ec-prefix "-major-version"))
+          (pp `(defconst ,(intern (concat xelb-prefix "-major-version"))
                  ,(string-to-number major-version))))
         (when minor-version
-          (pp `(defconst ,(intern (concat ec-prefix "-minor-version"))
+          (pp `(defconst ,(intern (concat xelb-prefix "-minor-version"))
                  ,(string-to-number minor-version))))
         (when (or extension-xname extension-name major-version minor-version)
           (princ "\n")))
       ;; Print contents
-      (dolist (i (node-subnodes result))
-        (let ((result (parse-top-level-element i)))
+      (dolist (i (xelb-node-subnodes result))
+        (let ((result (xelb-parse-top-level-element i)))
           (when result                  ;skip <doc>, comments, etc
             (dolist (j result)
               (pp j))
             (princ "\n"))))
       ;; Print error/event alists
-      (when error-alist
-        (pp `(defconst ,(intern (concat ec-prefix "error-number-class-alist"))
-               ',error-alist "(error-number . error-class) alist"))
+      (when xelb-error-alist
+        (pp
+         `(defconst ,(intern (concat xelb-prefix "error-number-class-alist"))
+            ',xelb-error-alist "(error-number . error-class) alist"))
         (princ "\n"))
-      (when event-alist
-        (pp `(defconst ,(intern (concat ec-prefix "event-number-class-alist"))
-               ',event-alist "(event-number . event-class) alist"))
+      (when xelb-event-alist
+        (pp
+         `(defconst ,(intern (concat xelb-prefix "event-number-class-alist"))
+            ',xelb-event-alist "(event-number . event-class) alist"))
         (princ "\n"))
       ;; Print footer
-      (princ (format "\n\n(provide 'xcb-%s)\n" header)))))
+      (princ (format "\
+
+
+(provide 'xcb-%s)
+
+;;; xcb-%s.el ends here
+" header header)))))
 
 ;;;; XCB: top-level elements
 
-(defun parse-top-level-element (node)
+(defun xelb-parse-top-level-element (node)
   "Parse a top-level node NODE."
-  (setq pad-count -1)
-  (pcase (node-name node)
-    (`import (parse-import node))
-    (`struct (parse-struct node))
-    (`union (parse-union node))
+  (setq xelb-pad-count -1)
+  (pcase (xelb-node-name node)
+    (`import (xelb-parse-import node))
+    (`struct (xelb-parse-struct node))
+    (`union (xelb-parse-union node))
     ((or `xidtype `xidunion)
-     (parse-xidtype node))              ;they are basically the same
-    (`enum (parse-enum node))
-    (`typedef (parse-typedef node))
-    (`request (parse-request node))
-    (`event (parse-event node))
-    (`error (parse-error node))
-    (`eventcopy (parse-eventcopy node))
-    (`errorcopy (parse-errorcopy node))
+     (xelb-parse-xidtype node))         ;they are basically the same
+    (`enum (xelb-parse-enum node))
+    (`typedef (xelb-parse-typedef node))
+    (`request (xelb-parse-request node))
+    (`event (xelb-parse-event node))
+    (`error (xelb-parse-error node))
+    (`eventcopy (xelb-parse-eventcopy node))
+    (`errorcopy (xelb-parse-errorcopy node))
     ((or `comment `doc))                ;ignored
     (x (error "Unsupported top-level element: <%s>" x))))
 
-(defun parse-import (node)
+(defun xelb-parse-import (node)
   "Parse <import>."
-  (let ((header (intern (concat "xcb-" (node-subnode node)))))
+  (let ((header (intern (concat "xcb-" (xelb-node-subnode node)))))
     (require header)
     `((require ',header))))
 
-(defun parse-struct (node)
+(defun xelb-parse-struct (node)
   "Parse <struct>."
-  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
-        (contents (node-subnodes node t)))
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+        (contents (xelb-node-subnodes node t)))
     `((defclass ,name (xcb:-struct)
-        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
 
-(defun parse-union (node)
+(defun xelb-parse-union (node)
   "Parse <union>."
-  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
-        (contents (node-subnodes node)))
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+        (contents (xelb-node-subnodes node)))
     `((defclass ,name (xcb:-union)
-        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
 
-(defun parse-xidtype (node)
+(defun xelb-parse-xidtype (node)
   "Parse <xidtype>."
-  (let ((name (intern (concat ec-prefix (node-attr node 'name)))))
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name)))))
     `((xcb:deftypealias ',name 'xcb:-u4))))
 
-(defun parse-enum (node)
+(defun xelb-parse-enum (node)
   "Parse <enum>."
-  (let ((name-prefix (concat ec-prefix (node-attr node 'name) ":"))
-        (items (node-subnodes node))
+  (let ((name-prefix (concat xelb-prefix (xelb-node-attr node 'name) ":"))
+        (items (xelb-node-subnodes node))
         (value 0))
     (delq nil                ;remove nil's produced by tags like <doc>
           (mapcar (lambda (i)
-                    (when (eq (node-name i) 'item) ;only handle <item> tags
-                      (let* ((name (node-attr i 'name))
+                    (when (eq (xelb-node-name i) 'item)
+                      ;; Only handle <item> tags
+                      (let* ((name (xelb-node-attr i 'name))
                              (name (intern (concat name-prefix name)))
-                             (expression (node-subnode i)))
+                             (expression (xelb-node-subnode i)))
                         (if expression
-                            (setq value (parse-expression expression))
+                            (setq value (xelb-parse-expression expression))
                           (setq value (1+ value)))
                         `(defconst ,name ,value))))
                   items))))
 
-(defun parse-typedef (node)
+(defun xelb-parse-typedef (node)
   "Parse <typedef>."
-  (let* ((oldname (node-attr node 'oldname))
+  (let* ((oldname (xelb-node-attr node 'oldname))
          (oldname (or (intern-soft (concat "xcb:" oldname))
-                      (intern (concat ec-prefix oldname))))
-         (newname (intern (concat ec-prefix (node-attr node 'newname)))))
+                      (intern (concat xelb-prefix oldname))))
+         (newname (intern (concat xelb-prefix
+                                  (xelb-node-attr node 'newname)))))
     `((xcb:deftypealias ',newname ',oldname))))
 
-(defun parse-request (node)
+(defun xelb-parse-request (node)
   "Parse <request>.
 
 The `combine-adjacent' attribute is simply ignored."
-  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
-         (opcode (string-to-number (node-attr node 'opcode)))
+  (let* ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+         (opcode (string-to-number (xelb-node-attr node 'opcode)))
          (contents `((~opcode :initform ,opcode :type xcb:-u1)))
-         (subnodes (node-subnodes node t))
+         (subnodes (xelb-node-subnodes node t))
          expressions
          result reply-name reply-contents)
     (dolist (i subnodes)
-      (if (not (eq (node-name i) 'reply))
+      (if (not (eq (xelb-node-name i) 'reply))
           (progn
-            (setq result (parse-structure-content i))
-            (if (eq 'exprfield (node-name i))
+            (setq result (xelb-parse-structure-content i))
+            (if (eq 'exprfield (xelb-node-name i))
                 ;; Split into field and expression
                 (setq contents (nconc contents (list (car result)))
                       expressions (nconc expressions (list (cadr result))))
               (setq contents (nconc contents result))))
         ;; Parse <reply>
-        (setq pad-count -1)             ;reset padding counter
+        (setq xelb-pad-count -1)        ;reset padding counter
         (setq reply-name
-              (intern (concat ec-prefix (node-attr node 'name) "~reply")))
-        (setq reply-contents (node-subnodes i t))
+              (intern (concat xelb-prefix (xelb-node-attr node 'name)
+                              "~reply")))
+        (setq reply-contents (xelb-node-subnodes i t))
         (setq reply-contents
               (apply #'nconc
-                     (mapcar #'parse-structure-content reply-contents)))))
+                     (mapcar #'xelb-parse-structure-content reply-contents)))))
     (delq nil contents)
     (delq nil
           `((defclass ,name (xcb:-request) ,contents)
@@ -278,16 +320,17 @@ The `combine-adjacent' attribute is simply ignored."
                (delq nil reply-contents)
                `(defclass ,reply-name (xcb:-reply) ,reply-contents))))))
 
-(defun parse-event (node)
+(defun xelb-parse-event (node)
   "Parse <event>.
 
 The `no-sequence-number' is ignored here since it's only used for
 KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
-  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
-        (event-number (string-to-number (node-attr node 'number)))
-        (xge (node-attr node 'xge))
-        (contents (node-subnodes node t)))
-    (setq contents (apply #'nconc (mapcar #'parse-structure-content contents)))
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+        (event-number (string-to-number (xelb-node-attr node 'number)))
+        (xge (xelb-node-attr node 'xge))
+        (contents (xelb-node-subnodes node t)))
+    (setq contents
+          (apply #'nconc (mapcar #'xelb-parse-structure-content contents)))
     (when xge                           ;generic event
       (setq contents
             (append
@@ -295,86 +338,86 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                (length :type xcb:CARD32)
                (evtype :type xcb:CARD16))
              contents)))
-    (setq event-alist (nconc event-alist `((,event-number . ,name))))
+    (setq xelb-event-alist (nconc xelb-event-alist `((,event-number . ,name))))
     `((defclass ,name (xcb:-event) ,contents))))
 
-(defun parse-error (node)
+(defun xelb-parse-error (node)
   "Parse <error>."
-  (let ((name (intern (concat ec-prefix (node-attr node 'name))))
-        (error-number (string-to-number (node-attr node 'number)))
-        (contents (node-subnodes node t)))
-    (setq error-alist (nconc error-alist `((,error-number . ,name))))
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+        (error-number (string-to-number (xelb-node-attr node 'number)))
+        (contents (xelb-node-subnodes node t)))
+    (setq xelb-error-alist (nconc xelb-error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error)
-        ,(apply #'nconc (mapcar #'parse-structure-content contents))))))
+        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
 
-(defun parse-eventcopy (node)
+(defun xelb-parse-eventcopy (node)
   "Parse <eventcopy>."
-  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
-         (refname (node-attr node 'ref))
+  (let* ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+         (refname (xelb-node-attr node 'ref))
          (refname (or (intern-soft (concat "xcb:" refname))
-                      (intern (concat ec-prefix refname))))
-         (event-number (string-to-number (node-attr node 'number))))
-    (setq event-alist (nconc event-alist `((,event-number . ,name))))
+                      (intern (concat xelb-prefix refname))))
+         (event-number (string-to-number (xelb-node-attr node 'number))))
+    (setq xelb-event-alist (nconc xelb-event-alist `((,event-number . ,name))))
     `((defclass ,name (xcb:-event ,refname) nil)))) ;shadow the method of ref
 
-(defun parse-errorcopy (node)
+(defun xelb-parse-errorcopy (node)
   "Parse <errorcopy>."
-  (let* ((name (intern (concat ec-prefix (node-attr node 'name))))
-         (refname (node-attr node 'ref))
+  (let* ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
+         (refname (xelb-node-attr node 'ref))
          (refname (or (intern-soft (concat "xcb:" refname))
-                      (intern (concat ec-prefix refname))))
-         (error-number (string-to-number (node-attr node 'number))))
-    (setq error-alist (nconc error-alist `((,error-number . ,name))))
+                      (intern (concat xelb-prefix refname))))
+         (error-number (string-to-number (xelb-node-attr node 'number))))
+    (setq xelb-error-alist (nconc xelb-error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error ,refname) nil)))) ;shadow the method of ref
 
 ;;;; XCB: structure contents
 
-(defun parse-structure-content (node)
+(defun xelb-parse-structure-content (node)
   "Parse a structure content node NODE."
-  (pcase (node-name node)
-    (`pad (parse-pad node))
-    (`field (parse-field node))
-    (`fd (parse-fd node))
-    (`list (parse-list node))
-    (`exprfield (parse-exprfield node))
-    (`switch (parse-switch node))
+  (pcase (xelb-node-name node)
+    (`pad (xelb-parse-pad node))
+    (`field (xelb-parse-field node))
+    (`fd (xelb-parse-fd node))
+    (`list (xelb-parse-list node))
+    (`exprfield (xelb-parse-exprfield node))
+    (`switch (xelb-parse-switch node))
     ((or `comment `doc))                ;simply ignored
     (x (error "Unsupported structure content: <%s>" x))))
 
 ;; The car of the result shall be renamed to prevent duplication of slot names
-(defun parse-pad (node)
+(defun xelb-parse-pad (node)
   "Parse <pad>."
-  (let ((bytes (node-attr node 'bytes))
-        (align (node-attr node 'align)))
+  (let ((bytes (xelb-node-attr node 'bytes))
+        (align (xelb-node-attr node 'align)))
     (if bytes
-        `((,(generate-pad-name)
+        `((,(xelb-generate-pad-name)
            :initform ,(string-to-number bytes) :type xcb:-pad))
       (if align
-          `((,(generate-pad-name)
+          `((,(xelb-generate-pad-name)
              :initform ,(string-to-number align) :type xcb:-pad-align))
         (error "Invalid <pad> field")))))
 
-(defun parse-field (node)
+(defun xelb-parse-field (node)
   "Parse <field>."
-  (let* ((name (intern (node-attr-escape node 'name)))
-         (type (node-attr node 'type))
+  (let* ((name (intern (xelb-node-attr-escape node 'name)))
+         (type (xelb-node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type)) ;extension or xproto
-                   (intern (concat ec-prefix type)))))
+                   (intern (concat xelb-prefix type)))))
     `((,name :initarg ,(intern (concat ":" (symbol-name name))) :type ,type))))
 
-(defun parse-fd (node)
+(defun xelb-parse-fd (node)
   "Parse <fd>."
-  (let ((name (intern (node-attr-escape node 'name))))
+  (let ((name (intern (xelb-node-attr-escape node 'name))))
     `((,name :type xcb:-fd))))
 
-(defun parse-list (node)
+(defun xelb-parse-list (node)
   "Parse <list>."
-  (let* ((name (intern (node-attr-escape node 'name)))
-         (name-alt (intern (concat (node-attr-escape node 'name) "~")))
-         (type (node-attr node 'type))
+  (let* ((name (intern (xelb-node-attr-escape node 'name)))
+         (name-alt (intern (concat (xelb-node-attr-escape node 'name) "~")))
+         (type (xelb-node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat ec-prefix type))))
-         (size (parse-expression (node-subnode node))))
+                   (intern (concat xelb-prefix type))))
+         (size (xelb-parse-expression (xelb-node-subnode node))))
     `((,name :initarg ,(intern (concat ":" (symbol-name name)))
              :type xcb:-ignore)
       (,name-alt :initform '(name ,name type ,type size ,size)
@@ -382,40 +425,41 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
       ;; Auto padding after variable-length list
       ;; FIXME: according to the definition of `XCB_TYPE_PAD' in xcb.h, it does
       ;;        not always padding to 4 bytes.
-      ,@(when (and (node-attr node 'xelb-auto-padding) (not (integerp size)))
-          `((,(generate-pad-name) :initform 4 :type xcb:-pad-align))))))
+      ,@(when (and (xelb-node-attr node 'xelb-auto-padding)
+                   (not (integerp size)))
+          `((,(xelb-generate-pad-name) :initform 4 :type xcb:-pad-align))))))
 
 ;; The car of result is the field declaration, and the cadr is the expression
 ;; to be evaluated.
-(defun parse-exprfield (node)
+(defun xelb-parse-exprfield (node)
   "Parse <exprfield>."
-  (let* ((name (intern (node-attr-escape node 'name)))
-         (type (node-attr node 'type))
+  (let* ((name (intern (xelb-node-attr-escape node 'name)))
+         (type (xelb-node-attr node 'type))
          (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat ec-prefix type))))
-         (value (parse-expression (node-subnode node))))
+                   (intern (concat xelb-prefix type))))
+         (value (xelb-parse-expression (xelb-node-subnode node))))
     `((,name :type ,type)
       (setf (slot-value obj ',name) ',value))))
 
 ;; The only difference between <bitcase> and <case> is whether the `condition'
 ;; is a list
 ;; The name attribute of <bitcase> and <case> seems not useful here.
-(defun parse-switch (node)
+(defun xelb-parse-switch (node)
   "Parse <switch>."
-  (let ((name (intern (node-attr-escape node 'name)))
-        (expression (parse-expression (car (node-subnodes node))))
-        (cases (cdr (node-subnodes node)))
+  (let ((name (intern (xelb-node-attr-escape node 'name)))
+        (expression (xelb-parse-expression (car (xelb-node-subnodes node))))
+        (cases (cdr (xelb-node-subnodes node)))
         fields)
     ;; Avoid duplicated slot names by appending "*" if necessary
     (let (names name)
       (dolist (case cases)
-        (pcase (node-name case)
+        (pcase (xelb-node-name case)
           ((or `bitcase `case)
-           (dolist (field (node-subnodes case))
-             (pcase (node-name field)
+           (dolist (field (xelb-node-subnodes case))
+             (pcase (xelb-node-name field)
                ((or `enumref `pad `doc `comment))
                (_
-                (setq name (node-attr field 'name))
+                (setq name (xelb-node-attr field 'name))
                 (when (member name names)
                   (while (member name names)
                     (setq name (concat name "*")))
@@ -423,16 +467,17 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                 (cl-pushnew name names :test #'equal))))))))
     (setq cases
           (mapcar (lambda (i)
-                    (let ((case-name (node-name i))
+                    (let ((case-name (xelb-node-name i))
                           condition name-list tmp)
                       (when (or (eq case-name 'bitcase) (eq case-name 'case))
-                        (dolist (j (node-subnodes i t))
-                          (pcase (node-name j)
+                        (dolist (j (xelb-node-subnodes i t))
+                          (pcase (xelb-node-name j)
                             (`enumref
                              (setq condition
-                                   (nconc condition (list (parse-enumref j)))))
+                                   (nconc condition
+                                          (list (xelb-parse-enumref j)))))
                             (_
-                             (setq tmp (parse-structure-content j))
+                             (setq tmp (xelb-parse-structure-content j))
                              (setq fields (nconc fields tmp))
                              (setq name-list
                                    (nconc name-list (list (caar tmp)))))))
@@ -448,29 +493,29 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 
 ;;;; XCB: expressions
 
-(defun parse-expression (node)
+(defun xelb-parse-expression (node)
   "Parse an expression node NODE."
   (when node
-    (pcase (node-name node)
-      (`op (parse-op node))
-      (`fieldref (parse-fieldref node))
-      (`paramref (parse-paramref node))
-      (`value (parse-value node))
-      (`bit (parse-bit node))
-      (`enumref (parse-enumref node))
-      (`unop (parse-unop node))
-      (`sumof (parse-sumof node))
-      (`popcount (parse-popcount node))
-      (`listelement-ref (parse-listelement-ref node))
+    (pcase (xelb-node-name node)
+      (`op (xelb-parse-op node))
+      (`fieldref (xelb-parse-fieldref node))
+      (`paramref (xelb-parse-paramref node))
+      (`value (xelb-parse-value node))
+      (`bit (xelb-parse-bit node))
+      (`enumref (xelb-parse-enumref node))
+      (`unop (xelb-parse-unop node))
+      (`sumof (xelb-parse-sumof node))
+      (`popcount (xelb-parse-popcount node))
+      (`listelement-ref (xelb-parse-listelement-ref node))
       ((or `comment `doc))              ;simply ignored
       (x (error "Unsupported expression: <%s>" x)))))
 
-(defun parse-op (node)
+(defun xelb-parse-op (node)
   "Parse <op>."
-  (let* ((subnodes (node-subnodes node))
-         (x (parse-expression (car subnodes)))
-         (y (parse-expression (cadr subnodes))))
-    (pcase (node-attr node 'op)
+  (let* ((subnodes (xelb-node-subnodes node))
+         (x (xelb-parse-expression (car subnodes)))
+         (y (xelb-parse-expression (cadr subnodes))))
+    (pcase (xelb-node-attr node 'op)
       ("+" `(+ ,x ,y))
       ("-" `(- ,x ,y))
       ("*" `(* ,x ,y))
@@ -479,53 +524,55 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
       ("<<" `(lsh ,x ,y))
       (x (error "Unsupported operator: `%s'" x)))))
 
-(defun parse-fieldref (node)
+(defun xelb-parse-fieldref (node)
   "Parse <fieldref>."
-  `(xcb:-fieldref ',(intern (escape-name (node-subnode node)))))
+  `(xcb:-fieldref ',(intern (xelb-escape-name (xelb-node-subnode node)))))
 
-(defun parse-paramref (node)
+(defun xelb-parse-paramref (node)
   "Parse <paramref>."
-  `(xcb:-paramref ',(intern (escape-name (node-subnode node)))))
+  `(xcb:-paramref ',(intern (xelb-escape-name (xelb-node-subnode node)))))
 
-(defun parse-value (node)
+(defun xelb-parse-value (node)
   "Parse <value>."
-  (string-to-number (replace-regexp-in-string "^0x" "#x" (node-subnode node))))
+  (string-to-number
+   (replace-regexp-in-string "^0x" "#x" (xelb-node-subnode node))))
 
-(defun parse-bit (node)
+(defun xelb-parse-bit (node)
   "Parse <bit>."
-  (let ((bit (string-to-number (node-subnode node))))
+  (let ((bit (string-to-number (xelb-node-subnode node))))
     (cl-assert (and (<= 0 bit) (>= 31 bit)))
     (lsh 1 bit)))
 
-(defun parse-enumref (node)
+(defun xelb-parse-enumref (node)
   "Parse <enumref>."
-  (let ((name (concat (node-attr node 'ref) ":" (node-subnode node))))
+  (let ((name (concat (xelb-node-attr node 'ref) ":"
+                      (xelb-node-subnode node))))
     (or (intern-soft (concat "xcb:" name))
-        (intern (concat ec-prefix name)))))
+        (intern (concat xelb-prefix name)))))
 
-(defun parse-unop (node)
+(defun xelb-parse-unop (node)
   "Parse <unop>."
-  (cl-assert (string= "~" (node-attr node 'op)))
-  `(lognot (parse-expression (node-subnode node))))
+  (cl-assert (string= "~" (xelb-node-attr node 'op)))
+  `(lognot (xelb-parse-expression (xelb-node-subnode node))))
 
-(defun parse-sumof (node)
+(defun xelb-parse-sumof (node)
   "Parse <sumof>."
-  (let* ((ref (intern (node-attr-escape node 'ref)))
-         (expression (node-subnode node))
+  (let* ((ref (intern (xelb-node-attr-escape node 'ref)))
+         (expression (xelb-node-subnode node))
          (list-data `(slot-value obj ',ref)))
     (if (not expression)
         `(apply #'+ ,list-data)
-      (setq expression (parse-expression expression))
+      (setq expression (xelb-parse-expression expression))
       `(apply #'+ (mapcar (lambda (i)
                             (eval ',expression (list (nconc '(obj) i))))
                           ,list-data)))))
 
-(defun parse-popcount (node)
+(defun xelb-parse-popcount (node)
   "Parse <popcount>."
-  (let ((expression (parse-expression (node-subnode node))))
+  (let ((expression (xelb-parse-expression (xelb-node-subnode node))))
     `(xcb:-popcount ,expression)))
 
-(defun parse-listelement-ref (_node)
+(defun xelb-parse-listelement-ref (_node)
   "Parse <listelement-ref>."
   'obj)                      ;a list element is internally named 'obj'
 
@@ -540,6 +587,6 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   (dolist (i (cdr argv))
     (add-to-list 'load-path i))
   (require 'xcb-types)
-  (parse (car argv)))
+  (xelb-parse (car argv)))
 
 ;;; el_client.el ends here
