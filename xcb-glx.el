@@ -1229,6 +1229,16 @@
 		 (xcb:-fieldref 'n))
 	  :type xcb:-list)))
 
+(defclass xcb:glx:IsEnabled
+  (xcb:-request)
+  ((~opcode :initform 140 :type xcb:-u1)
+   (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
+   (capability :initarg :capability :type xcb:CARD32)))
+(defclass xcb:glx:IsEnabled~reply
+  (xcb:-reply)
+  ((pad~0 :initform 1 :type xcb:-pad)
+   (ret-val :initarg :ret-val :type xcb:BOOL32)))
+
 (defclass xcb:glx:IsList
   (xcb:-request)
   ((~opcode :initform 141 :type xcb:-u1)

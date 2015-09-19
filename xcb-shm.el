@@ -90,7 +90,7 @@
    (dst-y :initarg :dst-y :type xcb:INT16)
    (depth :initarg :depth :type xcb:CARD8)
    (format :initarg :format :type xcb:CARD8)
-   (send-event :initarg :send-event :type xcb:CARD8)
+   (send-event :initarg :send-event :type xcb:BOOL)
    (pad~0 :initform 1 :type xcb:-pad)
    (shmseg :initarg :shmseg :type xcb:shm:SEG)
    (offset :initarg :offset :type xcb:CARD32)))
