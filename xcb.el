@@ -637,7 +637,6 @@ Sync by sending a GetInputFocus request and waiting until it's processed."
         (accept-process-output process 1 nil 1)))
     (cl-decf (slot-value obj 'event-lock))))
 
-;;;###autoload
 (cl-defmethod xcb:-error-or-event-class->number ((obj xcb:connection) class)
   "Return the error/event number of a error/event class CLASS."
   (unless (symbolp class) (setq class (eieio-class-name class)))

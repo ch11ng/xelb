@@ -545,6 +545,8 @@ and the second the consumed length."
 (defclass xcb:-event (xcb:-struct)
   nil
   :documentation "Event type.")
+;; Implemented in 'xcb.el'
+(cl-defgeneric xcb:-error-or-event-class->number ((obj xcb:connection) class))
 ;;
 (cl-defmethod xcb:marshal ((obj xcb:-event) connection &optional sequence)
   "Return the byte-array representation of event OBJ.
