@@ -57,6 +57,9 @@
 ;; The `cl-generic' package on ELPA does not solve all problems
 
 (eval-and-compile
+  (unless (fboundp 'cl-defgeneric)
+    (defalias 'cl-defgeneric 'defgeneric))
+
   (unless (fboundp 'cl-defmethod)
     (defalias 'cl-defmethod 'defmethod))
 
