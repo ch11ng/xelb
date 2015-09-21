@@ -299,7 +299,7 @@ explicitly listed out."
     (unless value (setq value (make-vector (length slots) nil))) ;fallback
     ;; Set explicit fields from value field
     (dotimes (i (length value))
-      (setf (slot-value obj (cl--slot-descriptor-name (elt slots i)))
+      (setf (slot-value obj (eieio-slot-descriptor-name (elt slots i)))
             (elt value i)))
     retval))
 
@@ -317,7 +317,8 @@ whose fields are explicitly listed out."
     ;; Set data field from explicit fields
     (setf (slot-value obj 'data)
           (mapconcat (lambda (slot)
-                       (list (slot-value obj (cl--slot-descriptor-name slot))))
+                       (list (slot-value obj
+                                         (eieio-slot-descriptor-name slot))))
                      slots []))
     (cl-call-next-method obj)))
 

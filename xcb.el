@@ -74,11 +74,11 @@
 
 ;;;###autoload
 (defclass xcb:connection ()
-  ((process :initarg :process)
+  ((process :initarg :process :initform nil)
    (connected :initform nil)  ;non-nil indicates connected to X server
-   (display :initarg :display)
-   (auth-info :initarg :auth-info)
-   (socket :initarg :socket)
+   (display :initarg :display :initform nil)
+   (auth-info :initarg :auth-info :initform nil)
+   (socket :initarg :socket :initform nil)
    (lock :initform nil)
    (setup-data :initform nil)           ;X connection setup data
    (request-cache :initform [])         ;cache for outgoing requests
@@ -324,8 +324,8 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
   ;; Reset every slot to its default value
   (let ((slots (eieio-class-slots 'xcb:connection)))
     (dolist (slot slots)
-      (setf (slot-value obj (cl--slot-descriptor-name slot))
-            (cl--slot-descriptor-initform slot)))))
+      (setf (slot-value obj (eieio-slot-descriptor-name slot))
+            (eieio-oref-default obj (eieio-slot-descriptor-name slot))))))
 
 ;;;; Other routines
 

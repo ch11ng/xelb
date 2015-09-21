@@ -50,22 +50,14 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl-generic)
 (require 'eieio)
 
 ;;;; Fix backward compatibility issues with Emacs < 25
 
-;; The `cl-generic' package on ELPA does not solve all problems
+;; Backport some new functions from Emacs 25
 
 (eval-and-compile
-  (unless (fboundp 'cl-defgeneric)
-    (defalias 'cl-defgeneric 'defgeneric))
-
-  (unless (fboundp 'cl-defmethod)
-    (defalias 'cl-defmethod 'defmethod))
-
-  (unless (fboundp 'cl-call-next-method)
-    (defalias 'cl-call-next-method 'call-next-method))
-
   (unless (fboundp 'eieio-class-slots)
     (eval-and-compile
       (defun eieio-class-slots (class)
@@ -78,9 +70,16 @@
             (setq result (nconc result (list (vector (elt names i)
                                                      (elt initforms i)
                                                      (elt types i))))))
-          result))
-      (defsubst cl--slot-descriptor-name (slot) (aref slot 0))
-      (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))
+          result)))))
+
+(eval-and-compile
+  (unless (fboundp 'eieio-slot-descriptor-name)
+    (eval-and-compile
+      (defsubst eieio-slot-descriptor-name (slot) (aref slot 0)))))
+
+(eval-when-compile
+  (unless (fboundp 'cl--slot-descriptor-type)
+    (eval-when-compile
       (defsubst cl--slot-descriptor-type (slot) (aref slot 2)))))
 
 ;;;; Utility functions
@@ -312,7 +311,7 @@ Consider let-bind it rather than change its global value.")
       (dolist (slot slots)
         (setq type (cl--slot-descriptor-type slot))
         (unless (or (eq type 'fd) (eq type 'xcb:-ignore))
-          (setq name (cl--slot-descriptor-name slot))
+          (setq name (eieio-slot-descriptor-name slot))
           (setq value (slot-value obj name))
           (when (symbolp value)        ;see `eieio-default-eval-maybe'
             (setq value (symbol-value value)))
@@ -387,7 +386,7 @@ The optional POS argument indicates current byte index of the field (used by
            (dolist (name name-list)
              (catch 'break
                (dolist (slot slots) ;better way to find the slot type?
-                 (when (eq name (cl--slot-descriptor-name slot))
+                 (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
              (setq result
@@ -406,14 +405,16 @@ The optional POS argument indicates current byte index of the field (used by
 The optional argument CTX is for <paramref>."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
         (result 0)
-        tmp type)
+        slot-name tmp type)
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (or (eq type 'fd) (eq type 'xcb:-ignore))
-        (setq tmp (xcb:-unmarshal-field obj type byte-array 0
-                                        (cl--slot-descriptor-initform slot)
+        (setq slot-name (eieio-slot-descriptor-name slot)
+              tmp (xcb:-unmarshal-field obj type byte-array 0
+                                        (when (slot-boundp obj slot-name)
+                                          (eieio-oref-default obj slot-name))
                                         ctx))
-        (setf (slot-value obj (cl--slot-descriptor-name slot)) (car tmp))
+        (setf (slot-value obj slot-name) (car tmp))
         (setq byte-array (substring byte-array (cadr tmp)))
         (setq result (+ result (cadr tmp)))))
     result))
@@ -515,7 +516,7 @@ and the second the consumed length."
            (dolist (name name-list)
              (catch 'break
                (dolist (slot slots) ;better way to find the slot type?
-                 (when (eq name (cl--slot-descriptor-name slot))
+                 (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
              (setq tmp (xcb:-unmarshal-field obj slot-type data offset nil))
@@ -605,7 +606,7 @@ This result is converted from the first bounded slot."
     (while (and (not result) slots)
       (setq slot (pop slots))
       (setq type (cl--slot-descriptor-type slot)
-            name (cl--slot-descriptor-name slot))
+            name (eieio-slot-descriptor-name slot))
       (unless (or (not (slot-boundp obj name))
                   (eq type 'xcb:-ignore)
                   ;; Dealing with `xcb:-list' type
@@ -622,14 +623,16 @@ This result is converted from the first bounded slot."
 
 The optional argument CTX is for <paramref>."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        consumed tmp type)
+        slot-name consumed tmp type)
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (eq type 'xcb:-ignore)
-        (setq tmp (xcb:-unmarshal-field obj type byte-array 0
-                                        (cl--slot-descriptor-initform slot)
+        (setq slot-name (eieio-slot-descriptor-name slot)
+              tmp (xcb:-unmarshal-field obj type byte-array 0
+                                        (when (slot-boundp obj slot-name)
+                                          (eieio-oref-default obj slot-name))
                                         ctx))
-        (setf (slot-value obj (cl--slot-descriptor-name slot)) (car tmp))
+        (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))
         (setq consumed (cadr tmp))))
     consumed))                          ;consume byte-array only once
 
