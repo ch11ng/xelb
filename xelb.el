@@ -4,7 +4,7 @@
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
 ;; Maintainer: Chris Feng <chris.w.feng@gmail.com>
-;; Version: 0
+;; Version: 0.1
 ;; Package-Requires: ((emacs "24.4") (cl-generic "0.2"))
 ;; Keywords: unix
 ;; URL: https://github.com/ch11ng/xelb
