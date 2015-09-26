@@ -105,9 +105,10 @@
 
 ;;;; Basic requests packet format
 
-(defvar xim:lsb xcb:lsb "Non-nil for LSB first, nil otherwise.
+(eval-and-compile
+  (defvar xim:lsb xcb:lsb "Non-nil for LSB first, nil otherwise.
 
-Consider let-bind it rather than change its global value.")
+Consider let-bind it rather than change its global value."))
 
 (defclass xim:-struct (xcb:-struct)
   ((~lsb :initform (symbol-value 'xim:lsb)))

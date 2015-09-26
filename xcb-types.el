@@ -293,9 +293,11 @@
 
 ;;;; Struct type
 
-(defvar xcb:lsb t "Non-nil for LSB first (i.e., little-endian), nil otherwise.
+(eval-and-compile
+  (defvar xcb:lsb t
+    "Non-nil for LSB first (i.e., little-endian), nil otherwise.
 
-Consider let-bind it rather than change its global value.")
+Consider let-bind it rather than change its global value."))
 
 (defclass xcb:-struct ()
   ((~lsb :initarg :~lsb

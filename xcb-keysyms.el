@@ -195,7 +195,6 @@ SHIFT LOCK is ignored."
 ;; This list is largely base on 'lispy_function_keys' in 'keyboard.c'.
 ;; Emacs has a built-in variable `x-keysym-table' providing Latin-1 and legacy
 ;; keysyms, which seems not very useful here.
-;; FIXME: shall we also include 'iso_lispy_function_keys' there?
 (defconst xcb:keysyms:-function-keys
   `[                                    ;#xff00 - #xff0f
     ,@(make-list 8 nil) backspace tab linefeed clear nil return nil nil
@@ -240,6 +239,26 @@ SHIFT LOCK is ignored."
     ,@(make-list 15 nil) delete]
   "Emacs event representations of X function keys (keysym #xff00 to #xffff).")
 
+;; From 'iso_lispy_function_keys' in 'keyboard.c'
+(defconst xcb:keysyms:-iso-function-keys
+  `[
+                                        ;#xfe00 - #xfe0f
+    ,@(make-list 16 nil)
+                                        ;#xfe10 - #xfe1f
+    ,@(make-list 16 nil)
+                                        ;#xfe20 - #xfe2f
+    iso-lefttab iso-move-line-up iso-move-line-down iso-partial-line-up
+    iso-partial-line-down iso-partial-space-left iso-partial-space-right
+    iso-set-margin-left iso-set-margin-right iso-release-margin-left
+    iso-release-margin-right iso-release-both-margins iso-fast-cursor-left
+    iso-fast-cursor-right iso-fast-cursor-up iso-fast-cursor-down
+                                        ;#xfe30 - #xfe3f
+    iso-continuous-underline iso-discontinuous-underline iso-emphasize
+    iso-center-object iso-enter ,@(make-list 11 nil)
+                                        ;everything else
+    ,@(make-list 192 nil)]
+  "Emacs event representations of ISO function keys (#xfe00 to #xfeff).")
+
 ;; This list is adapted from 'XF86keysym.h' in X source.
 ;; FIXME: We've intentionally left out keysyms outside the range 0x1008FF00 ~
 ;;        0x1008FFFF.
@@ -248,7 +267,7 @@ SHIFT LOCK is ignored."
   `[                                    ;#x1008ff00 - #x1008ff0f
     nil XF86ModeLock XF86MonBrightnessUp XF86MonBrightnessDown
         XF86KbdLightOnOff XF86KbdBrightnessUp XF86KbdBrightnessDown
-        ,@(make-list 9 0)
+        ,@(make-list 9 nil)
                                         ;#x1008ff10 - #x1008ff1f
         XF86Standby XF86AudioLowerVolume XF86AudioMute XF86AudioRaiseVolume
         XF86AudioPlay XF86AudioStop XF86AudioPrev XF86AudioNext XF86HomePage
@@ -291,11 +310,12 @@ SHIFT LOCK is ignored."
         XF86FrameForward XF86Time
                                         ;#x1008ffa0 - #x1008ffaf
         XF86Select XF86View XF86TopMenu XF86Red XF86Green XF86Yellow XF86Blue
-        XF86Suspend XF86Hibernate XF86TouchpadToggle ,@(make-list 6 0)
+        XF86Suspend XF86Hibernate XF86TouchpadToggle ,@(make-list 6 nil)
                                         ;#x1008ffb0 - #x1008ffbf
-        XF86TouchpadOn XF86TouchpadOff XF86AudioMicMute ,@(make-list 13 0)
+        XF86TouchpadOn XF86TouchpadOff XF86AudioMicMute ,@(make-list 13 nil)
                                         ;everything rest
-        ,@(make-list 64 0)])
+        ,@(make-list 64 nil)]
+  "Emacs event representations of XF86keysym (#x1008ff00 - #x1008ffff)")
 
 (defun xcb:keysyms:event->keysym (event)
   "Translate Emacs key event EVENT to X Keysym.
@@ -319,7 +339,12 @@ This function returns nil when it fails to convert an event."
                      (if (setq keysym (cl-position event
                                                    xcb:keysyms:-xf86-keys))
                          ;; XF86 keys
-                         (logior keysym #x1008ff00))))))
+                         (logior keysym #x1008ff00)
+                       (if (setq keysym
+                                 (cl-position event
+                                              xcb:keysyms:-iso-function-keys))
+                           ;; ISO function keys
+                           (logior keysym #xfe00)))))))
       (if (and (<= #x20 event) (>= #xff event)) ;Latin-1
           (setq keysym event)
         (when (and (<= #x100 event) (>= #x10ffff event)) ;Unicode
@@ -354,8 +379,11 @@ this function will also return symbols for pure modifiers keys."
                       (- keysym #x1000000))
                      ((and (<= 1 keysym) (>= 5 keysym)) ;ButtonPress assuemd
                       (intern-soft (format "down-mouse-%d" keysym)))
-                     ((and (<= #x1008ff00) (>= #x1008ffff))
-                      (aref xcb:keysyms:-xf86-keys (logand keysym #xff))))))
+                     ((and (<= #x1008ff00 keysym) (>= #x1008ffff keysym))
+                      (aref xcb:keysyms:-xf86-keys (logand keysym #xff)))
+                     ((and (<= #xfe00 keysym) (>= #xfeff keysym))
+                      (aref xcb:keysyms:-iso-function-keys
+                            (logand keysym #xff))))))
     (when (and (not allow-modifiers)
                (memq event
                      '(lshift* rshift* lcontrol* rcontrol*
