@@ -74,13 +74,11 @@
 
 (eval-and-compile
   (unless (fboundp 'eieio-slot-descriptor-name)
-    (eval-and-compile
-      (defsubst eieio-slot-descriptor-name (slot) (aref slot 0)))))
+    (defsubst eieio-slot-descriptor-name (slot) (aref slot 0))))
 
 (eval-when-compile
   (unless (fboundp 'cl--slot-descriptor-type)
-    (eval-when-compile
-      (defsubst cl--slot-descriptor-type (slot) (aref slot 2)))))
+    (defsubst cl--slot-descriptor-type (slot) (aref slot 2))))
 
 ;;;; Utility functions
 
@@ -245,7 +243,8 @@
   "Return the popcount of integer MASK."
   (apply #'+ (mapcar (lambda (i)
                        (logand (lsh mask i) 1))
-                     (number-sequence -31 0)))) ;32-bit number assumed (CARD32)
+                     ;; 32-bit number assumed (CARD32)
+                     (eval-when-compile (number-sequence -31 0)))))
 
 (defsubst xcb:-request-class->reply-class (request)
   "Return the reply class corresponding to the request class REQUEST."

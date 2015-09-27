@@ -180,7 +180,7 @@ SHIFT LOCK is ignored."
                            0 2))))
     (if (and xcb:keysyms:num-lock-mask  ;not initialized
              (/= 0 (logand modifiers xcb:keysyms:num-lock-mask))
-             (<= #xff80 (elt group 1)) (>= #xffbe (elt group 1))) ;keypad
+             (<= #xff80 (elt group 1) #xffbe)) ;keypad
         (if (= mask 1) (elt group 0) (elt group 1))
       (pcase mask
         (0 (elt group 0))               ;SHIFT off, CAPS LOCK off
@@ -345,9 +345,9 @@ This function returns nil when it fails to convert an event."
                                               xcb:keysyms:-iso-function-keys))
                            ;; ISO function keys
                            (logior keysym #xfe00)))))))
-      (if (and (<= #x20 event) (>= #xff event)) ;Latin-1
+      (if (<= #x20 event #xff)          ;Latin-1
           (setq keysym event)
-        (when (and (<= #x100 event) (>= #x10ffff event)) ;Unicode
+        (when (<= #x100 event #x10ffff) ;Unicode
           (setq keysym (+ #x1000000 event)))))
     (when keysym
       `(,keysym
@@ -371,17 +371,17 @@ This function returns nil when it fails to convert an event."
 
 One may use MASK to provide modifier keys.  If ALLOW-MODIFIERS is non-nil,
 this function will also return symbols for pure modifiers keys."
-  (let ((event (cond ((and (<= #x20 keysym) (>= #xff keysym))
+  (let ((event (cond ((<= #x20 keysym #xff)
                       keysym)
-                     ((and (<= #xff00 keysym) (>= #xffff keysym))
+                     ((<= #xff00 keysym #xffff)
                       (aref xcb:keysyms:-function-keys (logand keysym #xff)))
-                     ((and (<= #x1000100 keysym) (>= #x110ffff keysym))
+                     ((<= #x1000100 keysym #x110ffff)
                       (- keysym #x1000000))
-                     ((and (<= 1 keysym) (>= 5 keysym)) ;ButtonPress assuemd
+                     ((<= 1 keysym 5)   ;ButtonPress assuemd
                       (intern-soft (format "down-mouse-%d" keysym)))
-                     ((and (<= #x1008ff00 keysym) (>= #x1008ffff keysym))
+                     ((<= #x1008ff00 keysym #x1008ffff)
                       (aref xcb:keysyms:-xf86-keys (logand keysym #xff)))
-                     ((and (<= #xfe00 keysym) (>= #xfeff keysym))
+                     ((<= #xfe00 keysym #xfeff)
                       (aref xcb:keysyms:-iso-function-keys
                             (logand keysym #xff))))))
     (when (and (not allow-modifiers)
@@ -402,7 +402,7 @@ this function will also return symbols for pure modifiers keys."
         (when (and (/= 0 (logand mask xcb:keysyms:shift-mask))
                    ;; Emacs only set shift bit for letters
                    (integerp (car (last event)))
-                   (<= ?A (car (last event))) (>= ?Z (car (last event))))
+                   (<= ?A (car (last event)) ?Z))
           (push 'shift event))
         (when (and xcb:keysyms:hyper-mask
                    (/= 0 (logand mask xcb:keysyms:hyper-mask)))

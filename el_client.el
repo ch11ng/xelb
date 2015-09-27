@@ -540,7 +540,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 (defun xelb-parse-bit (node)
   "Parse <bit>."
   (let ((bit (string-to-number (xelb-node-subnode node))))
-    (cl-assert (and (<= 0 bit) (>= 31 bit)))
+    (cl-assert (<= 0 bit 31))
     (lsh 1 bit)))
 
 (defun xelb-parse-enumref (node)
