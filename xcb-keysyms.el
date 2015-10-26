@@ -164,29 +164,42 @@ SHIFT LOCK is ignored."
          (group (delq nil (mapcar (lambda (i)
                                     (when (= keycode (car i)) (cdr i)))
                                   keysyms)))
-         (group (pcase (length group)
-                  (1 (append group '(0) group '(0)))
-                  (2 (append group group))
-                  (3 (append group '(0)))
-                  (_
-                   (list (elt group 0) (elt group 1)
-                         (elt group 2) (elt group 3)))))
-         (group (if (and xcb:keysyms:mode-switch-mask ;not initialized
-                         (/= 0
-                             (logand modifiers xcb:keysyms:mode-switch-mask)))
-                    (cddr group) (list (elt group 0) (elt group 1))))
+         (mode-switch-on (and xcb:keysyms:mode-switch-mask ;not initialized
+                              (/= 0 (logand modifiers
+                                            xcb:keysyms:mode-switch-mask))))
          (mask (logior (if (= 0 (logand modifiers xcb:keysyms:shift-mask)) 0 1)
                        (if (= 0 (logand modifiers xcb:keysyms:lock-mask))
                            0 2))))
+    (pcase (length group)
+      (1 (setq group (vector (elt group 0) nil)))
+      (2 (setq group (vector (elt group 0) (elt group 1))))
+      (3 (setq group (if mode-switch-on
+                         (vector (elt group 2) nil)
+                       (vector (elt group 0) (elt group 1)))))
+      (_ (setq group (if mode-switch-on
+                         (vector (elt group 2) (elt group 3))
+                       (vector (elt group 0) (elt group 1))))))
+    (unless (aref group 0)
+      (setq group (vector 0 (aref group 1))))
+    (unless (aref group 1)
+      (setq group (aref group 0)
+            group (if (<= #x20 group #xff)
+                      ;; Only do case conversions for Latin-1 characters
+                      (vector (downcase group) (upcase group))
+                    (vector group group))))
     (if (and xcb:keysyms:num-lock-mask  ;not initialized
              (/= 0 (logand modifiers xcb:keysyms:num-lock-mask))
-             (<= #xff80 (elt group 1) #xffbe)) ;keypad
-        (if (= mask 1) (elt group 0) (elt group 1))
+             (<= #xff80 (aref group 1) #xffbe)) ;keypad
+        (if (= mask 1) (aref group 0) (aref group 1))
       (pcase mask
-        (0 (elt group 0))               ;SHIFT off, CAPS LOCK off
-        (1 (elt group 1))               ;SHIFT on, CAPS LOCK off
-        (2 (upcase (elt group 0)))      ;SHIFT off, CAPS LOCK on
-        (3 (upcase (elt group 1)))))))  ;SHIFT on, CAPS LOCK on
+        (0 (aref group 0))              ;SHIFT off, CAPS LOCK off
+        (1 (aref group 1))              ;SHIFT on, CAPS LOCK off
+        (2                              ;SHIFT off, CAPS LOCK on
+         (if (<= #x20 (aref group 0) #xff)
+             (upcase (aref group 0)) (aref group 0)))
+        (3                              ;SHIFT on, CAPS LOCK on
+         (if (<= #x20 (aref group 1) #xff)
+             (upcase (aref group 1)) (aref group 1)))))))
 
 (cl-defmethod xcb:keysyms:keysym->keycode ((obj xcb:connection) keysym)
   "Convert X keysym to (first match) keycode"
@@ -400,9 +413,8 @@ this function will also return symbols for pure modifiers keys."
         (when (/= 0 (logand mask xcb:keysyms:control-mask))
           (push 'control event))
         (when (and (/= 0 (logand mask xcb:keysyms:shift-mask))
-                   ;; Emacs only set shift bit for letters
-                   (integerp (car (last event)))
-                   (<= ?A (car (last event)) ?Z))
+                   (or (not (<= #x20 keysym #xff)) ;Not a Latin-1 character
+                       (<= ?A keysym ?Z)))         ;An uppercase letter
           (push 'shift event))
         (when (and xcb:keysyms:hyper-mask
                    (/= 0 (logand mask xcb:keysyms:hyper-mask)))
