@@ -310,14 +310,15 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
       (with-slots (event-lock event-queue) connection
         (unless (< 0 event-lock)
           (cl-incf event-lock)
-          (let (event data synthetic)
-            (while (setq event (pop event-queue))
-              (setq data (aref event 1)
-                    synthetic (aref event 2))
-              (dolist (listener (aref event 0))
-                (with-demoted-errors "[XELB ERROR] %S"
-                  (funcall listener data synthetic)))))
-          (cl-decf event-lock))))))
+          (unwind-protect
+              (let (event data synthetic)
+                (while (setq event (pop event-queue))
+                  (setq data (aref event 1)
+                        synthetic (aref event 2))
+                  (dolist (listener (aref event 0))
+                    (with-demoted-errors "[XELB ERROR] %S"
+                      (funcall listener data synthetic)))))
+            (cl-decf event-lock)))))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
   "Disconnect from X server."
