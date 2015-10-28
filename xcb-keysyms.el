@@ -363,21 +363,23 @@ This function returns nil when it fails to convert an event."
         (when (<= #x100 event #x10ffff) ;Unicode
           (setq keysym (+ #x1000000 event)))))
     (when keysym
-      `(,keysym
-        ;; state for KeyPress event
-        ,(apply #'logior
-                (mapcar (lambda (i)
-                          (pcase i
-                            (`meta xcb:keysyms:meta-mask)
-                            (`control xcb:keysyms:control-mask)
-                            (`shift xcb:keysyms:shift-mask)
-                            (`hyper xcb:keysyms:hyper-mask)
-                            (`super xcb:keysyms:super-mask)
-                            (`alt xcb:keysyms:alt-mask)
-                            (`down 0)
-                            ;; FIXME: more?
-                            (_ 0)))
-                        modifiers))))))
+      (setq modifiers
+            (mapcar (lambda (i)
+                      (pcase i
+                        (`meta xcb:keysyms:meta-mask)
+                        (`control xcb:keysyms:control-mask)
+                        (`shift xcb:keysyms:shift-mask)
+                        (`hyper xcb:keysyms:hyper-mask)
+                        (`super xcb:keysyms:super-mask)
+                        (`alt xcb:keysyms:alt-mask)
+                        (`down 0)
+                        ;; FIXME: more?
+                        (_ 0)))
+                    modifiers))
+      (unless (memq nil modifiers)
+        `(,keysym
+          ;; state for KeyPress event
+          ,(apply #'logior modifiers))))))
 
 (defun xcb:keysyms:keysym->event (keysym &optional mask allow-modifiers)
   "Translate X Keysym KEYSYM into Emacs key event.
