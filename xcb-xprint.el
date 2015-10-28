@@ -49,7 +49,8 @@
    (description~ :initform
 		 '(name description type xcb:xprint:STRING8 size
 			(xcb:-fieldref 'descLen))
-		 :type xcb:-list)))
+		 :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (xcb:deftypealias 'xcb:xprint:PCONTEXT 'xcb:-u4)
 
@@ -245,7 +246,8 @@
    (context :initarg :context :type xcb:xprint:PCONTEXT)))
 (defclass xcb:xprint:PrintInputSelected~reply
   (xcb:-reply)
-  ((event-mask :initarg :event-mask :type xcb:CARD32)
+  ((pad~0 :initform 1 :type xcb:-pad)
+   (event-mask :initarg :event-mask :type xcb:CARD32)
    (all-events-mask :initarg :all-events-mask :type xcb:CARD32)))
 
 (defclass xcb:xprint:PrintGetAttributes

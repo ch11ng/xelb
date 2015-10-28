@@ -148,7 +148,8 @@
    (data-context~ :initform
 		  '(name data-context type xcb:char size
 			 (xcb:-fieldref 'data-context-len))
-		  :type xcb:-list)))
+		  :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:xselinux:SetPropertyCreateContext
   (xcb:-request)

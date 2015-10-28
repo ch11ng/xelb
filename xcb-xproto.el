@@ -2680,7 +2680,8 @@
    (address~ :initform
 	     '(name address type xcb:BYTE size
 		    (xcb:-fieldref 'address-len))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:ListHosts
   (xcb:-request)

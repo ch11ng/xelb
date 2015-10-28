@@ -113,7 +113,8 @@
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-size))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:xv:Image
   (xcb:-struct)
@@ -150,7 +151,8 @@
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'size))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (pad~0 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:xv:ImageFormatInfo
   (xcb:-struct)
