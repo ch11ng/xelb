@@ -109,7 +109,8 @@ This method must be called before using any other method in this module."
                    (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
           (setq events
                 (nconc events
-                       (list (xcb:keysyms:keysym->event keysym nil t))))))
+                       (list (xcb:keysyms:keysym->event exwm--connection
+                                                        keysym nil t))))))
       (cond ((memq 'mode-switch* events)
              (setq xcb:keysyms:mode-switch-mask (elt mode-masks i)))
             ((memq 'kp-numlock events)
@@ -330,7 +331,7 @@ SHIFT LOCK is ignored."
         ,@(make-list 64 nil)]
   "Emacs event representations of XF86keysym (#x1008ff00 - #x1008ffff)")
 
-(defun xcb:keysyms:event->keysym (event)
+(cl-defmethod xcb:keysyms:event->keysym ((obj xcb:connection) event)
   "Translate Emacs key event EVENT to X Keysym.
 
 This function returns nil when it fails to convert an event."
@@ -363,6 +364,11 @@ This function returns nil when it fails to convert an event."
         (when (<= #x100 event #x10ffff) ;Unicode
           (setq keysym (+ #x1000000 event)))))
     (when keysym
+      (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
+            (keysyms (plist-get (slot-value obj 'extra-plist) 'keysyms)))
+        (unless (equal keysym (cdr (assoc keycode keysyms)))
+          ;; Shift key is required to input the KEYSYM
+          (cl-pushnew 'shift modifiers)))
       (setq modifiers
             (mapcar (lambda (i)
                       (pcase i
@@ -381,7 +387,8 @@ This function returns nil when it fails to convert an event."
           ;; state for KeyPress event
           ,(apply #'logior modifiers))))))
 
-(defun xcb:keysyms:keysym->event (keysym &optional mask allow-modifiers)
+(cl-defmethod xcb:keysyms:keysym->event ((obj xcb:connection) keysym
+                                         &optional mask allow-modifiers)
   "Translate X Keysym KEYSYM into Emacs key event.
 
 One may use MASK to provide modifier keys.  If ALLOW-MODIFIERS is non-nil,
