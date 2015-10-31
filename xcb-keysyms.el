@@ -109,8 +109,7 @@ This method must be called before using any other method in this module."
                    (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
           (setq events
                 (nconc events
-                       (list (xcb:keysyms:keysym->event exwm--connection
-                                                        keysym nil t))))))
+                       (list (xcb:keysyms:keysym->event obj keysym nil t))))))
       (cond ((memq 'mode-switch* events)
              (setq xcb:keysyms:mode-switch-mask (elt mode-masks i)))
             ((memq 'kp-numlock events)
@@ -387,7 +386,7 @@ This function returns nil when it fails to convert an event."
           ;; state for KeyPress event
           ,(apply #'logior modifiers))))))
 
-(cl-defmethod xcb:keysyms:keysym->event ((obj xcb:connection) keysym
+(cl-defmethod xcb:keysyms:keysym->event ((_obj xcb:connection) keysym
                                          &optional mask allow-modifiers)
   "Translate X Keysym KEYSYM into Emacs key event.
 
