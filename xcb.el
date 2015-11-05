@@ -99,6 +99,18 @@
    (extra-plist :initform nil)) ;for storing extra data (e.g. by extensions)
   :documentation "X connection.")
 
+(defsubst xcb:-sequence-cmp16 (sequence1 sequence2)
+  "Compare 16-bit sequence numbers SEQUENCE1 and SEQUENCE2.
+
+Return 1 if SEQUENCE1 is larger than SEQUENCE2, 0 if they are equal, -1
+otherwise."
+  (if (= sequence1 sequence2)
+      0
+    (if (< #x7FFF (abs (- sequence1 sequence2)))
+        ;; Overflowed
+        (if (< sequence1 sequence2) 1 -1)
+      (if (> sequence1 sequence2) 1 -1))))
+
 (defclass xcb:auth-info ()
   ((name :initarg :name :initform "" :type string)
    (data :initarg :data :initform "" :type string))
@@ -507,13 +519,16 @@ Otherwise no error will ever be reported."
   `(xcb:-+request-unchecked ,obj ,request))
 
 (cl-defmethod xcb:-+reply ((obj xcb:connection) sequence &optional multiple)
+  (setq sequence (logand #xFFFF sequence)) ;only the LSW is used
   (unless (plist-member (slot-value obj 'reply-plist) sequence)
     (error "This method is intended for requests with replies"))
   (xcb:flush obj)                      ;or we may have to wait forever
   (if multiple
       ;; Multiple replies
-      (when (and (>= sequence (slot-value obj 'reply-sequence))
-                 (>= sequence (slot-value obj 'error-sequence)))
+      (when (and (<= 0 (xcb:-sequence-cmp16 sequence
+                                            (slot-value obj 'reply-sequence)))
+                 (<= 0 (xcb:-sequence-cmp16 sequence
+                                            (slot-value obj 'error-sequence))))
         (xcb:aux:sync obj))
     ;; Single reply
     (let ((process (slot-value obj 'process)))
@@ -521,8 +536,10 @@ Otherwise no error will ever be reported."
       (cl-incf (slot-value obj 'event-lock))
       (with-timeout (xcb:connection-timeout
                      (warn "[XELB] Retrieve reply timeout"))
-        (while (and (> sequence (slot-value obj 'reply-sequence))
-                    (> sequence (slot-value obj 'error-sequence)))
+        (while (and (< 0 (xcb:-sequence-cmp16
+                          sequence (slot-value obj 'reply-sequence)))
+                    (< 0 (xcb:-sequence-cmp16
+                          sequence (slot-value obj 'error-sequence))))
           (accept-process-output process 1 nil 1)))
       (cl-decf (slot-value obj 'event-lock))))
   (let* ((reply-plist (slot-value obj 'reply-plist))
@@ -568,6 +585,7 @@ MULTIPLE value, or some replies may be lost!"
   `(xcb:-+reply ,obj ,sequence ,multiple))
 
 (cl-defmethod xcb:-request-check ((obj xcb:connection) sequence)
+  (setq sequence (logand #xFFFF sequence)) ;only the LSW is used
   (when (plist-member (slot-value obj 'reply-plist) sequence)
     (error "This method is intended for requests with no reply"))
   (xcb:flush obj)                      ;or we may have to wait forever
@@ -575,7 +593,7 @@ MULTIPLE value, or some replies may be lost!"
         error-obj tmp)
     (unless (plist-member error-plist sequence)
       (error "This method shall be called after `xcb:+request-checked'"))
-    (when (> sequence (slot-value obj 'error-sequence))
+    (when (< 0 (xcb:-sequence-cmp16 sequence (slot-value obj 'error-sequence)))
       (xcb:aux:sync obj))         ;wait until the request is processed
     (setq error-obj
           (mapcar (lambda (i)
@@ -629,13 +647,15 @@ MULTIPLE value, or some replies may be lost!"
   "Force sync with X server.
 
 Sync by sending a GetInputFocus request and waiting until it's processed."
-  (let ((sequence (xcb:-cache-request obj (make-instance 'xcb:GetInputFocus)))
-        (process (slot-value obj 'process)))
+  (let* ((sequence (xcb:-cache-request obj (make-instance 'xcb:GetInputFocus)))
+         (sequence-lsw (logand #xFFFF sequence))
+         (process (slot-value obj 'process)))
     (xcb:flush obj)
     ;; Wait until request processed
     (cl-incf (slot-value obj 'event-lock))
     (with-timeout (xcb:connection-timeout (warn "[XELB] Sync timeout"))
-      (while (> sequence (slot-value obj 'reply-sequence))
+      (while (< 0 (xcb:-sequence-cmp16 sequence-lsw
+                                       (slot-value obj 'reply-sequence)))
         (accept-process-output process 1 nil 1)))
     (cl-decf (slot-value obj 'event-lock))))
 
