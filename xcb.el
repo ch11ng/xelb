@@ -102,14 +102,14 @@
 (defsubst xcb:-sequence-cmp16 (sequence1 sequence2)
   "Compare 16-bit sequence numbers SEQUENCE1 and SEQUENCE2.
 
-Return 1 if SEQUENCE1 is larger than SEQUENCE2, 0 if they are equal, -1
-otherwise."
+Return a positive value if SEQUENCE1 is larger than SEQUENCE2, 0 if they are
+equal.  Otherwise a negative value would be returned."
   (if (= sequence1 sequence2)
       0
-    (if (< #x7FFF (abs (- sequence1 sequence2)))
-        ;; Overflowed
-        (if (< sequence1 sequence2) 1 -1)
-      (if (> sequence1 sequence2) 1 -1))))
+    (let ((diff (- sequence1 sequence2)))
+      (if (< #x7FFF (abs diff))
+          (- diff)                      ;overflowed
+        diff))))
 
 (defclass xcb:auth-info ()
   ((name :initarg :name :initform "" :type string)
