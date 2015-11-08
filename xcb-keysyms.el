@@ -365,7 +365,8 @@ This function returns nil when it fails to convert an event."
     (when keysym
       (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
             (keysyms (plist-get (slot-value obj 'extra-plist) 'keysyms)))
-        (unless (equal keysym (cdr (assoc keycode keysyms)))
+        (unless (or (not keycode)
+                    (equal keysym (cdr (assoc keycode keysyms))))
           ;; Shift key is required to input the KEYSYM
           (cl-pushnew 'shift modifiers)))
       (setq modifiers
