@@ -88,72 +88,70 @@ This method must be called before using any other method in this module."
     (setf (slot-value obj 'extra-plist)
           (plist-put (slot-value obj 'extra-plist) 'keysyms result))))
 
+;; Reference: 'x_find_modifier_meanings' in 'xterm.c'.
 (cl-defmethod xcb:keysyms:update-modifier-mapping ((obj xcb:connection))
   "Differentiate xcb:ModMask:1 ~ xcb:ModMask:5."
-  ;; Determine MODE SWITCH and NUM LOCK
   (let* ((reply (xcb:+request-unchecked+reply obj
                     (make-instance 'xcb:GetModifierMapping)))
          (keycodes-per-modifier (slot-value reply 'keycodes-per-modifier))
          (keycodes (slot-value reply 'keycodes))
-         (mode-masks (list xcb:ModMask:Shift xcb:ModMask:Lock
-                           xcb:ModMask:Control xcb:ModMask:1 xcb:ModMask:2
-                           xcb:ModMask:3 xcb:ModMask:4 xcb:ModMask:5))
-         events keycode keysym)
-    (setq xcb:keysyms:mode-switch-mask nil
-          xcb:keysyms:num-lock-mask nil)
+         (mod-masks (vector xcb:ModMask:1 xcb:ModMask:2 xcb:ModMask:3
+                            xcb:ModMask:4 xcb:ModMask:5))
+         keycode keysym found-alt-or-meta)
+    (setq xcb:keysyms:meta-mask nil
+          xcb:keysyms:hyper-mask nil
+          xcb:keysyms:super-mask nil
+          xcb:keysyms:alt-mask nil
+          xcb:keysyms:num-lock-mask nil
+          xcb:keysyms:mode-switch-mask nil)
     (cl-assert (= (length keycodes) (* 8 keycodes-per-modifier)))
-    (dotimes (i 8)
-      (setq events nil)
-      (dotimes (_ keycodes-per-modifier)
-        (when (and (/= (setq keycode (pop keycodes)) 0)
-                   (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
-          (setq events
-                (nconc events
-                       (list (xcb:keysyms:keysym->event obj keysym nil t))))))
-      (cond ((memq 'mode-switch* events)
-             (setq xcb:keysyms:mode-switch-mask (elt mode-masks i)))
-            ((memq 'kp-numlock events)
-             (setq xcb:keysyms:num-lock-mask (elt mode-masks i))))))
-  ;; Determine remaining keys
-  (let* ((frame (unless (frame-parameter nil 'window-id)
-                  (catch 'break
-                    (dolist (i (frame-list))
-                      (when (frame-parameter i 'window-id)
-                        (throw 'break i))))))
-         (id (string-to-number (frame-parameter frame 'window-id)))
-         (root
-          (slot-value (car (slot-value (xcb:get-setup obj) 'roots)) 'root))
-         (keycode (xcb:keysyms:keysym->keycode obj ?a))
-         (fake-event (make-instance 'xcb:SendEvent
-                                    :propagate 0 :destination id
-                                    :event-mask xcb:EventMask:NoEvent
-                                    :event nil))
-         (key-press (make-instance 'xcb:KeyPress
-                                   :detail keycode :time xcb:Time:CurrentTime
-                                   :root root :event id :child 0
-                                   :root-x 0 :root-y 0 :event-x 0 :event-y 0
-                                   :state nil :same-screen 1))
-         event)
-    (dolist (i (list xcb:ModMask:1 xcb:ModMask:2 xcb:ModMask:3
-                     xcb:ModMask:4 xcb:ModMask:5))
-      (unless (or (equal i xcb:keysyms:mode-switch-mask) ;already determined
-                  (equal i xcb:keysyms:num-lock-mask))
-        (setf (slot-value key-press 'state) i
-              (slot-value fake-event 'event) (xcb:marshal key-press obj))
-        (run-with-idle-timer 0 nil (lambda ()
-                                     (xcb:+request obj fake-event)
-                                     (xcb:flush obj)))
-        (catch 'break
-          (with-timeout (1)             ;FIXME
-            (while t
-              (setq event (read-event))
-              (when (and (integerp event) (= ?a (event-basic-type event)))
-                (pcase event
-                  (?\M-a (setq xcb:keysyms:meta-mask i))
-                  (?\A-a (setq xcb:keysyms:alt-mask i))
-                  (?\s-a (setq xcb:keysyms:super-mask i))
-                  (?\H-a (setq xcb:keysyms:hyper-mask i)))
-                (throw 'break nil)))))))))
+    ;; Scan Mod1 ~ Mod5
+    (setq keycodes (nthcdr (* 3 keycodes-per-modifier) keycodes))
+    (dotimes (i 5)
+      (setq found-alt-or-meta nil)
+      (catch 'break
+        (dotimes (j keycodes-per-modifier)
+          (when (and (/= (setq keycode (pop keycodes)) 0)
+                     (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
+            (pcase (xcb:keysyms:keysym->event obj keysym nil t)
+              ((or `lmeta* `rmeta*)
+               (setq found-alt-or-meta t
+                     xcb:keysyms:meta-mask (logior (or xcb:keysyms:meta-mask 0)
+                                                   (aref mod-masks i))))
+              ((or `lhyper* `rhyper*)
+               (unless found-alt-or-meta
+                 (setq xcb:keysyms:hyper-mask
+                       (logior (or xcb:keysyms:hyper-mask 0)
+                               (aref mod-masks i))))
+               (setq keycodes (nthcdr (- keycodes-per-modifier j 1) keycodes))
+               (throw 'break nil))
+              ((or `lsuper* `rsuper*)
+               (unless found-alt-or-meta
+                 (setq xcb:keysyms:super-mask
+                       (logior (or xcb:keysyms:super-mask 0)
+                               (aref mod-masks i))))
+               (setq keycodes (nthcdr (- keycodes-per-modifier j 1) keycodes))
+               (throw 'break nil))
+              ((or `lalt* `ralt*)
+               (setq found-alt-or-meta t
+                     xcb:keysyms:alt-mask (logior (or xcb:keysyms:alt-mask 0)
+                                                  (aref mod-masks i))))
+              (`kp-numlock
+               (setq xcb:keysyms:num-lock-mask (aref mod-masks i)))
+              (`mode-switch*
+               (setq xcb:keysyms:mode-switch-mask (aref mod-masks i)))
+              (`shift-lock*
+               (setq keycodes (nthcdr (- keycodes-per-modifier j) keycodes))
+               (throw 'break nil)))))))
+    ;; Meta fallbacks to Alt
+    (unless xcb:keysyms:meta-mask
+      (setq xcb:keysyms:meta-mask xcb:keysyms:alt-mask
+            xcb:keysyms:alt-mask nil))
+    ;; A key cannot be both Meta and Alt
+    (when (and xcb:keysyms:meta-mask xcb:keysyms:alt-mask
+               (logand xcb:keysyms:meta-mask xcb:keysyms:alt-mask))
+      (setq xcb:keysyms:alt-mask (logand xcb:keysyms:alt-mask
+                                         (lognot xcb:keysyms:meta-mask))))))
 
 (cl-defmethod xcb:keysyms:keycode->keysym ((obj xcb:connection)
                                            keycode modifiers)
@@ -369,19 +367,28 @@ This function returns nil when it fails to convert an event."
                     (equal keysym (cdr (assoc keycode keysyms))))
           ;; Shift key is required to input the KEYSYM
           (cl-pushnew 'shift modifiers)))
-      (setq modifiers
-            (mapcar (lambda (i)
-                      (pcase i
-                        (`meta xcb:keysyms:meta-mask)
-                        (`control xcb:keysyms:control-mask)
-                        (`shift xcb:keysyms:shift-mask)
-                        (`hyper xcb:keysyms:hyper-mask)
-                        (`super xcb:keysyms:super-mask)
-                        (`alt xcb:keysyms:alt-mask)
-                        (`down 0)
-                        ;; FIXME: more?
-                        (_ 0)))
-                    modifiers))
+      (when modifiers
+        ;; Do transforms: * -> x-*-keysym -> xcb:keysyms:*-mask.
+        (setq modifiers (mapcar (lambda (i)
+                                  (or (pcase i
+                                        (`alt x-alt-keysym)
+                                        (`meta x-meta-keysym)
+                                        (`hyper x-hyper-keysym)
+                                        (`super x-super-keysym))
+                                      i))
+                                modifiers)
+              modifiers (mapcar (lambda (i)
+                                  (pcase i
+                                    (`meta xcb:keysyms:meta-mask)
+                                    (`control xcb:keysyms:control-mask)
+                                    (`shift xcb:keysyms:shift-mask)
+                                    (`hyper xcb:keysyms:hyper-mask)
+                                    (`super xcb:keysyms:super-mask)
+                                    (`alt xcb:keysyms:alt-mask)
+                                    (`down 0)
+                                    ;; FIXME: more?
+                                    (_ 0)))
+                                modifiers)))
       (unless (memq nil modifiers)
         `(,keysym
           ;; state for KeyPress event
@@ -405,7 +412,8 @@ this function will also return symbols for pure modifiers keys."
                       (aref xcb:keysyms:-xf86-keys (logand keysym #xff)))
                      ((<= #xfe00 keysym #xfeff)
                       (aref xcb:keysyms:-iso-function-keys
-                            (logand keysym #xff))))))
+                            (logand keysym #xff)))))
+        mod-alt mod-meta mod-hyper mod-super)
     (when (and (not allow-modifiers)
                (memq event
                      '(lshift* rshift* lcontrol* rcontrol*
@@ -416,9 +424,31 @@ this function will also return symbols for pure modifiers keys."
     (when event
       (if (not mask)
           event
+        ;; Set mod-* if possible.
+        (when x-alt-keysym
+          (pcase x-alt-keysym
+            (`meta (setq mod-meta 'alt))
+            (`hyper (setq mod-hyper 'alt))
+            (`super (setq mod-super 'alt))))
+        (when x-meta-keysym
+          (pcase x-meta-keysym
+            (`alt (setq mod-alt 'meta))
+            (`hyper (setq mod-hyper 'meta))
+            (`super (setq mod-super 'meta))))
+        (when x-hyper-keysym
+          (pcase x-hyper-keysym
+            (`alt (setq mod-alt 'hyper))
+            (`meta (setq mod-meta 'hyper))
+            (`super (setq mod-super 'hyper))))
+        (when x-super-keysym
+          (pcase x-super-keysym
+            (`alt (setq mod-alt 'super))
+            (`meta (setq mod-meta 'super))
+            (`hyper (setq mod-hyper 'super))))
+        ;; Convert modifiers.
         (setq event (list event))
         (when (/= 0 (logand mask xcb:keysyms:meta-mask))
-          (push 'meta event))
+          (push (or mod-meta 'meta) event))
         (when (/= 0 (logand mask xcb:keysyms:control-mask))
           (push 'control event))
         (when (and (/= 0 (logand mask xcb:keysyms:shift-mask))
@@ -427,12 +457,12 @@ this function will also return symbols for pure modifiers keys."
           (push 'shift event))
         (when (and xcb:keysyms:hyper-mask
                    (/= 0 (logand mask xcb:keysyms:hyper-mask)))
-          (push 'hyper event))
+          (push (or mod-hyper 'hyper) event))
         (when (/= 0 (logand mask xcb:keysyms:super-mask))
-          (push 'super event))
+          (push (or mod-super 'super) event))
         (when (and xcb:keysyms:alt-mask
                    (/= 0 (logand mask xcb:keysyms:alt-mask)))
-          (push 'alt event))
+          (push (or mod-alt 'alt) event))
         (event-convert-list event)))))
 
 (provide 'xcb-keysyms)
