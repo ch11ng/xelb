@@ -153,12 +153,15 @@ an `xelb-auto-padding' attribute."
 
 ;;; Code:
 
-(require 'xcb-types)
+\(require 'xcb-types)
 
-" header (let ((extension-name (xelb-node-attr result 'extension-name)))
-           (if extension-name
-               (concat extension-name " extension")
-             "core protocol"))
+"
+                     header
+                     (let ((extension-name (xelb-node-attr result
+                                                           'extension-name)))
+                       (if extension-name
+                           (concat extension-name " extension")
+                         "core protocol"))
                      (file-name-nondirectory file)))
       ;; Print extension info (if any)
       (let ((extension-xname (xelb-node-attr result 'extension-xname))
