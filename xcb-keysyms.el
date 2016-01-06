@@ -1,7 +1,7 @@
 ;;; xcb-keysyms.el --- Conversion between  -*- lexical-binding: t -*-
 ;;;                    X keysyms, X keycodes and Emacs key event.
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
 
