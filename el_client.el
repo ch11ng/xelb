@@ -384,7 +384,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
     (`list (xelb-parse-list node))
     (`exprfield (xelb-parse-exprfield node))
     (`switch (xelb-parse-switch node))
-    ((or `comment `doc))                ;simply ignored
+    ((or `comment `doc `required_start_align)) ;simply ignored
     (x (error "Unsupported structure content: <%s>" x))))
 
 ;; The car of the result shall be renamed to prevent duplication of slot names
@@ -451,7 +451,10 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <switch>."
   (let ((name (intern (xelb-node-attr-escape node 'name)))
         (expression (xelb-parse-expression (car (xelb-node-subnodes node))))
-        (cases (cdr (xelb-node-subnodes node)))
+        ;; <case> and <bitcase> only
+        (cases (cl-remove-if-not (lambda (i)
+                                   (memq (xelb-node-name i) '(case bitcase)))
+                                 (xelb-node-subnodes node)))
         fields)
     ;; Avoid duplicated slot names by appending "*" if necessary
     (let (names name)
@@ -460,7 +463,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
           ((or `bitcase `case)
            (dolist (field (xelb-node-subnodes case))
              (pcase (xelb-node-name field)
-               ((or `enumref `pad `doc `comment))
+               ((or `enumref `pad `doc `comment `required_start_align))
                (_
                 (setq name (xelb-node-attr field 'name))
                 (when (member name names)
@@ -475,6 +478,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                       (when (or (eq case-name 'bitcase) (eq case-name 'case))
                         (dolist (j (xelb-node-subnodes i t))
                           (pcase (xelb-node-name j)
+                            (`required_start_align)
                             (`enumref
                              (setq condition
                                    (nconc condition

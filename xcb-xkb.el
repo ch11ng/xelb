@@ -586,7 +586,8 @@
    (string~ :initform
 	    '(name string type xcb:xkb:STRING8 size
 		   (xcb:-fieldref 'length))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (pad~0 :initform 2 :type xcb:-pad-align)))
 
 (defclass xcb:xkb:DeviceLedInfo
   (xcb:-struct)
@@ -1238,9 +1239,9 @@
 	     cases
 	     ((xcb:xkb:MapPart:KeyTypes types)
 	      (xcb:xkb:MapPart:KeySyms syms)
-	      (xcb:xkb:MapPart:KeyActions actionsCount actions)
+	      (xcb:xkb:MapPart:KeyActions actionsCount pad~0 actions)
 	      (xcb:xkb:MapPart:KeyBehaviors behaviors)
-	      (xcb:xkb:MapPart:VirtualMods vmods)
+	      (xcb:xkb:MapPart:VirtualMods vmods pad~1)
 	      (xcb:xkb:MapPart:ExplicitComponents explicit)
 	      (xcb:xkb:MapPart:ModifierMap modmap)
 	      (xcb:xkb:MapPart:VirtualModMap vmodmap)))
@@ -1277,6 +1278,7 @@
 		  (xcb:-popcount
 		   (xcb:-fieldref 'virtualMods)))
 	   :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
    (explicit :initarg :explicit :type xcb:-ignore)
    (explicit~ :initform
 	      '(name explicit type xcb:xkb:SetExplicit size
@@ -1472,7 +1474,7 @@
 		 (xcb:xkb:NameDetail:Types typesName)
 		 (xcb:xkb:NameDetail:Compat compatName)
 		 (xcb:xkb:NameDetail:KeyTypeNames typeNames)
-		 (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType alignment-pad ktLevelNames)
+		 (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType pad~1 ktLevelNames)
 		 (xcb:xkb:NameDetail:IndicatorNames indicatorNames)
 		 (xcb:xkb:NameDetail:VirtualModNames virtualModNames)
 		 (xcb:xkb:NameDetail:GroupNames groups)
@@ -1497,20 +1499,6 @@
 			   (xcb:-fieldref 'nTypes))
 		    :type xcb:-list)
    (pad~1 :initform 4 :type xcb:-pad-align)
-   (alignment-pad :initarg :alignment-pad :type xcb:-ignore)
-   (alignment-pad~ :initform
-		   '(name alignment-pad type xcb:CARD8 size
-			  (-
-			   (logand
-			    (+
-			     (xcb:-fieldref 'nTypes)
-			     3)
-			    (lognot
-			     (xelb-parse-expression
-			      (xelb-node-subnode node))))
-			   (xcb:-fieldref 'nTypes)))
-		   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (ktLevelNames :initarg :ktLevelNames :type xcb:-ignore)
    (ktLevelNames~ :initform
 		  '(name ktLevelNames type xcb:ATOM size
@@ -1580,7 +1568,7 @@
 	      (xcb:xkb:NameDetail:Types typesName)
 	      (xcb:xkb:NameDetail:Compat compatName)
 	      (xcb:xkb:NameDetail:KeyTypeNames typeNames)
-	      (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType ktLevelNames)
+	      (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType pad~1 ktLevelNames)
 	      (xcb:xkb:NameDetail:IndicatorNames indicatorNames)
 	      (xcb:xkb:NameDetail:VirtualModNames virtualModNames)
 	      (xcb:xkb:NameDetail:GroupNames groups)
@@ -1740,11 +1728,11 @@
 	      cases
 	      (((logior xcb:xkb:GBNDetail:Types xcb:xkb:GBNDetail:ClientSymbols xcb:xkb:GBNDetail:ServerSymbols)
 		getmap-type typeDeviceID getmap-sequence getmap-length pad~1 typeMinKeyCode typeMaxKeyCode present firstType nTypes totalTypes firstKeySym totalSyms nKeySyms firstKeyAction totalActions nKeyActions firstKeyBehavior nKeyBehaviors totalKeyBehaviors firstKeyExplicit nKeyExplicit totalKeyExplicit firstModMapKey nModMapKeys totalModMapKeys firstVModMapKey nVModMapKeys totalVModMapKeys pad~2 virtualMods map)
-	       (xcb:xkb:GBNDetail:CompatMap compatmap-type compatDeviceID compatmap-sequence compatmap-length groupsRtrn pad~4 firstSIRtrn nSIRtrn nTotalSI pad~5 si-rtrn group-rtrn)
-	       (xcb:xkb:GBNDetail:IndicatorMaps indicatormap-type indicatorDeviceID indicatormap-sequence indicatormap-length which realIndicators nIndicators pad~7 maps)
+	       (xcb:xkb:GBNDetail:CompatMap compatmap-type compatDeviceID compatmap-sequence compatmap-length groupsRtrn pad~7 firstSIRtrn nSIRtrn nTotalSI pad~8 si-rtrn group-rtrn)
+	       (xcb:xkb:GBNDetail:IndicatorMaps indicatormap-type indicatorDeviceID indicatormap-sequence indicatormap-length which realIndicators nIndicators pad~10 maps)
 	       ((logior xcb:xkb:GBNDetail:KeyNames xcb:xkb:GBNDetail:OtherNames)
-		keyname-type keyDeviceID keyname-sequence keyname-length which* keyMinKeyCode keyMaxKeyCode nTypes* groupNames virtualMods* firstKey nKeys indicators nRadioGroups nKeyAliases nKTLevels pad~8 valueList)
-	       (xcb:xkb:GBNDetail:Geometry geometry-type geometryDeviceID geometry-sequence geometry-length name geometryFound pad~10 widthMM heightMM nProperties nColors nShapes nSections nDoodads nKeyAliases* baseColorNdx labelColorNdx labelFont)))
+		keyname-type keyDeviceID keyname-sequence keyname-length which* keyMinKeyCode keyMaxKeyCode nTypes* groupNames virtualMods* firstKey nKeys indicators nRadioGroups nKeyAliases nKTLevels pad~11 valueList)
+	       (xcb:xkb:GBNDetail:Geometry geometry-type geometryDeviceID geometry-sequence geometry-length name geometryFound pad~13 widthMM heightMM nProperties nColors nShapes nSections nDoodads nKeyAliases* baseColorNdx labelColorNdx labelFont)))
 	    :type xcb:-switch)
    (getmap-type :initarg :getmap-type :type xcb:CARD8)
    (typeDeviceID :initarg :typeDeviceID :type xcb:CARD8)
@@ -1783,11 +1771,11 @@
 	  cases
 	  ((xcb:xkb:MapPart:KeyTypes types-rtrn)
 	   (xcb:xkb:MapPart:KeySyms syms-rtrn)
-	   (xcb:xkb:MapPart:KeyActions acts-rtrn-count acts-rtrn-acts)
+	   (xcb:xkb:MapPart:KeyActions acts-rtrn-count pad~3 acts-rtrn-acts)
 	   (xcb:xkb:MapPart:KeyBehaviors behaviors-rtrn)
-	   (xcb:xkb:MapPart:VirtualMods vmods-rtrn)
-	   (xcb:xkb:MapPart:ExplicitComponents explicit-rtrn)
-	   (xcb:xkb:MapPart:ModifierMap modmap-rtrn)
+	   (xcb:xkb:MapPart:VirtualMods vmods-rtrn pad~4)
+	   (xcb:xkb:MapPart:ExplicitComponents explicit-rtrn pad~5)
+	   (xcb:xkb:MapPart:ModifierMap modmap-rtrn pad~6)
 	   (xcb:xkb:MapPart:VirtualModMap vmodmap-rtrn)))
 	:type xcb:-switch)
    (types-rtrn :initarg :types-rtrn :type xcb:-ignore)
@@ -1822,16 +1810,19 @@
 		       (xcb:-popcount
 			(xcb:-fieldref 'virtualMods)))
 		:type xcb:-list)
+   (pad~4 :initform 4 :type xcb:-pad-align)
    (explicit-rtrn :initarg :explicit-rtrn :type xcb:-ignore)
    (explicit-rtrn~ :initform
 		   '(name explicit-rtrn type xcb:xkb:SetExplicit size
 			  (xcb:-fieldref 'totalKeyExplicit))
 		   :type xcb:-list)
+   (pad~5 :initform 4 :type xcb:-pad-align)
    (modmap-rtrn :initarg :modmap-rtrn :type xcb:-ignore)
    (modmap-rtrn~ :initform
 		 '(name modmap-rtrn type xcb:xkb:KeyModMap size
 			(xcb:-fieldref 'totalModMapKeys))
 		 :type xcb:-list)
+   (pad~6 :initform 4 :type xcb:-pad-align)
    (vmodmap-rtrn :initarg :vmodmap-rtrn :type xcb:-ignore)
    (vmodmap-rtrn~ :initform
 		  '(name vmodmap-rtrn type xcb:xkb:KeyVModMap size
@@ -1842,17 +1833,17 @@
    (compatmap-sequence :initarg :compatmap-sequence :type xcb:CARD16)
    (compatmap-length :initarg :compatmap-length :type xcb:CARD32)
    (groupsRtrn :initarg :groupsRtrn :type xcb:CARD8)
-   (pad~4 :initform 1 :type xcb:-pad)
+   (pad~7 :initform 1 :type xcb:-pad)
    (firstSIRtrn :initarg :firstSIRtrn :type xcb:CARD16)
    (nSIRtrn :initarg :nSIRtrn :type xcb:CARD16)
    (nTotalSI :initarg :nTotalSI :type xcb:CARD16)
-   (pad~5 :initform 16 :type xcb:-pad)
+   (pad~8 :initform 16 :type xcb:-pad)
    (si-rtrn :initarg :si-rtrn :type xcb:-ignore)
    (si-rtrn~ :initform
 	     '(name si-rtrn type xcb:xkb:SymInterpret size
 		    (xcb:-fieldref 'nSIRtrn))
 	     :type xcb:-list)
-   (pad~6 :initform 4 :type xcb:-pad-align)
+   (pad~9 :initform 4 :type xcb:-pad-align)
    (group-rtrn :initarg :group-rtrn :type xcb:-ignore)
    (group-rtrn~ :initform
 		'(name group-rtrn type xcb:xkb:ModDef size
@@ -1866,7 +1857,7 @@
    (which :initarg :which :type xcb:CARD32)
    (realIndicators :initarg :realIndicators :type xcb:CARD32)
    (nIndicators :initarg :nIndicators :type xcb:CARD8)
-   (pad~7 :initform 15 :type xcb:-pad)
+   (pad~10 :initform 15 :type xcb:-pad)
    (maps :initarg :maps :type xcb:-ignore)
    (maps~ :initform
 	  '(name maps type xcb:xkb:IndicatorMap size
@@ -1888,7 +1879,7 @@
    (nRadioGroups :initarg :nRadioGroups :type xcb:CARD8)
    (nKeyAliases :initarg :nKeyAliases :type xcb:CARD8)
    (nKTLevels :initarg :nKTLevels :type xcb:CARD16)
-   (pad~8 :initform 4 :type xcb:-pad)
+   (pad~11 :initform 4 :type xcb:-pad)
    (valueList :initform
 	      '(expression
 		(xcb:-fieldref 'which)
@@ -1900,7 +1891,7 @@
 		 (xcb:xkb:NameDetail:Types typesName)
 		 (xcb:xkb:NameDetail:Compat compatName)
 		 (xcb:xkb:NameDetail:KeyTypeNames typeNames)
-		 (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType ktLevelNames)
+		 (xcb:xkb:NameDetail:KTLevelNames nLevelsPerType pad~12 ktLevelNames)
 		 (xcb:xkb:NameDetail:IndicatorNames indicatorNames)
 		 (xcb:xkb:NameDetail:VirtualModNames virtualModNames)
 		 (xcb:xkb:NameDetail:GroupNames groups)
@@ -1924,7 +1915,7 @@
 		    '(name nLevelsPerType type xcb:CARD8 size
 			   (xcb:-fieldref 'nTypes))
 		    :type xcb:-list)
-   (pad~9 :initform 4 :type xcb:-pad-align)
+   (pad~12 :initform 4 :type xcb:-pad-align)
    (ktLevelNames :initarg :ktLevelNames :type xcb:-ignore)
    (ktLevelNames~ :initform
 		  '(name ktLevelNames type xcb:ATOM size
@@ -1970,7 +1961,7 @@
    (geometry-length :initarg :geometry-length :type xcb:CARD32)
    (name :initarg :name :type xcb:ATOM)
    (geometryFound :initarg :geometryFound :type xcb:BOOL)
-   (pad~10 :initform 1 :type xcb:-pad)
+   (pad~13 :initform 1 :type xcb:-pad)
    (widthMM :initarg :widthMM :type xcb:CARD16)
    (heightMM :initarg :heightMM :type xcb:CARD16)
    (nProperties :initarg :nProperties :type xcb:CARD16)
