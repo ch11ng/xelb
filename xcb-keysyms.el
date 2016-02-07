@@ -63,7 +63,24 @@ This method must be called before using any other method in this module."
                                          min-keycode
                                          (1+ (- max-keycode min-keycode)))
     (unless xcb:keysyms:meta-mask     ;avoid duplicated initialization
-      (xcb:keysyms:update-modifier-mapping obj))))
+      (xcb:keysyms:update-modifier-mapping obj)
+      ;; Update on MappingNotify event.
+      (xcb:+event obj 'xcb:MappingNotify
+                  `(lambda (data _)
+                     (let ((obj1 (make-instance 'xcb:MappingNotify)))
+                       (xcb:unmarshal obj1 data)
+                       (with-slots (request first-keycode count) obj1
+                         (cond
+                          ((= request xcb:Mapping:Modifier)
+                           ;; Modifier keys changed
+                           (xcb:-log "Update modifier mapping")
+                           (xcb:keysyms:update-modifier-mapping ,obj))
+                          ((= request xcb:Mapping:Keyboard)
+                           ;; Update changed keys
+                           (xcb:-log "Update keyboard mapping: %s - %s"
+                                     first-keycode (+ first-keycode count -1))
+                           (xcb:keysyms:update-keyboard-mapping
+                            ,obj first-keycode count))))))))))
 
 (cl-defmethod xcb:keysyms:update-keyboard-mapping ((obj xcb:connection)
                                                    first-keycode count)
