@@ -44,6 +44,8 @@
 
 (require 'xcb)
 
+(defvar xcb:keysyms:auto-update t "Auto update keyboard mapping.")
+
 (defvar xcb:keysyms:meta-mask nil "META key mask.")
 (defvar xcb:keysyms:control-mask xcb:ModMask:Control "CONTROL key mask.")
 (defvar xcb:keysyms:shift-mask xcb:ModMask:Shift "SHIFT key mask.")
@@ -65,22 +67,24 @@ This method must be called before using any other method in this module."
     (unless xcb:keysyms:meta-mask     ;avoid duplicated initialization
       (xcb:keysyms:update-modifier-mapping obj)
       ;; Update on MappingNotify event.
-      (xcb:+event obj 'xcb:MappingNotify
-                  `(lambda (data _)
-                     (let ((obj1 (make-instance 'xcb:MappingNotify)))
-                       (xcb:unmarshal obj1 data)
-                       (with-slots (request first-keycode count) obj1
-                         (cond
-                          ((= request xcb:Mapping:Modifier)
-                           ;; Modifier keys changed
-                           (xcb:-log "Update modifier mapping")
-                           (xcb:keysyms:update-modifier-mapping ,obj))
-                          ((= request xcb:Mapping:Keyboard)
-                           ;; Update changed keys
-                           (xcb:-log "Update keyboard mapping: %s - %s"
-                                     first-keycode (+ first-keycode count -1))
-                           (xcb:keysyms:update-keyboard-mapping
-                            ,obj first-keycode count))))))))))
+      (when xcb:keysyms:auto-update
+        (xcb:+event obj 'xcb:MappingNotify
+                    `(lambda (data _)
+                       (let ((obj1 (make-instance 'xcb:MappingNotify)))
+                         (xcb:unmarshal obj1 data)
+                         (with-slots (request first-keycode count) obj1
+                           (cond
+                            ((= request xcb:Mapping:Modifier)
+                             ;; Modifier keys changed
+                             (xcb:-log "Update modifier mapping")
+                             (xcb:keysyms:update-modifier-mapping ,obj))
+                            ((= request xcb:Mapping:Keyboard)
+                             ;; Update changed keys
+                             (xcb:-log "Update keyboard mapping: %s - %s"
+                                       first-keycode
+                                       (+ first-keycode count -1))
+                             (xcb:keysyms:update-keyboard-mapping
+                              ,obj first-keycode count)))))))))))
 
 (cl-defmethod xcb:keysyms:update-keyboard-mapping ((obj xcb:connection)
                                                    first-keycode count)
