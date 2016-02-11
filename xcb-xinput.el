@@ -2055,7 +2055,7 @@
   (xcb:-struct)
   ((deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (pad~0 :initform 2 :type xcb:-pad)
-   (barrier :initarg :barrier :type xcb:xinput:BARRIER)
+   (barrier :initarg :barrier :type xcb:xfixes:BARRIER)
    (eventid :initarg :eventid :type xcb:CARD32)))
 
 (defclass xcb:xinput:XIBarrierReleasePointer
@@ -2723,7 +2723,7 @@
    (eventid :initarg :eventid :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
-   (barrier :initarg :barrier :type xcb:xinput:BARRIER)
+   (barrier :initarg :barrier :type xcb:xfixes:BARRIER)
    (dtime :initarg :dtime :type xcb:CARD32)
    (flags :initarg :flags :type xcb:CARD32)
    (sourceid :initarg :sourceid :type xcb:xinput:DeviceId)

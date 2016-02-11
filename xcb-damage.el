@@ -75,14 +75,14 @@
   (xcb:-request)
   ((~opcode :initform 3 :type xcb:-u1)
    (damage :initarg :damage :type xcb:damage:DAMAGE)
-   (repair :initarg :repair :type xcb:damage:REGION)
-   (parts :initarg :parts :type xcb:damage:REGION)))
+   (repair :initarg :repair :type xcb:xfixes:REGION)
+   (parts :initarg :parts :type xcb:xfixes:REGION)))
 
 (defclass xcb:damage:Add
   (xcb:-request)
   ((~opcode :initform 4 :type xcb:-u1)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
-   (region :initarg :region :type xcb:damage:REGION)))
+   (region :initarg :region :type xcb:xfixes:REGION)))
 
 (defclass xcb:damage:Notify
   (xcb:-event)

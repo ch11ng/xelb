@@ -63,7 +63,7 @@
 (defclass xcb:xvmc:ListSurfaceTypes
   (xcb:-request)
   ((~opcode :initform 1 :type xcb:-u1)
-   (port-id :initarg :port-id :type xcb:xvmc:PORT)))
+   (port-id :initarg :port-id :type xcb:xv:PORT)))
 (defclass xcb:xvmc:ListSurfaceTypes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -79,7 +79,7 @@
   (xcb:-request)
   ((~opcode :initform 2 :type xcb:-u1)
    (context-id :initarg :context-id :type xcb:xvmc:CONTEXT)
-   (port-id :initarg :port-id :type xcb:xvmc:PORT)
+   (port-id :initarg :port-id :type xcb:xv:PORT)
    (surface-id :initarg :surface-id :type xcb:xvmc:SURFACE)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)
@@ -156,7 +156,7 @@
 (defclass xcb:xvmc:ListSubpictureTypes
   (xcb:-request)
   ((~opcode :initform 8 :type xcb:-u1)
-   (port-id :initarg :port-id :type xcb:xvmc:PORT)
+   (port-id :initarg :port-id :type xcb:xv:PORT)
    (surface-id :initarg :surface-id :type xcb:xvmc:SURFACE)))
 (defclass xcb:xvmc:ListSubpictureTypes~reply
   (xcb:-reply)
@@ -165,7 +165,7 @@
    (pad~1 :initform 20 :type xcb:-pad)
    (types :initarg :types :type xcb:-ignore)
    (types~ :initform
-	   '(name types type xcb:xvmc:ImageFormatInfo size
+	   '(name types type xcb:xv:ImageFormatInfo size
 		  (xcb:-fieldref 'num))
 	   :type xcb:-list)))
 

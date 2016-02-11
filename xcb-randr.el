@@ -592,7 +592,7 @@
   (xcb:-request)
   ((~opcode :initform 26 :type xcb:-u1)
    (crtc :initarg :crtc :type xcb:randr:CRTC)
-   (transform :initarg :transform :type xcb:randr:TRANSFORM)
+   (transform :initarg :transform :type xcb:render:TRANSFORM)
    (filter-len :initarg :filter-len :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
    (filter-name :initarg :filter-name :type xcb:-ignore)
@@ -603,7 +603,7 @@
    (pad~1 :initform 4 :type xcb:-pad-align)
    (filter-params :initarg :filter-params :type xcb:-ignore)
    (filter-params~ :initform
-		   '(name filter-params type xcb:randr:FIXED size nil)
+		   '(name filter-params type xcb:render:FIXED size nil)
 		   :type xcb:-list)))
 
 (defclass xcb:randr:GetCrtcTransform
@@ -613,10 +613,10 @@
 (defclass xcb:randr:GetCrtcTransform~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (pending-transform :initarg :pending-transform :type xcb:randr:TRANSFORM)
+   (pending-transform :initarg :pending-transform :type xcb:render:TRANSFORM)
    (has-transforms :initarg :has-transforms :type xcb:BOOL)
    (pad~1 :initform 3 :type xcb:-pad)
-   (current-transform :initarg :current-transform :type xcb:randr:TRANSFORM)
+   (current-transform :initarg :current-transform :type xcb:render:TRANSFORM)
    (pad~2 :initform 4 :type xcb:-pad)
    (pending-len :initarg :pending-len :type xcb:CARD16)
    (pending-nparams :initarg :pending-nparams :type xcb:CARD16)
@@ -630,7 +630,7 @@
    (pad~3 :initform 4 :type xcb:-pad-align)
    (pending-params :initarg :pending-params :type xcb:-ignore)
    (pending-params~ :initform
-		    '(name pending-params type xcb:randr:FIXED size
+		    '(name pending-params type xcb:render:FIXED size
 			   (xcb:-fieldref 'pending-nparams))
 		    :type xcb:-list)
    (pad~4 :initform 4 :type xcb:-pad-align)
@@ -642,7 +642,7 @@
    (pad~5 :initform 4 :type xcb:-pad-align)
    (current-params :initarg :current-params :type xcb:-ignore)
    (current-params~ :initform
-		    '(name current-params type xcb:randr:FIXED size
+		    '(name current-params type xcb:render:FIXED size
 			   (xcb:-fieldref 'current-nparams))
 		    :type xcb:-list)))
 

@@ -81,7 +81,7 @@
 (defclass xcb:composite:CreateRegionFromBorderClip
   (xcb:-request)
   ((~opcode :initform 5 :type xcb:-u1)
-   (region :initarg :region :type xcb:composite:REGION)
+   (region :initarg :region :type xcb:xfixes:REGION)
    (window :initarg :window :type xcb:WINDOW)))
 
 (defclass xcb:composite:NameWindowPixmap

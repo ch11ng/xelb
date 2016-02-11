@@ -54,6 +54,9 @@
 (defvar xelb-event-alist nil "Record X events in this module.")
 (make-variable-buffer-local 'xelb-event-alist)
 
+(defvar xelb-imports nil "Record imported libraries.")
+(make-variable-buffer-local 'xelb-imports)
+
 (defvar xelb-pad-count -1 "<pad> node counter.")
 (make-variable-buffer-local 'xelb-pad-count)
 
@@ -62,6 +65,33 @@
 (defsubst xelb-node-name (node)
   "Return the tag name of node NODE."
   (car node))
+
+(defsubst xelb-node-type (node)
+  "Return the type of node NODE."
+  (let ((type-name (xelb-node-attr node 'type))
+        type)
+    (if (string-match ":" type-name)
+        ;; Defined explicitly.
+        (if (setq type
+                  (intern-soft (concat "xcb:"
+                                       (replace-regexp-in-string "^xproto:" ""
+                                                                 type-name))))
+            type
+          (error "Undefined type :%s" type-name))
+      (if (setq type (or (intern-soft (concat "xcb:" type-name))
+                         (intern-soft (concat xelb-prefix type-name))))
+          ;; Defined by the core protocol or this extension.
+          type
+        (catch 'break
+          (dolist (i xelb-imports)
+            (setq type (intern-soft (concat i type-name)))
+            (when type
+              (throw 'break type))))
+        (if type
+            ;; Defined by an imported extension.
+            type
+          ;; Not defined.
+          (error "Undefined type :%s" type-name))))))
 
 (defsubst xelb-node-attr (node attr)
   "Return the attribute ATTR of node NODE."
@@ -232,8 +262,10 @@ an `xelb-auto-padding' attribute."
 
 (defun xelb-parse-import (node)
   "Parse <import>."
-  (let ((header (intern (concat "xcb-" (xelb-node-subnode node)))))
+  (let* ((name (xelb-node-subnode node))
+         (header (intern (concat "xcb-" name))))
     (require header)
+    (push (concat "xcb:" name ":") xelb-imports)
     `((require ',header))))
 
 (defun xelb-parse-struct (node)
@@ -403,9 +435,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 (defun xelb-parse-field (node)
   "Parse <field>."
   (let* ((name (intern (xelb-node-attr-escape node 'name)))
-         (type (xelb-node-attr node 'type))
-         (type (or (intern-soft (concat "xcb:" type)) ;extension or xproto
-                   (intern (concat xelb-prefix type)))))
+         (type (xelb-node-type node)))
     `((,name :initarg ,(intern (concat ":" (symbol-name name))) :type ,type))))
 
 (defun xelb-parse-fd (node)
@@ -417,9 +447,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <list>."
   (let* ((name (intern (xelb-node-attr-escape node 'name)))
          (name-alt (intern (concat (xelb-node-attr-escape node 'name) "~")))
-         (type (xelb-node-attr node 'type))
-         (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat xelb-prefix type))))
+         (type (xelb-node-type node))
          (size (xelb-parse-expression (xelb-node-subnode node))))
     `((,name :initarg ,(intern (concat ":" (symbol-name name)))
              :type xcb:-ignore)
@@ -437,9 +465,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 (defun xelb-parse-exprfield (node)
   "Parse <exprfield>."
   (let* ((name (intern (xelb-node-attr-escape node 'name)))
-         (type (xelb-node-attr node 'type))
-         (type (or (intern-soft (concat "xcb:" type))
-                   (intern (concat xelb-prefix type))))
+         (type (xelb-node-type node))
          (value (xelb-parse-expression (xelb-node-subnode node))))
     `((,name :type ,type)
       (setf (slot-value obj ',name) ',value))))

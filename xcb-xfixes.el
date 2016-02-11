@@ -174,7 +174,7 @@
   (xcb:-request)
   ((~opcode :initform 9 :type xcb:-u1)
    (region :initarg :region :type xcb:xfixes:REGION)
-   (picture :initarg :picture :type xcb:xfixes:PICTURE)))
+   (picture :initarg :picture :type xcb:render:PICTURE)))
 
 (defclass xcb:xfixes:DestroyRegion
   (xcb:-request)
@@ -275,7 +275,7 @@
 (defclass xcb:xfixes:SetPictureClipRegion
   (xcb:-request)
   ((~opcode :initform 22 :type xcb:-u1)
-   (picture :initarg :picture :type xcb:xfixes:PICTURE)
+   (picture :initarg :picture :type xcb:render:PICTURE)
    (region :initarg :region :type xcb:xfixes:REGION)
    (x-origin :initarg :x-origin :type xcb:INT16)
    (y-origin :initarg :y-origin :type xcb:INT16)))

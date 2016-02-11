@@ -109,6 +109,8 @@
   (xcb:-pack-u2-lsb (if (>= value 0) value
                       (1+ (logand #xFFFF (lognot (- value)))))))
 
+;; Due to loss of significance of floating-point numbers, `xcb:-pack-u8' and
+;; `xcb:-pack-u8-lsb' may return approximate results.
 (eval-and-compile
   (if (/= 0 (lsh 1 32))
       ;; 64 bit
@@ -122,7 +124,45 @@
           (vector (logand value #xFF)
                   (logand (lsh value -8) #xFF)
                   (logand (lsh value -16) #xFF)
-                  (logand (lsh value -24) #xFF))))
+                  (logand (lsh value -24) #xFF)))
+        (defsubst xcb:-pack-u8 (value)
+          "8 bytes unsigned integer => byte array (MSB first)."
+          (if (integerp value)
+              (vector (logand (lsh value -56) #xFF)
+                      (logand (lsh value -48) #xFF)
+                      (logand (lsh value -40) #xFF)
+                      (logand (lsh value -32) #xFF)
+                      (logand (lsh value -24) #xFF)
+                      (logand (lsh value -16) #xFF)
+                      (logand (lsh value -8) #xFF)
+                      (logand value #xFF))
+            (let* ((msdw (min #xFFFFFFFF (truncate value #x100000000)))
+                   (lsdw (min #xFFFFFFFF
+                              (truncate (- value (* msdw 4294967296.0))))))
+              (vector (logand (lsh msdw -24) #xFF) (logand (lsh msdw -16) #xFF)
+                      (logand (lsh msdw -8) #xFF) (logand msdw #xFF)
+                      (logand (lsh lsdw -24) #xFF) (logand (lsh lsdw -16) #xFF)
+                      (logand (lsh lsdw -8) #xFF) (logand lsdw #xFF)))))
+        (defsubst xcb:-pack-u8-lsb (value)
+          "8 bytes unsigned integer => byte array (LSB first)."
+          (if (integerp value)
+              (vector (logand value #xFF)
+                      (logand (lsh value -8) #xFF)
+                      (logand (lsh value -16) #xFF)
+                      (logand (lsh value -24) #xFF)
+                      (logand (lsh value -32) #xFF)
+                      (logand (lsh value -40) #xFF)
+                      (logand (lsh value -48) #xFF)
+                      (logand (lsh value -56) #xFF))
+            (let* ((msdw (min #xFFFFFFFF (truncate value #x100000000)))
+                   (lsdw (min #xFFFFFFFF
+                              (truncate (- value (* msdw 4294967296.0))))))
+              (vector (logand lsdw #xFF) (logand (lsh lsdw -8) #xFF)
+                      (logand (lsh lsdw -16) #xFF) (logand (lsh lsdw -24) #xFF)
+                      (logand msdw #xFF)
+                      (logand (lsh msdw -8) #xFF)
+                      (logand (lsh msdw -16) #xFF)
+                      (logand (lsh msdw -24) #xFF))))))
     ;; 32 bit (30-bit actually; large numbers are represented as float type)
     (defsubst xcb:-pack-u4 (value)
       "4 bytes unsigned integer => byte array (MSB first, 32-bit)."
@@ -141,6 +181,44 @@
         (let* ((msw (truncate value #x10000))
                (lsw (truncate (- value (* msw 65536.0)))))
           (vector (logand lsw #xFF) (logand (lsh lsw -8) #xFF)
+                  (logand msw #xFF) (logand (lsh msw -8) #xFF)))))
+    (defsubst xcb:-pack-u8 (value)
+      "8 bytes unsigned integer => byte array (MSB first, 32-bit)."
+      (if (integerp value)
+          (vector 0 0 0 0
+                  (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
+                  (logand (lsh value -8) #xFF) (logand value #xFF))
+        (let* ((msw (min #xFFFF (truncate value #x1000000000000)))
+               (w1 (min #xFFFF
+                        (truncate (setq value
+                                        (- value (* msw 281474976710656.0)))
+                                  #x100000000)))
+               (w2 (min #xFFFF
+                        (truncate (setq value (- value (* w1 4294967296.0)))
+                                  #x10000)))
+               (lsw (min #xFFFF (truncate (- value (* w2 65536.0))))))
+          (vector (logand (lsh msw -8) #xFF) (logand msw #xFF)
+                  (logand (lsh w1 -8) #xFF) (logand w1 #xFF)
+                  (logand (lsh w2 -8) #xFF) (logand w2 #xFF)
+                  (logand (lsh lsw -8) #xFF) (logand lsw #xFF)))))
+    (defsubst xcb:-pack-u8-lsb (value)
+      "8 bytes unsigned integer => byte array (LSB first, 32-bit)."
+      (if (integerp value)
+          (vector (logand value #xFF) (logand (lsh value -8) #xFF)
+                  (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF)
+                  0 0 0 0)
+        (let* ((msw (min #xFFFF (truncate value #x1000000000000)))
+               (w1 (min #xFFFF
+                        (truncate (setq value
+                                        (- value (* msw 281474976710656.0)))
+                                  #x100000000)))
+               (w2 (min #xFFFF
+                        (truncate (setq value (- value (* w1 4294967296.0)))
+                                  #x10000)))
+               (lsw (min #xFFFF (truncate (- value (* w2 65536.0))))))
+          (vector (logand lsw #xFF) (logand (lsh lsw -8) #xFF)
+                  (logand w2 #xFF) (logand (lsh w2 -8) #xFF)
+                  (logand w1 #xFF) (logand (lsh w1 -8) #xFF)
                   (logand msw #xFF) (logand (lsh msw -8) #xFF)))))))
 
 (defsubst xcb:-pack-i4 (value)
@@ -188,6 +266,8 @@
         value
       (- (logand #xFFFF (lognot (1- value)))))))
 
+;; Due to loss of significance of floating-point numbers, `xcb:-unpack-u8' and
+;; `xcb:-unpack-u8-lsb' may return approximate results.
 (eval-and-compile
   (if (/= 0 (lsh 1 32))
       ;; 64-bit
@@ -200,7 +280,29 @@
           "Byte array => 4 bytes unsigned integer (LSB first, 64-bit)."
           (logior (aref data offset) (lsh (aref data (1+ offset)) 8)
                   (lsh (aref data (+ offset 2)) 16)
-                  (lsh (aref data (+ offset 3)) 24))))
+                  (lsh (aref data (+ offset 3)) 24)))
+        (defsubst xcb:-unpack-u8 (data offset)
+          "Byte array => 8 bytes unsigned integer (MSB first)."
+          (let ((msb (aref data offset)))
+            (+ (if (> msb 31) (* msb 72057594037927936.0) (lsh msb 56))
+               (logior (lsh (aref data (1+ offset)) 48)
+                       (lsh (aref data (+ offset 2)) 40)
+                       (lsh (aref data (+ offset 3)) 32)
+                       (lsh (aref data (+ offset 4)) 24)
+                       (lsh (aref data (+ offset 5)) 16)
+                       (lsh (aref data (+ offset 6)) 8)
+                       (aref data (+ offset 7))))))
+        (defsubst xcb:-unpack-u8-lsb (data offset)
+          "Byte array => 8 bytes unsigned integer (LSB first)."
+          (let ((msb (aref data (+ offset 7))))
+            (+ (if (> msb 31) (* msb 72057594037927936.0) (lsh msb 56))
+               (logior (lsh (aref data (+ offset 6)) 48)
+                       (lsh (aref data (+ offset 5)) 40)
+                       (lsh (aref data (+ offset 4)) 32)
+                       (lsh (aref data (+ offset 3)) 24)
+                       (lsh (aref data (+ offset 2)) 16)
+                       (lsh (aref data (1+ offset)) 8)
+                       (aref data offset))))))
     ;; 32-bit (30-bit actually; large numbers are represented as float type)
     (defsubst xcb:-unpack-u4 (data offset)
       "Byte array => 4 bytes unsigned integer (MSB first, 32-bit)."
@@ -215,7 +317,27 @@
         (+ (if (> msb 31) (* msb 16777216.0) (lsh msb 24))
            (logior (aref data offset)
                    (lsh (aref data (1+ offset)) 8)
-                   (lsh (aref data (+ offset 2)) 16)))))))
+                   (lsh (aref data (+ offset 2)) 16)))))
+    (defsubst xcb:-unpack-u8 (data offset)
+      "Byte array => 8 bytes unsigned integer (MSB first, 32-bit)."
+      (+ (* (aref data offset) 72057594037927936.0)
+         (* (aref data (1+ offset)) 281474976710656.0)
+         (* (aref data (+ offset 2)) 1099511627776.0)
+         (* (aref data (+ offset 3)) 4294967296.0)
+         (* (aref data (+ offset 4)) 16777216.0)
+         (logior (lsh (aref data (+ offset 5)) 16)
+                 (lsh (aref data (+ offset 6)) 8)
+                 (aref data (+ offset 7)))))
+    (defsubst xcb:-unpack-u8-lsb (data offset)
+      "Byte array => 8 bytes unsigned integer (LSB first, 32-bit)."
+      (+ (* (aref data (+ offset 7)) 72057594037927936.0)
+         (* (aref data (+ offset 6)) 281474976710656.0)
+         (* (aref data (+ offset 5)) 1099511627776.0)
+         (* (aref data (+ offset 4)) 4294967296.0)
+         (* (aref data (+ offset 3)) 16777216.0)
+         (logior (lsh (aref data (+ offset 2)) 16)
+                 (lsh (aref data (1+ offset)) 8)
+                 (aref data offset))))))
 
 (defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
@@ -266,12 +388,14 @@
 (cl-deftype xcb:-u1 () t)
 (cl-deftype xcb:-u2 () t)
 (cl-deftype xcb:-u4 () t)
+;; 8 B unsigned integer
+(cl-deftype xcb:-u8 () t)
 ;; <pad>
 (cl-deftype xcb:-pad () t)
 ;; <pad> with align attribute
 (cl-deftype xcb:-pad-align () t)
 ;; <fd>
-(cl-deftype xcb:-fd () t)
+(xcb:deftypealias 'xcb:-fd 'xcb:-i4)
 ;; <list>
 (cl-deftype xcb:-list () t)
 ;; <switch>
@@ -288,6 +412,7 @@
 (xcb:deftypealias 'xcb:CARD8 'xcb:-u1)
 (xcb:deftypealias 'xcb:CARD16 'xcb:-u2)
 (xcb:deftypealias 'xcb:CARD32 'xcb:-u4)
+(xcb:deftypealias 'xcb:CARD64 'xcb:-u8)
 (xcb:deftypealias 'xcb:BOOL 'xcb:-u1)
 
 ;;;; Struct type
@@ -311,7 +436,7 @@ Consider let-bind it rather than change its global value."))
     (catch 'break
       (dolist (slot slots)
         (setq type (cl--slot-descriptor-type slot))
-        (unless (or (eq type 'fd) (eq type 'xcb:-ignore))
+        (unless (eq type 'xcb:-ignore)
           (setq name (eieio-slot-descriptor-name slot))
           (setq value (slot-value obj name))
           (when (symbolp value)        ;see `eieio-default-eval-maybe'
@@ -340,6 +465,8 @@ The optional POS argument indicates current byte index of the field (used by
      (if (slot-value obj '~lsb) (xcb:-pack-u4-lsb value) (xcb:-pack-u4 value)))
     (`xcb:-i4
      (if (slot-value obj '~lsb) (xcb:-pack-i4-lsb value) (xcb:-pack-i4 value)))
+    (`xcb:-u8
+     (if (slot-value obj '~lsb) (xcb:-pack-u8-lsb value) (xcb:-pack-u8 value)))
     (`xcb:void (vector value))
     (`xcb:-pad
      (unless (integerp value)
@@ -409,7 +536,7 @@ The optional argument CTX is for <paramref>."
         slot-name tmp type)
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
-      (unless (or (eq type 'fd) (eq type 'xcb:-ignore))
+      (unless (eq type 'xcb:-ignore)
         (setq slot-name (eieio-slot-descriptor-name slot)
               tmp (xcb:-unmarshal-field obj type byte-array 0
                                         (when (slot-boundp obj slot-name)
@@ -449,6 +576,10 @@ and the second the consumed length."
                         (xcb:-unpack-i4-lsb data offset)
                       (xcb:-unpack-i4 data offset))
                     4))
+    (`xcb:-u8 (list (if (slot-value obj '~lsb)
+                        (xcb:-unpack-u8-lsb data offset)
+                      (xcb:-unpack-u8 data offset))
+                    8))
     (`xcb:void (list (aref data offset) 1))
     (`xcb:-pad
      (unless (integerp initform)

@@ -470,7 +470,7 @@
    (port :initarg :port :type xcb:xv:PORT)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (shmseg :initarg :shmseg :type xcb:xv:SEG)
+   (shmseg :initarg :shmseg :type xcb:shm:SEG)
    (id :initarg :id :type xcb:CARD32)
    (offset :initarg :offset :type xcb:CARD32)
    (src-x :initarg :src-x :type xcb:INT16)

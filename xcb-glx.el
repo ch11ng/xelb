@@ -280,7 +280,7 @@
   ((~opcode :initform 13 :type xcb:-u1)
    (screen :initarg :screen :type xcb:CARD32)
    (visual :initarg :visual :type xcb:VISUALID)
-   (pixmap :initarg :pixmap :type xcb:glx:xproto:PIXMAP)
+   (pixmap :initarg :pixmap :type xcb:PIXMAP)
    (glx-pixmap :initarg :glx-pixmap :type xcb:glx:PIXMAP)))
 
 (defclass xcb:glx:GetVisualConfigs
@@ -400,7 +400,7 @@
   ((~opcode :initform 22 :type xcb:-u1)
    (screen :initarg :screen :type xcb:CARD32)
    (fbconfig :initarg :fbconfig :type xcb:glx:FBCONFIG)
-   (pixmap :initarg :pixmap :type xcb:glx:xproto:PIXMAP)
+   (pixmap :initarg :pixmap :type xcb:PIXMAP)
    (glx-pixmap :initarg :glx-pixmap :type xcb:glx:PIXMAP)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (attribs :initarg :attribs :type xcb:-ignore)
@@ -512,7 +512,7 @@
   ((~opcode :initform 31 :type xcb:-u1)
    (screen :initarg :screen :type xcb:CARD32)
    (fbconfig :initarg :fbconfig :type xcb:glx:FBCONFIG)
-   (window :initarg :window :type xcb:glx:xproto:WINDOW)
+   (window :initarg :window :type xcb:WINDOW)
    (glx-window :initarg :glx-window :type xcb:glx:WINDOW)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (attribs :initarg :attribs :type xcb:-ignore)
