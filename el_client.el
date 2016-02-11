@@ -66,6 +66,10 @@
   "Return the tag name of node NODE."
   (car node))
 
+(defsubst xelb-node-attr (node attr)
+  "Return the attribute ATTR of node NODE."
+  (cdr (assoc attr (cadr node))))
+
 (defsubst xelb-node-type (node)
   "Return the type of node NODE."
   (let ((type-name (xelb-node-attr node 'type))
@@ -92,10 +96,6 @@
             type
           ;; Not defined.
           (error "Undefined type :%s" type-name))))))
-
-(defsubst xelb-node-attr (node attr)
-  "Return the attribute ATTR of node NODE."
-  (cdr (assoc attr (cadr node))))
 
 (defsubst xelb-escape-name (name)
   "Replace underscores in NAME with dashes."

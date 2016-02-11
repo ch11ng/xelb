@@ -76,13 +76,9 @@ This method must be called before using any other method in this module."
                            (cond
                             ((= request xcb:Mapping:Modifier)
                              ;; Modifier keys changed
-                             (xcb:-log "Update modifier mapping")
                              (xcb:keysyms:update-modifier-mapping ,obj))
                             ((= request xcb:Mapping:Keyboard)
                              ;; Update changed keys
-                             (xcb:-log "Update keyboard mapping: %s - %s"
-                                       first-keycode
-                                       (+ first-keycode count -1))
                              (xcb:keysyms:update-keyboard-mapping
                               ,obj first-keycode count)))))))))))
 

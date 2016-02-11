@@ -55,6 +55,22 @@
 
 ;;;; Fix backward compatibility issues with Emacs < 25
 
+(eval-and-compile
+  (when (< emacs-major-version 25)
+    ;; Copied from Emacs 25 with documentation and comments stripped.
+    ;; The version of `with-slots' in Emacs 24 is buggy and inefficient.
+    (defmacro with-slots (spec-list object &rest body)
+      (declare (indent 2) (debug (sexp sexp def-body)))
+      (require 'cl-lib)
+      (macroexp-let2 nil object object
+        `(cl-symbol-macrolet
+             ,(mapcar (lambda (entry)
+                        (let ((var  (if (listp entry) (car entry) entry))
+                              (slot (if (listp entry) (cadr entry) entry)))
+                          (list var `(slot-value ,object ',slot))))
+                      spec-list)
+           ,@body)))))
+
 ;; Backport some new functions from Emacs 25
 
 (eval-and-compile
