@@ -58,6 +58,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'xcb-xproto)
 
 (eval-when-compile
@@ -72,7 +73,6 @@
 
 ;;;; X connection related
 
-;;;###autoload
 (defclass xcb:connection ()
   ((process :initarg :process :initform nil)
    (connected :initform nil)  ;non-nil indicates connected to X server

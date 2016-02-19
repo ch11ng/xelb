@@ -47,6 +47,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'xcb)
 (require 'xcb-render)
 

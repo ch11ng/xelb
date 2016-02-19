@@ -42,6 +42,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'xcb)
 
 (defvar xcb:keysyms:auto-update t "Auto update keyboard mapping.")
