@@ -144,11 +144,12 @@
 This method must be called before using any other method in this module.
 
 This method also initializes ICCCM module automatically."
-  (xcb:icccm:init obj)                  ;required
-  (let ((atoms xcb:ewmh:-atoms))
-    (dotimes (i (x-display-screens))
-      (push (intern (format "_NET_WM_CM_S%d" i)) atoms))
-    (xcb:icccm:intern-atoms obj atoms)))
+  (unless xcb:Atom:_NET_SUPPORTED
+    (xcb:icccm:init obj)                ;required
+    (let ((atoms xcb:ewmh:-atoms))
+      (dotimes (i (x-display-screens))
+        (push (intern (format "_NET_WM_CM_S%d" i)) atoms))
+      (xcb:icccm:intern-atoms obj atoms))))
 
 ;;;; Client message
 

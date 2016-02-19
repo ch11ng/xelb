@@ -57,7 +57,8 @@
   "Initialize ICCCM module.
 
 This method must be called before using any other method in this module."
-  (xcb:icccm:intern-atoms obj xcb:icccm:-atoms))
+  (unless xcb:Atom:WM_PROTOCOLS
+    (xcb:icccm:intern-atoms obj xcb:icccm:-atoms)))
 
 (cl-defmethod xcb:icccm:intern-atoms ((obj xcb:connection) atoms)
   "Intern the X atoms listed in the list AOTMS.

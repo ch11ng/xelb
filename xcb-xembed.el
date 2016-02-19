@@ -65,7 +65,8 @@
   "Initialize the XEmbed module.
 
 This method must be called before using any other method in this module."
-  (xcb:icccm:intern-atoms obj xcb:xembed:-atoms))
+  (unless xcb:Atom:_XEMBED_INFO
+    (xcb:icccm:intern-atoms obj xcb:xembed:-atoms)))
 
 ;; Flags for _XEMBED_INFO.
 (defconst xcb:xembed:MAPPED 1)

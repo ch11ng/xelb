@@ -59,11 +59,12 @@
   "Initialize the system tray module.
 
 This method must be called before using any other method in this module."
-  (xcb:ewmh:init obj)                   ;required.
-  (let ((atoms xcb:systemtray:-atoms))
-    (dotimes (i (x-display-screens))
-      (push (intern (format "_NET_SYSTEM_TRAY_S%d" i)) atoms))
-    (xcb:icccm:intern-atoms obj atoms)))
+  (unless xcb:Atom:_NET_SYSTEM_TRAY_OPCODE
+    (xcb:ewmh:init obj)                 ;required.
+    (let ((atoms xcb:systemtray:-atoms))
+      (dotimes (i (x-display-screens))
+        (push (intern (format "_NET_SYSTEM_TRAY_S%d" i)) atoms))
+      (xcb:icccm:intern-atoms obj atoms))))
 
 (defclass xcb:systemtray:SendEvent (xcb:SendEvent)
   ((propagate :initform 0)
