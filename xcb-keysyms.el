@@ -432,13 +432,43 @@ this function will also return symbols for pure modifiers keys."
                       (aref xcb:keysyms:-iso-function-keys
                             (logand keysym #xff)))))
         mod-alt mod-meta mod-hyper mod-super)
-    (when (and (not allow-modifiers)
-               (memq event
-                     '(lshift* rshift* lcontrol* rcontrol*
-                               caps-lock* shift-lock* lmeta* rmeta* lalt* ralt*
-                               lsuper* rsuper* lhyper* rhyper*
-                               mode-switch* kp-numlock)))
-      (setq event nil))
+    (when event
+      (if allow-modifiers
+          (when mask
+            ;; Clear modifier bits for modifier keys.
+            (pcase event
+              ((or `lmeta* `rmeta*)
+               (setq mask (logand mask (lognot xcb:keysyms:meta-mask))))
+              ((or `lcontrol* `rcontrol*)
+               (setq mask (logand mask (lognot xcb:keysyms:control-mask))))
+              ((or `lshift* `rshift*)
+               (setq mask (logand mask (lognot xcb:keysyms:shift-mask))))
+              ((or `lhyper* `rhyper*)
+               (when xcb:keysyms:hyper-mask
+                 (setq mask (logand mask (lognot xcb:keysyms:hyper-mask)))))
+              ((or `lsuper* `rsuper*)
+               (setq mask (logand mask (lognot xcb:keysyms:super-mask))))
+              ((or `lalt* `ralt*)
+               (when xcb:keysyms:alt-mask
+                 (setq mask (logand mask (lognot xcb:keysyms:alt-mask)))))))
+        (when (memq event
+                    '(lshift*
+                      rshift*
+                      lcontrol*
+                      rcontrol*
+                      caps-lock*
+                      shift-lock*
+                      lmeta*
+                      rmeta*
+                      lalt*
+                      ralt*
+                      lsuper*
+                      rsuper*
+                      lhyper*
+                      rhyper*
+                      mode-switch*
+                      kp-numlock))
+          (setq event nil))))
     (when event
       (if (not mask)
           event
