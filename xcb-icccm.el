@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This library implement ICCCM the same way as xcb/util-wm.
+;; This library implements ICCCM the same way as xcb/util-wm.
 
 ;; Usage tips:
 ;; + Do not forget to call `xcb:icccm:init' for _every_ connection using
@@ -84,7 +84,7 @@ The value of these atoms will be available in `xcb:Atom' namespace."
 
 (defclass xcb:icccm:--ClientMessage ()
   ((data :type xcb:-ignore))            ;shadowed slot
-  :documentation "To shadow the data slot in `xcb:SendEvent'.")
+  :documentation "To shadow the data slot in `xcb:ClientMessage'.")
 ;;
 (defclass xcb:icccm:-ClientMessage
   (xcb:icccm:--ClientMessage xcb:ClientMessage)

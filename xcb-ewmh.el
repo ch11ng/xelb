@@ -21,20 +21,14 @@
 
 ;;; Commentary:
 
-;; This library implement EWMH the same way as xcb/util-wm.
+;; This library implements EWMH the same way as xcb/util-wm.
 
 ;; Usage tips:
 ;; + Do not forget to call `xcb:ewmh:init' for _every_ connection using
 ;;   this library.
 ;; + Use `xcb:ewmh:SendEvent' instead of `xcb:SendEvent' to send client
 ;;   messages defined in this library.
-;; + Initialize this library auto loads and initializes 'xcb-icccm'.
-
-;; Todo:
-;; + Interned atoms are actually connection-dependent.  Currently they are
-;;   simply saved as global variables.
-;; + Is UTF-8 string NULL-terminated?
-;; + _NET_WM_CM_Sn (should implement "manager selection" in ICCCM first)
+;; + Initializing this library auto loads and initializes 'xcb-icccm'.
 
 ;; References:
 ;; + EWMH (http://standards.freedesktop.org/wm-spec/wm-spec-latest.html)
@@ -167,11 +161,7 @@ This method also initializes ICCCM module automatically."
 Note that this only applies to \"sending a message to the root window\" in
 EWMH")
 
-(defclass xcb:ewmh:--ClientMessage ()
-  ((data :type xcb:-ignore))            ;shadowed slot
-  :documentation "To shadow the data slot in `xcb:SendEvent'.")
-;;
-(defclass xcb:ewmh:-ClientMessage (xcb:ewmh:--ClientMessage xcb:ClientMessage)
+(defclass xcb:ewmh:-ClientMessage (xcb:icccm:--ClientMessage xcb:ClientMessage)
   ((format :initform 32)))
 
 ;;;; Abstract classes for getting/changing (UTF-8) string properties
