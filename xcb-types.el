@@ -41,7 +41,6 @@
 ;; + The current implementation of `eieio-default-eval-maybe' only `eval's a
 ;;   certain type of forms.  If this is changed in the future, we will have to
 ;;   adapt our codes accordingly.
-;; + STRING16 and CHAR2B should always be big-endian.
 ;; + <paramref> for `xcb:-marshal-field'?
 
 ;; References:

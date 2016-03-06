@@ -1556,15 +1556,15 @@
 	    '(name string type xcb:CHAR2B size nil)
 	    :type xcb:-list)))
 (cl-defmethod xcb:marshal
-    ((obj xcb:QueryTextExtents)
-     connection)
+    ((obj xcb:QueryTextExtents))
   nil
   (setf
    (slot-value obj 'odd-length)
-   '(logand
-     (xcb:-fieldref 'string-len)
-     1))
-  (cl-call-next-method obj connection))
+   (logand
+    (length
+     (xcb:-fieldref 'string))
+    1))
+  (cl-call-next-method obj))
 (defclass xcb:QueryTextExtents~reply
   (xcb:-reply)
   ((draw-direction :initarg :draw-direction :type xcb:BYTE)

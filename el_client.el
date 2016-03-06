@@ -60,6 +60,9 @@
 (defvar xelb-pad-count -1 "<pad> node counter.")
 (make-variable-buffer-local 'xelb-pad-count)
 
+(defvar xelb-request-fields nil "Fields in the current request.")
+(make-variable-buffer-local 'xelb-request-fields)
+
 ;;;; Helper functions
 
 (defsubst xelb-node-name (node)
@@ -324,6 +327,13 @@ The `combine-adjacent' attribute is simply ignored."
          (subnodes (xelb-node-subnodes node t))
          expressions
          result reply-name reply-contents)
+    ;; Fill `xelb-request-fields'.
+    (setq xelb-request-fields nil)
+    (dolist (i subnodes)
+      (unless (eq (xelb-node-name i) 'reply)
+        (let ((name (xelb-node-attr i 'name)))
+          (when name
+            (push (intern (xelb-escape-name name)) xelb-request-fields)))))
     (dolist (i subnodes)
       (if (not (eq (xelb-node-name i) 'reply))
           (progn
@@ -335,6 +345,7 @@ The `combine-adjacent' attribute is simply ignored."
               (setq contents (nconc contents result))))
         ;; Parse <reply>
         (setq xelb-pad-count -1)        ;reset padding counter
+        (setq xelb-request-fields nil)  ;Clear `xelb-request-fields'.
         (setq reply-name
               (intern (concat xelb-prefix (xelb-node-attr node 'name)
                               "~reply")))
@@ -342,14 +353,15 @@ The `combine-adjacent' attribute is simply ignored."
         (setq reply-contents
               (apply #'nconc
                      (mapcar #'xelb-parse-structure-content reply-contents)))))
+    (setq xelb-request-fields nil)      ;Clear `xelb-request-fields'.
     (delq nil contents)
     (delq nil
           `((defclass ,name (xcb:-request) ,contents)
             ;; The optional expressions
             ,(when expressions
-               `(cl-defmethod xcb:marshal ((obj ,name) connection) nil
+               `(cl-defmethod xcb:marshal ((obj ,name)) nil
                               ,@expressions
-                              (cl-call-next-method obj connection)))
+                              (cl-call-next-method obj)))
             ;; The optional reply body
             ,(when reply-name
                (delq nil reply-contents)
@@ -468,7 +480,7 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
          (type (xelb-node-type node))
          (value (xelb-parse-expression (xelb-node-subnode node))))
     `((,name :type ,type)
-      (setf (slot-value obj ',name) ',value))))
+      (setf (slot-value obj ',name) ,value))))
 
 ;; The only difference between <bitcase> and <case> is whether the `condition'
 ;; is a list
@@ -559,7 +571,13 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
 
 (defun xelb-parse-fieldref (node)
   "Parse <fieldref>."
-  `(xcb:-fieldref ',(intern (xelb-escape-name (xelb-node-subnode node)))))
+  (let ((name (intern (xelb-escape-name (xelb-node-subnode node)))))
+    (if (or (not xelb-request-fields)   ;Probably not a request.
+            (memq name xelb-request-fields)
+            (not (string-suffix-p "-len" (symbol-name name))))
+        `(xcb:-fieldref ',name)
+      `(length
+        (xcb:-fieldref ',(intern (substring (symbol-name name) 0 -4)))))))
 
 (defun xelb-parse-paramref (node)
   "Parse <paramref>."
