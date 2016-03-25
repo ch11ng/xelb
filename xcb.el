@@ -122,7 +122,7 @@ equal.  Otherwise a negative value would be returned."
 
 (defun xcb:connect-to-display-with-auth-info (&optional display auth _screen)
   "Connect to X server with display DISPLAY, auth info AUTH on screen _SCREEN."
-  (unless display (setq display x-display-name))
+  (unless display (setq display (frame-parameter nil 'display)))
   (unless display (error "[XELB] No X display available"))
   (let* ((tmp (xcb:parse-display display))
          (host (cdr (assoc 'host tmp)))
@@ -152,7 +152,8 @@ equal.  Otherwise a negative value would be returned."
 
 (defun xcb:connect-to-socket (&optional socket auth-info)
   "Connect to X server with socket SOCKET and authentication info AUTH-INFO."
-  (unless (or socket x-display-name) (error "[XELB] No X display available"))
+  (unless (or socket (frame-parameter nil 'display))
+    (error "[XELB] No X display available"))
   (let (display)
     (if socket
         ;; As there is no general way to deduce the display name from an X11
@@ -161,11 +162,11 @@ equal.  Otherwise a negative value would be returned."
               (concat ":"               ;local
                       (replace-regexp-in-string "^.*?\\([0-9.]+\\)$" "\\1"
                                                 socket)))
-      (setq display x-display-name
+      (setq display (frame-parameter nil 'display)
             socket (concat "/tmp/.X11-unix/X"
                            (replace-regexp-in-string
                             ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1"
-                            x-display-name))))
+                            display))))
     (let* ((process (make-network-process :name "XELB" :remote socket))
            (auth (if auth-info auth-info (make-instance 'xcb:auth-info)))
            (connection (make-instance 'xcb:connection
