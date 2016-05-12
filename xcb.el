@@ -26,7 +26,6 @@
 ;; frequently used methods are:
 ;; + Open/Close connection
 ;;   - `xcb:connect'
-;;   - `xcb:connect-to-socket'
 ;;   - `xcb:disconnect'
 ;; + Request/Reply/Error (asynchronous)
 ;;   - `xcb:+request'
@@ -50,7 +49,6 @@
 ;; on what is going wrong.
 
 ;; Todo:
-;; + Authentication support when connecting to X server.
 ;; + Use XC-MISC extension for `xcb:generate-id' when IDs are used up.
 
 ;; References:
@@ -116,23 +114,34 @@ equal.  Otherwise a negative value would be returned."
    (data :initarg :data :initform "" :type string))
   :documentation "X connection authentication info.")
 
-(defun xcb:connect (&optional display screen)
-  "Connect to X server with display DISPLAY on screen SCREEN."
-  (xcb:connect-to-display-with-auth-info display nil screen))
+(defun xcb:connect (&optional display _screen)
+  "Connect to X server with display DISPLAY."
+  (declare (advertised-calling-convention (&optional display) "25.1"))
+  (unless display (setq display (frame-parameter nil 'display)))
+  (unless display (error "[XELB] No X display available"))
+  (let ((socket (xcb:display->socket display)))
+    (if (file-exists-p socket)
+        (xcb:connect-to-socket socket)
+      (xcb:connect-to-display-with-auth-info display))))
+
+(defun xcb:display->socket (display)
+  "Convert X11 display DISPLAY to its corresponding socket."
+  (concat "/tmp/.X11-unix/X"
+          (replace-regexp-in-string ".*:\\([^\\.]+\\).*" "\\1" display)))
 
 (defun xcb:connect-to-display-with-auth-info (&optional display auth _screen)
-  "Connect to X server with display DISPLAY, auth info AUTH on screen _SCREEN."
+  "Connect to X server with display DISPLAY, auth info AUTH."
+  (declare (advertised-calling-convention (&optional display auth) "25.1"))
   (unless display (setq display (frame-parameter nil 'display)))
   (unless display (error "[XELB] No X display available"))
   (let* ((tmp (xcb:parse-display display))
          (host (cdr (assoc 'host tmp)))
          (host (if (string= "" host) 'local host))
          (dpy (cdr (assoc 'display tmp)))
-         ;; (_screen (or _screen (cdr (assoc 'screen tmp))))
          (process (make-network-process :name "XELB"
                                         :host host
                                         :service (+ 6000 dpy)))
-         (auth-info (if auth auth (make-instance 'xcb:auth-info)))
+         (auth-info (if auth auth (xcb:create-auth-info)))
          (connection (make-instance 'xcb:connection
                                     :process process
                                     :display display :auth-info auth-info)))
@@ -142,13 +151,35 @@ equal.  Otherwise a negative value would be returned."
 (defun xcb:parse-display (name)
   "Parse X Display name NAME."
   (let ((host (replace-regexp-in-string "\\(.*\\):.*" "\\1" name))
-        (display
-         (replace-regexp-in-string ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1" name))
+        (display (replace-regexp-in-string ".*:\\([^\\.]+\\).*" "\\1" name))
         (screen
-         (replace-regexp-in-string ".*:[^\\.]+\\.?\\(.*\\)?" "\\1" name)))
+         (replace-regexp-in-string ".*:[^\\.]+\\.?\\(.*\\)" "\\1" name)))
     (setq display (string-to-number display))
     (setq screen (if (string= "" screen) 0 (string-to-number screen)))
     `((host . ,host) (display . ,display) (screen . ,screen))))
+
+(defun xcb:create-auth-info ()
+  "Create the default `auth-info'."
+  (let ((xauth-output (shell-command-to-string
+                       "xauth list ${DISPLAY#localhost} 2>/dev/null"))
+        (name "MIT-MAGIC-COOKIE-1") ;only support MIT-MAGIC-COOKIE-1 protocol.
+        (data ""))
+    (if (string= "" xauth-output)
+        ;; No xauth entry available.
+        (setq name "")
+      (setq xauth-output (split-string xauth-output))
+      (if (string= name (car (last xauth-output 2)))
+          ;; The auth data is a 128-bit hex string.
+          (setq data
+                (concat
+                 (cl-loop for i in (number-sequence 0 30 2)
+                          collect (string-to-number
+                                   (substring (car (last xauth-output))
+                                              i (+ i 2))
+                                   16))))
+        ;; No xauth entry available.
+        (setq name "")))
+    (make-instance 'xcb:auth-info :name name :data data)))
 
 (defun xcb:connect-to-socket (&optional socket auth-info)
   "Connect to X server with socket SOCKET and authentication info AUTH-INFO."
@@ -163,12 +194,9 @@ equal.  Otherwise a negative value would be returned."
                       (replace-regexp-in-string "^.*?\\([0-9.]+\\)$" "\\1"
                                                 socket)))
       (setq display (frame-parameter nil 'display)
-            socket (concat "/tmp/.X11-unix/X"
-                           (replace-regexp-in-string
-                            ".*:\\([^\\.]+\\)\\(\\..*\\)?" "\\1"
-                            display))))
+            socket (xcb:display->socket display)))
     (let* ((process (make-network-process :name "XELB" :remote socket))
-           (auth (if auth-info auth-info (make-instance 'xcb:auth-info)))
+           (auth (if auth-info auth-info (xcb:create-auth-info)))
            (connection (make-instance 'xcb:connection
                                       :process process :display display
                                       :auth-info auth :socket socket)))
