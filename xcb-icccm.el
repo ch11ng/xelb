@@ -133,7 +133,7 @@ This method automatically format the value as 8, 16 or 32 bits array."
           (setf value nil)              ;no available value
         (setq tmp (substring value
                              0          ;long-offset
-                             (- (length value) bytes-after))
+                             (length value))
               value nil)
         (pcase format
           (8
