@@ -170,11 +170,12 @@ equal.  Otherwise a negative value would be returned."
       (setq xauth-output (split-string xauth-output))
       (if (string= name (car (last xauth-output 2)))
           ;; The auth data is a 128-bit hex string.
-          (setq data
+          (setq data (car (last xauth-output))
+                data
                 (concat
                  (cl-loop for i in (number-sequence 0 30 2)
                           collect (string-to-number
-                                   (substring (car (last xauth-output))
+                                   (substring data
                                               i (+ i 2))
                                    16))))
         ;; No xauth entry available.
