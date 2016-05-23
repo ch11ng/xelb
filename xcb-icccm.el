@@ -54,21 +54,22 @@
   (dolist (atom xcb:icccm:-atoms)
     (eval `(defvar ,(intern (concat "xcb:Atom:" (symbol-name atom))) nil))))
 
-(cl-defmethod xcb:icccm:init ((obj xcb:connection))
+(cl-defmethod xcb:icccm:init ((obj xcb:connection) &optional force)
   "Initialize ICCCM module.
 
 This method must be called before using any other method in this module."
-  (unless xcb:Atom:WM_PROTOCOLS
-    (xcb:icccm:intern-atoms obj xcb:icccm:-atoms)))
+  (when (or force (not xcb:Atom:WM_PROTOCOLS))
+    (xcb:icccm:intern-atoms obj xcb:icccm:-atoms force)))
 
-(cl-defmethod xcb:icccm:intern-atoms ((obj xcb:connection) atoms)
+(cl-defmethod xcb:icccm:intern-atoms ((obj xcb:connection) atoms
+                                      &optional force)
   "Intern the X atoms listed in the list AOTMS.
 
 The value of these atoms will be available in `xcb:Atom' namespace."
   (dolist (atom atoms)
     (let* ((name (symbol-name atom))
            (var-name (intern (concat "xcb:Atom:" name))))
-      (unless (and (boundp var-name) (symbol-value var-name))
+      (when (or force (not (and (boundp var-name) (symbol-value var-name))))
         (set var-name
              (slot-value (xcb:+request-unchecked+reply obj
                              (make-instance 'xcb:InternAtom

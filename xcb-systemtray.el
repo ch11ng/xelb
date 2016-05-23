@@ -55,16 +55,16 @@
 (defconst xcb:systemtray:opcode:BEGIN-MESSAGE 1)
 (defconst xcb:systemtray:opcode:CANCEL-MESSAGE 2)
 
-(cl-defmethod xcb:systemtray:init ((obj xcb:connection))
+(cl-defmethod xcb:systemtray:init ((obj xcb:connection) &optional force)
   "Initialize the system tray module.
 
 This method must be called before using any other method in this module."
-  (unless xcb:Atom:_NET_SYSTEM_TRAY_OPCODE
+  (when (or force (not xcb:Atom:_NET_SYSTEM_TRAY_OPCODE))
     (xcb:ewmh:init obj)                 ;required.
     (let ((atoms xcb:systemtray:-atoms))
       (dotimes (i (x-display-screens))
         (push (intern (format "_NET_SYSTEM_TRAY_S%d" i)) atoms))
-      (xcb:icccm:intern-atoms obj atoms))))
+      (xcb:icccm:intern-atoms obj atoms force))))
 
 (defclass xcb:systemtray:SendEvent (xcb:SendEvent)
   ((propagate :initform 0)

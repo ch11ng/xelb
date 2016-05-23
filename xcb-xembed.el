@@ -61,12 +61,12 @@
 (defconst xcb:xembed:opcode:UNREGISTER-ACCELERATOR 13)
 (defconst xcb:xembed:opcode:ACTIVATE-ACCELERATOR   14)
 
-(cl-defmethod xcb:xembed:init ((obj xcb:connection))
+(cl-defmethod xcb:xembed:init ((obj xcb:connection) &optional force)
   "Initialize the XEmbed module.
 
 This method must be called before using any other method in this module."
-  (unless xcb:Atom:_XEMBED_INFO
-    (xcb:icccm:intern-atoms obj xcb:xembed:-atoms)))
+  (when (or force (not xcb:Atom:_XEMBED_INFO))
+    (xcb:icccm:intern-atoms obj xcb:xembed:-atoms force)))
 
 ;; Flags for _XEMBED_INFO.
 (defconst xcb:xembed:MAPPED 1)

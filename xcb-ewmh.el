@@ -138,18 +138,18 @@
   (dolist (atom xcb:ewmh:-atoms)
     (eval `(defvar ,(intern (concat "xcb:Atom:" (symbol-name atom))) nil))))
 
-(cl-defmethod xcb:ewmh:init ((obj xcb:connection))
+(cl-defmethod xcb:ewmh:init ((obj xcb:connection) &optional force)
   "Initialize EWMH module.
 
 This method must be called before using any other method in this module.
 
 This method also initializes ICCCM module automatically."
-  (unless xcb:Atom:_NET_SUPPORTED
+  (when (or force (not xcb:Atom:_NET_SUPPORTED))
     (xcb:icccm:init obj)                ;required
     (let ((atoms xcb:ewmh:-atoms))
       (dotimes (i (x-display-screens))
         (push (intern (format "_NET_WM_CM_S%d" i)) atoms))
-      (xcb:icccm:intern-atoms obj atoms))))
+      (xcb:icccm:intern-atoms obj atoms force))))
 
 ;;;; Client message
 
