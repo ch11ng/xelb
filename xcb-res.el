@@ -58,7 +58,9 @@
    (value :initarg :value :type xcb:-ignore)
    (value~ :initform
 	   '(name value type xcb:CARD32 size
-		  (xcb:-fieldref 'length))
+		  (/
+		   (xcb:-fieldref 'length)
+		   4))
 	   :type xcb:-list)))
 
 (defclass xcb:res:ResourceIdSpec
