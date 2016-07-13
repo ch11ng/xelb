@@ -48,7 +48,8 @@
 (eval-and-compile
   (defconst xcb:icccm:-atoms
     '(UTF8_STRING COMPOUND_TEXT TEXT C_STRING MANAGER
-                  WM_PROTOCOLS WM_TAKE_FOCUS WM_DELETE_WINDOW WM_STATE)
+                  WM_PROTOCOLS WM_TAKE_FOCUS WM_DELETE_WINDOW
+                  WM_STATE WM_CHANGE_STATE)
     "Atoms involved in ICCCM.")
 
   (dolist (atom xcb:icccm:-atoms)
