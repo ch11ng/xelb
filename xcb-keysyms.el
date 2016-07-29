@@ -80,6 +80,8 @@ This method must be called before using any other method in this module."
     ;; Save the major opcode of XKB.
     (setq xcb:keysyms:-opcode
           (slot-value (xcb:get-extension-data obj 'xcb:xkb) 'major-opcode))
+    ;; Set per-client flags.
+    (xcb:keysyms:-set-per-client-flags obj xcb:xkb:ID:UseCoreKbd)
     ;; Update data.
     (xcb:keysyms:-update-keytypes obj xcb:xkb:ID:UseCoreKbd)
     (xcb:keysyms:-update-keycodes obj xcb:xkb:ID:UseCoreKbd)
@@ -111,6 +113,25 @@ This method must be called before using any other method in this module."
                          :newKeyboardDetails new-keyboard)))
     (xcb:flush obj))))
 
+(cl-defmethod xcb:keysyms:-set-per-client-flags ((obj xcb:connection) device)
+  "Set per-client flags."
+  (let ((per-client-flags (logior
+                           ;; Instead of compatibility state.
+                           xcb:xkb:PerClientFlag:GrabsUseXKBState
+                           ;; Instead of grab state.
+                           xcb:xkb:PerClientFlag:LookupStateWhenGrabbed
+                           ;; Use XKB state in 'SendEvent'.
+                           xcb:xkb:PerClientFlag:SendEventUsesXKBState)))
+    ;; The reply is not used.
+    (xcb:+request-unchecked+reply obj
+        (make-instance 'xcb:xkb:PerClientFlags
+                       :deviceSpec device
+                       :change per-client-flags
+                       :value per-client-flags
+                       :ctrlsToChange 0
+                       :autoCtrls 0
+                       :autoCtrlsValues 0))))
+
 (cl-defmethod xcb:keysyms:-on-NewKeyboardNotify ((obj xcb:connection) data)
   "Handle 'NewKeyboardNotify' event."
   (let ((obj1 (make-instance 'xcb:xkb:NewKeyboardNotify)))
@@ -131,6 +152,8 @@ This method must be called before using any other method in this module."
             ;; (xcb:keysyms:-update-keytypes obj deviceID)
             (xcb:keysyms:-update-keycodes obj deviceID)
             (xcb:keysyms:-update-modkeys obj deviceID))
+        ;; Device changed; update the per-client flags and local data.
+        (xcb:keysyms:-set-per-client-flags obj deviceID)
         (xcb:keysyms:-update-keytypes obj deviceID)
         (xcb:keysyms:-update-keycodes obj deviceID)
         (xcb:keysyms:-update-modkeys obj deviceID)))))
