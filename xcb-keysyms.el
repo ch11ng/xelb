@@ -419,8 +419,6 @@ Return 0 if conversion fails."
       0)))
 
 ;; This list is largely base on 'lispy_function_keys' in 'keyboard.c'.
-;; Emacs has a built-in variable `x-keysym-table' providing Latin-1 and legacy
-;; keysyms, which seems not very useful here.
 (defconst xcb:keysyms:-function-keys
   `[                                    ;#xff00 - #xff0f
     ,@(make-list 8 nil) backspace tab linefeed clear nil return nil nil
@@ -558,23 +556,39 @@ Return (0 . 0) when conversion fails."
                 (`mouse-3 xcb:ButtonIndex:3)
                 (`mouse-4 xcb:ButtonIndex:4)
                 (`mouse-5 xcb:ButtonIndex:5)
-                (_ (if (setq keysym (cl-position event
-                                                 xcb:keysyms:-function-keys))
-                       ;; Function keys
-                       (logior keysym #xff00)
-                     (if (setq keysym (cl-position event
-                                                   xcb:keysyms:-xf86-keys))
-                         ;; XF86 keys
-                         (logior keysym #x1008ff00)
-                       (if (setq keysym
-                                 (cl-position event
-                                              xcb:keysyms:-iso-function-keys))
-                           ;; ISO function keys
-                           (logior keysym #xfe00)))))))
-      (if (<= #x20 event #xff)          ;Latin-1
-          (setq keysym event)
-        (when (<= #x100 event #x10ffff) ;Unicode
-          (setq keysym (+ #x1000000 event)))))
+                (_
+                 (cond
+                  ((setq keysym (cl-position event
+                                             xcb:keysyms:-function-keys))
+                   ;; Function keys.
+                   (logior keysym #xff00))
+                  ((setq keysym (cl-position event xcb:keysyms:-xf86-keys))
+                   ;; XF86 keys.
+                   (logior keysym #x1008ff00))
+                  ((setq keysym (cl-position event
+                                             xcb:keysyms:-iso-function-keys))
+                   ;; ISO function keys.
+                   (logior keysym #xfe00))
+                  (t
+                   ;; Finally try system-specific keysyms.
+                   (car (rassq event system-key-alist)))))))
+      (setq keysym
+            (cond
+             ((<= #x20 event #xff)
+              ;; Latin-1.
+              event)
+             ((<= #x100 event #x10ffff)
+              ;; Unicode.
+              (+ #x1000000 event))
+             (t (or
+                 ;; Try system-specific keysyms.
+                 (car (rassq event system-key-alist))
+                 ;; Try legacy keysyms.
+                 (catch 'break
+                   (maphash (lambda (key val)
+                              (when (= event val)
+                                (throw 'break key)))
+                            x-keysym-table)))))))
     (if (not keysym)
         '(0 . 0)
       (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
@@ -630,7 +644,12 @@ this function will also return symbols for pure modifiers keys."
                       (aref xcb:keysyms:-xf86-keys (logand keysym #xff)))
                      ((<= #xfe00 keysym #xfeff)
                       (aref xcb:keysyms:-iso-function-keys
-                            (logand keysym #xff)))))
+                            (logand keysym #xff)))
+                     (t (or
+                         ;; Search system-specific keysyms.
+                         (car (assq keysym system-key-alist))
+                         ;; Search `x-keysym-table' for legacy keysyms.
+                         (gethash keysym x-keysym-table)))))
         mod-alt mod-meta mod-hyper mod-super)
     (when event
       (if allow-modifiers
