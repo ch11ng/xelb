@@ -516,15 +516,13 @@ The optional POS argument indicates current byte index of the field (used by
          (setq condition (car i))
          (setq name-list (cdr i))
          (setq flag nil)
-         (if (symbolp condition)
-             (setq condition (symbol-value condition))
-           (when (and (listp condition) (eq 'logior (car condition)))
-             (setq condition (apply #'logior (cdr condition)))))
          (cl-assert (or (integerp condition) (listp condition)))
          (if (integerp condition)
              (setq flag (/= 0 (logand expression condition)))
-           (while (and (not flag) condition)
-             (setq flag (or flag (= expression (pop condition))))))
+           (if (eq 'logior (car condition))
+               (setq flag (/= 0 (logand expression
+                                        (apply #'logior (cdr condition)))))
+             (setq flag (memq expression condition))))
          (when flag
            (dolist (name name-list)
              (catch 'break
@@ -532,11 +530,13 @@ The optional POS argument indicates current byte index of the field (used by
                  (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq result
-                   (vconcat result
-                            (xcb:-marshal-field obj slot-type
-                                                (slot-value obj name)
-                                                (+ pos (length result))))))))
+             (unless (eq slot-type 'xcb:-ignore)
+               (setq result
+                     (vconcat result
+                              (xcb:-marshal-field obj slot-type
+                                                  (slot-value obj name)
+                                                  (+ pos
+                                                     (length result)))))))))
        result))
     ((guard (child-of-class-p type 'xcb:-struct))
      (xcb:marshal value))
@@ -652,13 +652,13 @@ and the second the consumed length."
          (setq condition (car i))
          (setq name-list (cdr i))
          (setq flag nil)
+         (cl-assert (or (integerp condition) (listp condition)))
          (if (integerp condition)
              (setq flag (/= 0 (logand expression condition)))
            (if (eq 'logior (car condition))
                (setq flag (/= 0 (logand expression
                                         (apply #'logior (cdr condition)))))
-             (while (and (not flag) condition)
-               (setq flag (or flag (= expression (pop condition)))))))
+             (setq flag (memq expression condition))))
          (when flag
            (dolist (name name-list)
              (catch 'break
@@ -666,10 +666,12 @@ and the second the consumed length."
                  (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq tmp (xcb:-unmarshal-field obj slot-type data offset nil))
-             (setf (slot-value obj name) (car tmp))
-             (setq count (+ count (cadr tmp)))
-             (setq data (substring data (cadr tmp))))))
+             (unless (eq slot-type 'xcb:-ignore)
+               (setq tmp (xcb:-unmarshal-field obj slot-type data offset
+                                               (eieio-oref-default obj name)))
+               (setf (slot-value obj name) (car tmp))
+               (setq count (+ count (cadr tmp)))
+               (setq data (substring data (cadr tmp)))))))
        (list initform count)))
     ((and x (guard (child-of-class-p x 'xcb:-struct)))
      (let* ((struct-obj (make-instance x))

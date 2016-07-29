@@ -223,6 +223,7 @@ an `xelb-auto-padding' attribute."
         (let ((result (xelb-parse-top-level-element i)))
           (when result                  ;skip <doc>, comments, etc
             (dolist (j result)
+              (eval j)                 ;Make it immediately available.
               (pp j))
             (princ "\n"))))
       ;; Print error/event alists
@@ -540,10 +541,16 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                              (setq fields (nconc fields tmp))
                              (setq name-list
                                    (nconc name-list (list (caar tmp)))))))
-                        (when (eq case-name 'bitcase)
+                        (if (eq case-name 'case)
+                            (when (= 1 (length condition))
+                              ;; Flatten 1-element list.
+                              (setq condition (car condition)))
                           (setq condition (if (= 1 (length condition))
+                                              ;; Flatten 1-element list.
                                               (car condition)
-                                            `(logior ,@condition)))))
+                                            (if (cl-every #'integerp condition)
+                                                (apply #'logior condition)
+                                              `(logior ,@condition))))))
                       `(,condition ,@name-list)))
                   cases))
     `((,name :initform '(expression ,expression cases ,cases)
@@ -612,13 +619,13 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <enumref>."
   (let ((name (concat (xelb-node-attr node 'ref) ":"
                       (xelb-node-subnode node))))
-    (or (intern-soft (concat "xcb:" name))
-        (intern (concat xelb-prefix name)))))
+    (symbol-value (or (intern-soft (concat "xcb:" name))
+                      (intern (concat xelb-prefix name))))))
 
 (defun xelb-parse-unop (node)
   "Parse <unop>."
   (cl-assert (string= "~" (xelb-node-attr node 'op)))
-  `(lognot (xelb-parse-expression (xelb-node-subnode node))))
+  `(lognot ,(xelb-parse-expression (xelb-node-subnode node))))
 
 (defun xelb-parse-sumof (node)
   "Parse <sumof>."

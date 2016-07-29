@@ -176,9 +176,7 @@
 			    (+
 			     (xcb:-fieldref 'vendor-length)
 			     3)
-			    (lognot
-			     (xelb-parse-expression
-			      (xelb-node-subnode node))))
+			    (lognot 3))
 			   (xcb:-fieldref 'vendor-length)))
 		   :type xcb:-list)
    (pad~5 :initform 4 :type xcb:-pad-align)
@@ -413,9 +411,7 @@
 		 (+
 		  (xcb:-fieldref 'size)
 		  1)
-		 (lognot
-		  (xelb-parse-expression
-		   (xelb-node-subnode node)))))
+		 (lognot 1)))
 	 :type xcb:-list)
    (pad~2 :initform 4 :type xcb:-pad-align)
    (green :initarg :green :type xcb:-ignore)
@@ -425,9 +421,7 @@
 		   (+
 		    (xcb:-fieldref 'size)
 		    1)
-		   (lognot
-		    (xelb-parse-expression
-		     (xelb-node-subnode node)))))
+		   (lognot 1)))
 	   :type xcb:-list)
    (pad~3 :initform 4 :type xcb:-pad-align)
    (blue :initarg :blue :type xcb:-ignore)
@@ -437,9 +431,7 @@
 		  (+
 		   (xcb:-fieldref 'size)
 		   1)
-		  (lognot
-		   (xelb-parse-expression
-		    (xelb-node-subnode node)))))
+		  (lognot 1)))
 	  :type xcb:-list)))
 
 (defclass xcb:xf86vidmode:SetGammaRamp
@@ -454,9 +446,7 @@
 		 (+
 		  (xcb:-fieldref 'size)
 		  1)
-		 (lognot
-		  (xelb-parse-expression
-		   (xelb-node-subnode node)))))
+		 (lognot 1)))
 	 :type xcb:-list)
    (pad~0 :initform 4 :type xcb:-pad-align)
    (green :initarg :green :type xcb:-ignore)
@@ -466,9 +456,7 @@
 		   (+
 		    (xcb:-fieldref 'size)
 		    1)
-		   (lognot
-		    (xelb-parse-expression
-		     (xelb-node-subnode node)))))
+		   (lognot 1)))
 	   :type xcb:-list)
    (pad~1 :initform 4 :type xcb:-pad-align)
    (blue :initarg :blue :type xcb:-ignore)
@@ -478,9 +466,7 @@
 		  (+
 		   (xcb:-fieldref 'size)
 		   1)
-		  (lognot
-		   (xelb-parse-expression
-		    (xelb-node-subnode node)))))
+		  (lognot 1)))
 	  :type xcb:-list)))
 
 (defclass xcb:xf86vidmode:GetGammaRampSize
