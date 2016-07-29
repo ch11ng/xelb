@@ -91,6 +91,10 @@
   (unless (fboundp 'eieio-slot-descriptor-name)
     (defsubst eieio-slot-descriptor-name (slot) (aref slot 0))))
 
+(eval-and-compile
+  (unless (fboundp 'cl--slot-descriptor-initform)
+    (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))))
+
 (eval-when-compile
   (unless (fboundp 'cl--slot-descriptor-type)
     (defsubst cl--slot-descriptor-type (slot) (aref slot 2))))

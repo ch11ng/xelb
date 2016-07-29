@@ -41,7 +41,11 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'eieio)
 (require 'pp)
+
+;; Only used to eliminate compile warnings when distributed.
+(require 'xcb-types nil t)
 
 ;;;; Variables
 
@@ -186,7 +190,10 @@ an `xelb-auto-padding' attribute."
         result header)
     (with-temp-buffer
       (insert-file-contents file)
-      (setq result (libxml-parse-xml-region (point-min) (point-max) nil t))
+      (setq result (libxml-parse-xml-region (point-min) (point-max)))
+      (unless (eq 'xcb (xelb-node-name result))
+        ;; There's an extra comment.
+        (setq result (xelb-node-subnode result)))
       (cl-assert (eq 'xcb (xelb-node-name result)))
       (setq header (xelb-node-attr result 'header))
       (unless (string= header "xproto")
