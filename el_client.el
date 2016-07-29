@@ -41,9 +41,16 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'eieio)
 (require 'pp)
 
+;; Only used to eliminate compile warnings when distributed.
+(require 'xcb-types nil t)
+
 ;;;; Variables
+
+(defconst xelb-excluded-replies<25 '(xcb:xkb:GetKbdByName~reply)
+  "Excluded replies for Emacs < 25 (they're too long to load/compile).")
 
 (defvar xelb-prefix "xcb:" "Namespace of this module.")
 (make-variable-buffer-local 'xelb-prefix)
@@ -141,6 +148,36 @@ an `xelb-auto-padding' attribute."
                          (eq (xelb-node-name i) 'doc)))
           (throw 'break i))))))
 
+(defun xelb-node-size (node)
+  "Return the size of NODE in bytes."
+  (pcase (xelb-node-name node)
+    (`pad (xelb-node-attr node 'bytes))
+    (`field (xelb-type-size (xelb-node-type node)))
+    (`list (* (xelb-type-size (xelb-node-type node))
+              (xelb-parse-expression (xelb-node-subnode node))))
+    ((or `comment `doc) 0)
+    (x (error "Unexpected element: <%s>" x))))
+
+(defun xelb-type-size (type &optional slot)
+  "Return size of TYPE in bytes."
+  (pcase (indirect-variable type)
+    (`xcb:-ignore 0)
+    ((or `xcb:-u1 `xcb:-i1 `xcb:void) 1)
+    ((or `xcb:-u2 `xcb:-i2) 2)
+    ((or `xcb:-u4 `xcb:-i4) 4)
+    (`xcb:-u8 8)
+    (`xcb:-pad (cl--slot-descriptor-initform slot))
+    (`xcb:-list
+     (let ((initform (cadr (cl--slot-descriptor-initform slot))))
+       (* (plist-get initform 'size)
+          (xelb-type-size (plist-get initform 'type)))))
+    ((and x (guard (child-of-class-p x 'xcb:-struct)))
+     (apply #'+
+            (mapcar (lambda (slot)
+                      (xelb-type-size (cl--slot-descriptor-type slot) slot))
+                    (eieio-class-slots x))))
+    (x (error "Unknown size of type: %s" x))))
+
 (defsubst xelb-generate-pad-name ()
   "Generate a new slot name for <pad>."
   (make-symbol (format "pad~%d" (cl-incf xelb-pad-count))))
@@ -153,7 +190,10 @@ an `xelb-auto-padding' attribute."
         result header)
     (with-temp-buffer
       (insert-file-contents file)
-      (setq result (libxml-parse-xml-region (point-min) (point-max) nil t))
+      (setq result (libxml-parse-xml-region (point-min) (point-max)))
+      (unless (eq 'xcb (xelb-node-name result))
+        ;; There's an extra comment.
+        (setq result (xelb-node-subnode result)))
       (cl-assert (eq 'xcb (xelb-node-name result)))
       (setq header (xelb-node-attr result 'header))
       (unless (string= header "xproto")
@@ -220,6 +260,7 @@ an `xelb-auto-padding' attribute."
         (let ((result (xelb-parse-top-level-element i)))
           (when result                  ;skip <doc>, comments, etc
             (dolist (j result)
+              (eval j)                 ;Make it immediately available.
               (pp j))
             (princ "\n"))))
       ;; Print error/event alists
@@ -283,7 +324,10 @@ an `xelb-auto-padding' attribute."
   (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
         (contents (xelb-node-subnodes node)))
     `((defclass ,name (xcb:-union)
-        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
+        ,(apply #'nconc
+                `((~size :initform
+                         ,(apply #'max (mapcar #'xelb-node-size contents))))
+                (mapcar #'xelb-parse-structure-content contents))))))
 
 (defun xelb-parse-xidtype (node)
   "Parse <xidtype>."
@@ -362,10 +406,21 @@ The `combine-adjacent' attribute is simply ignored."
                `(cl-defmethod xcb:marshal ((obj ,name)) nil
                               ,@expressions
                               (cl-call-next-method obj)))
+            ,(when (memq reply-name xelb-excluded-replies<25)
+               ;; Redefine `defclass' as no-op.
+               '(eval-and-compile
+                  (when (< emacs-major-version 25)
+                    (fset 'xcb:-defclass (symbol-function 'defclass))
+                    (defmacro defclass (&rest _args)))))
             ;; The optional reply body
             ,(when reply-name
                (delq nil reply-contents)
-               `(defclass ,reply-name (xcb:-reply) ,reply-contents))))))
+               `(defclass ,reply-name (xcb:-reply) ,reply-contents))
+            ,(when (memq reply-name xelb-excluded-replies<25)
+               ;; Bring back the original defination of `defclass'.
+               '(eval-and-compile
+                  (when (< emacs-major-version 25)
+                    (fset 'defclass (symbol-function 'xcb:-defclass)))))))))
 
 (defun xelb-parse-event (node)
   "Parse <event>.
@@ -526,10 +581,16 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
                              (setq fields (nconc fields tmp))
                              (setq name-list
                                    (nconc name-list (list (caar tmp)))))))
-                        (when (eq case-name 'bitcase)
+                        (if (eq case-name 'case)
+                            (when (= 1 (length condition))
+                              ;; Flatten 1-element list.
+                              (setq condition (car condition)))
                           (setq condition (if (= 1 (length condition))
+                                              ;; Flatten 1-element list.
                                               (car condition)
-                                            `(logior ,@condition)))))
+                                            (if (cl-every #'integerp condition)
+                                                (apply #'logior condition)
+                                              `(logior ,@condition))))))
                       `(,condition ,@name-list)))
                   cases))
     `((,name :initform '(expression ,expression cases ,cases)
@@ -598,13 +659,13 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <enumref>."
   (let ((name (concat (xelb-node-attr node 'ref) ":"
                       (xelb-node-subnode node))))
-    (or (intern-soft (concat "xcb:" name))
-        (intern (concat xelb-prefix name)))))
+    (symbol-value (or (intern-soft (concat "xcb:" name))
+                      (intern (concat xelb-prefix name))))))
 
 (defun xelb-parse-unop (node)
   "Parse <unop>."
   (cl-assert (string= "~" (xelb-node-attr node 'op)))
-  `(lognot (xelb-parse-expression (xelb-node-subnode node))))
+  `(lognot ,(xelb-parse-expression (xelb-node-subnode node))))
 
 (defun xelb-parse-sumof (node)
   "Parse <sumof>."

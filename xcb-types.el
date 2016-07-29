@@ -91,6 +91,10 @@
   (unless (fboundp 'eieio-slot-descriptor-name)
     (defsubst eieio-slot-descriptor-name (slot) (aref slot 0))))
 
+(eval-and-compile
+  (unless (fboundp 'cl--slot-descriptor-initform)
+    (defsubst cl--slot-descriptor-initform (slot) (aref slot 1))))
+
 (eval-when-compile
   (unless (fboundp 'cl--slot-descriptor-type)
     (defsubst cl--slot-descriptor-type (slot) (aref slot 2))))
@@ -516,15 +520,13 @@ The optional POS argument indicates current byte index of the field (used by
          (setq condition (car i))
          (setq name-list (cdr i))
          (setq flag nil)
-         (if (symbolp condition)
-             (setq condition (symbol-value condition))
-           (when (and (listp condition) (eq 'logior (car condition)))
-             (setq condition (apply #'logior (cdr condition)))))
          (cl-assert (or (integerp condition) (listp condition)))
          (if (integerp condition)
              (setq flag (/= 0 (logand expression condition)))
-           (while (and (not flag) condition)
-             (setq flag (or flag (= expression (pop condition))))))
+           (if (eq 'logior (car condition))
+               (setq flag (/= 0 (logand expression
+                                        (apply #'logior (cdr condition)))))
+             (setq flag (memq expression condition))))
          (when flag
            (dolist (name name-list)
              (catch 'break
@@ -532,11 +534,13 @@ The optional POS argument indicates current byte index of the field (used by
                  (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq result
-                   (vconcat result
-                            (xcb:-marshal-field obj slot-type
-                                                (slot-value obj name)
-                                                (+ pos (length result))))))))
+             (unless (eq slot-type 'xcb:-ignore)
+               (setq result
+                     (vconcat result
+                              (xcb:-marshal-field obj slot-type
+                                                  (slot-value obj name)
+                                                  (+ pos
+                                                     (length result)))))))))
        result))
     ((guard (child-of-class-p type 'xcb:-struct))
      (xcb:marshal value))
@@ -652,13 +656,13 @@ and the second the consumed length."
          (setq condition (car i))
          (setq name-list (cdr i))
          (setq flag nil)
+         (cl-assert (or (integerp condition) (listp condition)))
          (if (integerp condition)
              (setq flag (/= 0 (logand expression condition)))
            (if (eq 'logior (car condition))
                (setq flag (/= 0 (logand expression
                                         (apply #'logior (cdr condition)))))
-             (while (and (not flag) condition)
-               (setq flag (or flag (= expression (pop condition)))))))
+             (setq flag (memq expression condition))))
          (when flag
            (dolist (name name-list)
              (catch 'break
@@ -666,10 +670,12 @@ and the second the consumed length."
                  (when (eq name (eieio-slot-descriptor-name slot))
                    (setq slot-type (cl--slot-descriptor-type slot))
                    (throw 'break nil))))
-             (setq tmp (xcb:-unmarshal-field obj slot-type data offset nil))
-             (setf (slot-value obj name) (car tmp))
-             (setq count (+ count (cadr tmp)))
-             (setq data (substring data (cadr tmp))))))
+             (unless (eq slot-type 'xcb:-ignore)
+               (setq tmp (xcb:-unmarshal-field obj slot-type data offset
+                                               (eieio-oref-default obj name)))
+               (setf (slot-value obj name) (car tmp))
+               (setq count (+ count (cadr tmp)))
+               (setq data (substring data (cadr tmp)))))))
        (list initform count)))
     ((and x (guard (child-of-class-p x 'xcb:-struct)))
      (let* ((struct-obj (make-instance x))
@@ -741,7 +747,7 @@ Note that this method auto pads the result to 32 bytes, as is always the case."
   (cl-call-next-method obj (substring byte-array 4))) ;skip the first 4 bytes
 
 (defclass xcb:-union (xcb:-struct)
-  nil
+  ((~size :initarg :~size :type xcb:-ignore)) ;Size of the largest member.
   :documentation "Union type.")
 ;;
 (cl-defmethod xcb:marshal ((obj xcb:-union))
@@ -749,8 +755,9 @@ Note that this method auto pads the result to 32 bytes, as is always the case."
 
 This result is converted from the first bounded slot."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        result slot type name)
-    (while (and (not result) slots)
+        (size (slot-value obj '~size))
+        result slot type name tmp)
+    (while (and (not result) slots (> size (length result)))
       (setq slot (pop slots))
       (setq type (cl--slot-descriptor-type slot)
             name (eieio-slot-descriptor-name slot))
@@ -760,9 +767,12 @@ This result is converted from the first bounded slot."
                   (and (eq type 'xcb:-list)
                        (not (slot-boundp obj (plist-get (slot-value obj name)
                                                         'name)))))
-        (setq result (xcb:-marshal-field obj
-                                         (cl--slot-descriptor-type slot)
-                                         (slot-value obj name)))))
+        (setq tmp (xcb:-marshal-field obj (cl--slot-descriptor-type slot)
+                                      (slot-value obj name)))
+        (when (> (length tmp) (length result))
+          (setq result tmp))))
+    (when (> size (length result))
+      (setq result (vconcat result (make-vector (- size (length result)) 0))))
     result))
 ;;
 (cl-defmethod xcb:unmarshal ((obj xcb:-union) byte-array &optional ctx)
@@ -770,7 +780,7 @@ This result is converted from the first bounded slot."
 
 The optional argument CTX is for <paramref>."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        slot-name consumed tmp type)
+        slot-name tmp type)
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (eq type 'xcb:-ignore)
@@ -779,9 +789,8 @@ The optional argument CTX is for <paramref>."
                                         (when (slot-boundp obj slot-name)
                                           (eieio-oref-default obj slot-name))
                                         ctx))
-        (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))
-        (setq consumed (cadr tmp))))
-    consumed))                          ;consume byte-array only once
+        (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))))
+    (slot-value obj '~size)))
 
 
 

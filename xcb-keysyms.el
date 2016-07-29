@@ -32,10 +32,6 @@
 ;;   thus shall be used in preference to 'xcb:ModMask:*' or
 ;;   'xcb:KeyButMask:Mod*'.
 
-;; Todo:
-;; + Is xcb:ModMask:Control/xcb:ModMask:Shift always equivalent to
-;;   control/shift in Emacs?
-
 ;; References:
 ;; + X protocol (http://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.txt)
 ;; + xcb/util-keysyms (git://anongit.freedesktop.org/xcb/util-keysyms)
@@ -43,187 +39,386 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+
 (require 'xcb)
+(require 'xcb-xkb)
 
-(defvar xcb:keysyms:auto-update t "Auto update keyboard mapping.")
-
-(defvar xcb:keysyms:meta-mask nil "META key mask.")
-(defvar xcb:keysyms:control-mask xcb:ModMask:Control "CONTROL key mask.")
-(defvar xcb:keysyms:shift-mask xcb:ModMask:Shift "SHIFT key mask.")
-(defvar xcb:keysyms:hyper-mask nil "HYPER key mask.")
-(defvar xcb:keysyms:super-mask nil "SUPER key mask.")
-(defvar xcb:keysyms:alt-mask nil "ALT key mask.")
-(defvar xcb:keysyms:lock-mask xcb:ModMask:Lock "LOCK key mask.")
-(defvar xcb:keysyms:num-lock-mask nil "NUM LOCK key mask.")
-(defvar xcb:keysyms:mode-switch-mask nil "MODE SWITCH key mask.")
+;; These variables are shared by all connections.
+(defvar xcb:keysyms:meta-mask 0 "META key mask.")
+(defvar xcb:keysyms:control-mask 0 "CONTROL key mask.")
+(defvar xcb:keysyms:shift-mask 0 "SHIFT key mask.")
+(defvar xcb:keysyms:hyper-mask 0 "HYPER key mask.")
+(defvar xcb:keysyms:super-mask 0 "SUPER key mask.")
+(defvar xcb:keysyms:alt-mask 0 "ALT key mask.")
+(defvar xcb:keysyms:lock-mask 0 "LOCK key mask.")
+;; Internal state / local data.
+(defvar xcb:keysyms:-opcode nil)
+(defvar xcb:keysyms:-device nil)
+(defvar xcb:keysyms:-keytypes nil)
+(defvar xcb:keysyms:-keycodes nil)
+(defvar xcb:keysyms:-modkeys nil)
+(defvar xcb:keysyms:-min-keycode nil)
+(defvar xcb:keysyms:-max-keycode nil)
 
 (cl-defmethod xcb:keysyms:init ((obj xcb:connection))
   "Initialize keysyms module.
 
 This method must be called before using any other method in this module."
-  (with-slots (min-keycode max-keycode) (xcb:get-setup obj)
-    (xcb:keysyms:update-keyboard-mapping obj
-                                         min-keycode
-                                         (1+ (- max-keycode min-keycode)))
-    (unless xcb:keysyms:meta-mask     ;avoid duplicated initialization
-      (xcb:keysyms:update-modifier-mapping obj)
-      ;; Update on MappingNotify event.
-      (when xcb:keysyms:auto-update
-        (xcb:+event obj 'xcb:MappingNotify
-                    `(lambda (data _)
-                       (let ((obj1 (make-instance 'xcb:MappingNotify)))
-                         (xcb:unmarshal obj1 data)
-                         (with-slots (request first-keycode count) obj1
-                           (cond
-                            ((= request xcb:Mapping:Modifier)
-                             ;; Modifier keys changed
-                             (xcb:keysyms:update-modifier-mapping ,obj))
-                            ((= request xcb:Mapping:Keyboard)
-                             ;; Update changed keys
-                             (xcb:keysyms:update-keyboard-mapping
-                              ,obj first-keycode count)))))))))))
+  (cond
+   ;; Avoid duplicated initializations.
+   (xcb:keysyms:-opcode)
+   ((= 0 (slot-value (xcb:get-extension-data obj 'xcb:xkb)
+                     'present))
+    (error "[XCB] XKB extension is not supported by the server"))
+   ((not (slot-value (xcb:+request-unchecked+reply obj
+                         (make-instance 'xcb:xkb:UseExtension
+                                        :wantedMajor 1
+                                        :wantedMinor 0))
+                     'supported))
+    (error "[XCB] XKB extension version 1.0 is not supported by the server"))
+   (t
+    ;; Save the major opcode of XKB.
+    (setq xcb:keysyms:-opcode
+          (slot-value (xcb:get-extension-data obj 'xcb:xkb) 'major-opcode))
+    ;; Set per-client flags.
+    (xcb:keysyms:-set-per-client-flags obj xcb:xkb:ID:UseCoreKbd)
+    ;; Update data.
+    (xcb:keysyms:-update-keytypes obj xcb:xkb:ID:UseCoreKbd)
+    (xcb:keysyms:-update-keycodes obj xcb:xkb:ID:UseCoreKbd)
+    (xcb:keysyms:-update-modkeys obj xcb:xkb:ID:UseCoreKbd)
+    ;; Attach event listeners.
+    (xcb:+event obj 'xcb:xkb:NewKeyboardNotify
+                `(lambda (data _)
+                   (xcb:keysyms:-on-NewKeyboardNotify ,obj data)))
+    (xcb:+event obj 'xcb:xkb:MapNotify
+                `(lambda (data _)
+                   (xcb:keysyms:-on-MapNotify ,obj data)))
+    ;; Select XKB MapNotify and NewKeyboardNotify events.
+    (let ((map (logior xcb:xkb:MapPart:KeyTypes
+                       xcb:xkb:MapPart:KeySyms
+                       xcb:xkb:MapPart:ModifierMap))
+          (new-keyboard (logior xcb:xkb:NKNDetail:DeviceID
+                                xcb:xkb:NKNDetail:Keycodes)))
+      (xcb:+request obj
+          (make-instance 'xcb:xkb:SelectEvents
+                         :deviceSpec xcb:xkb:ID:UseCoreKbd
+                         :affectWhich (logior
+                                       xcb:xkb:EventType:NewKeyboardNotify
+                                       xcb:xkb:EventType:MapNotify)
+                         :clear 0
+                         :selectAll 0
+                         :affectMap map
+                         :map map
+                         :affectNewKeyboard new-keyboard
+                         :newKeyboardDetails new-keyboard)))
+    (xcb:flush obj))))
 
-(cl-defmethod xcb:keysyms:update-keyboard-mapping ((obj xcb:connection)
-                                                   first-keycode count)
-  "Update keyboard mapping (from FIRST-KEYCODE to FIRST-KEYCODE + COUNT - 1)."
-  (let* ((reply (xcb:+request-unchecked+reply obj
-                    (make-instance 'xcb:GetKeyboardMapping
-                                   :first-keycode first-keycode :count count)))
-         (keysyms-per-keycode (slot-value reply 'keysyms-per-keycode))
-         (keysyms (slot-value reply 'keysyms))
-         (result (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         keycode index row-index keysym)
-    (dotimes (i count)
-      (setq keycode (+ i first-keycode)
-            index (* i keysyms-per-keycode)
-            row-index 0)
-      (setq keysym (nth (+ index row-index) keysyms))
-      (setq result (assq-delete-all keycode result))
-      (while (and (/= keysym 0) (< row-index keysyms-per-keycode))
-        (setq result (append result `((,keycode . ,keysym)))
-              row-index (1+ row-index)
-              keysym (nth (+ index row-index) keysyms))))
-    (setf (slot-value obj 'extra-plist)
-          (plist-put (slot-value obj 'extra-plist) 'keysyms result))))
+(cl-defmethod xcb:keysyms:-set-per-client-flags ((obj xcb:connection) device)
+  "Set per-client flags."
+  (let ((per-client-flags (logior
+                           ;; Instead of compatibility state.
+                           xcb:xkb:PerClientFlag:GrabsUseXKBState
+                           ;; Instead of grab state.
+                           xcb:xkb:PerClientFlag:LookupStateWhenGrabbed
+                           ;; Use XKB state in 'SendEvent'.
+                           xcb:xkb:PerClientFlag:SendEventUsesXKBState)))
+    ;; The reply is not used.
+    (xcb:+request-unchecked+reply obj
+        (make-instance 'xcb:xkb:PerClientFlags
+                       :deviceSpec device
+                       :change per-client-flags
+                       :value per-client-flags
+                       :ctrlsToChange 0
+                       :autoCtrls 0
+                       :autoCtrlsValues 0))))
 
-;; Reference: 'x_find_modifier_meanings' in 'xterm.c'.
-(cl-defmethod xcb:keysyms:update-modifier-mapping ((obj xcb:connection))
-  "Differentiate xcb:ModMask:1 ~ xcb:ModMask:5."
-  (let* ((reply (xcb:+request-unchecked+reply obj
-                    (make-instance 'xcb:GetModifierMapping)))
-         (keycodes-per-modifier (slot-value reply 'keycodes-per-modifier))
-         (keycodes (slot-value reply 'keycodes))
-         (mod-masks (vector xcb:ModMask:1 xcb:ModMask:2 xcb:ModMask:3
-                            xcb:ModMask:4 xcb:ModMask:5))
-         keycode keysym found-alt-or-meta)
-    (setq xcb:keysyms:meta-mask nil
-          xcb:keysyms:hyper-mask nil
-          xcb:keysyms:super-mask nil
-          xcb:keysyms:alt-mask nil
-          xcb:keysyms:num-lock-mask nil
-          xcb:keysyms:mode-switch-mask nil)
-    (cl-assert (= (length keycodes) (* 8 keycodes-per-modifier)))
-    ;; Scan Mod1 ~ Mod5
-    (setq keycodes (nthcdr (* 3 keycodes-per-modifier) keycodes))
-    (dotimes (i 5)
-      (setq found-alt-or-meta nil)
-      (catch 'break
-        (dotimes (j keycodes-per-modifier)
-          (when (and (/= (setq keycode (pop keycodes)) 0)
-                     (setq keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
-            (pcase (xcb:keysyms:keysym->event obj keysym nil t)
-              ((or `lmeta* `rmeta*)
-               (setq found-alt-or-meta t
-                     xcb:keysyms:meta-mask (logior (or xcb:keysyms:meta-mask 0)
-                                                   (aref mod-masks i))))
-              ((or `lhyper* `rhyper*)
-               (unless found-alt-or-meta
-                 (setq xcb:keysyms:hyper-mask
-                       (logior (or xcb:keysyms:hyper-mask 0)
-                               (aref mod-masks i))))
-               (setq keycodes (nthcdr (- keycodes-per-modifier j 1) keycodes))
-               (throw 'break nil))
-              ((or `lsuper* `rsuper*)
-               (unless found-alt-or-meta
-                 (setq xcb:keysyms:super-mask
-                       (logior (or xcb:keysyms:super-mask 0)
-                               (aref mod-masks i))))
-               (setq keycodes (nthcdr (- keycodes-per-modifier j 1) keycodes))
-               (throw 'break nil))
-              ((or `lalt* `ralt*)
-               (setq found-alt-or-meta t
-                     xcb:keysyms:alt-mask (logior (or xcb:keysyms:alt-mask 0)
-                                                  (aref mod-masks i))))
-              (`kp-numlock
-               (setq xcb:keysyms:num-lock-mask (aref mod-masks i)))
-              (`mode-switch*
-               (setq xcb:keysyms:mode-switch-mask (aref mod-masks i)))
-              (`shift-lock*
-               (setq keycodes (nthcdr (- keycodes-per-modifier j) keycodes))
-               (throw 'break nil)))))))
-    ;; Meta fallbacks to Alt
-    (unless xcb:keysyms:meta-mask
-      (setq xcb:keysyms:meta-mask xcb:keysyms:alt-mask
-            xcb:keysyms:alt-mask nil))
-    ;; A key cannot be both Meta and Alt
-    (when (and xcb:keysyms:meta-mask xcb:keysyms:alt-mask
-               (logand xcb:keysyms:meta-mask xcb:keysyms:alt-mask))
-      (setq xcb:keysyms:alt-mask (logand xcb:keysyms:alt-mask
-                                         (lognot xcb:keysyms:meta-mask))))))
+(cl-defmethod xcb:keysyms:-on-NewKeyboardNotify ((obj xcb:connection) data)
+  "Handle 'NewKeyboardNotify' event."
+  (let ((obj1 (make-instance 'xcb:xkb:NewKeyboardNotify)))
+    (xcb:unmarshal obj1 data)
+    (with-slots (deviceID requestMajor requestMinor changed) obj1
+      (if (= 0 (logand changed xcb:xkb:NKNDetail:DeviceID))
+          ;; Device is not changed; ensure it's a keycode change from
+          ;; this device.
+          (when (and (/= 0 (logand changed xcb:xkb:NKNDetail:Keycodes))
+                     (= deviceID xcb:keysyms:-device)
+                     ;; Also, according to the specification this can
+                     ;; only happen when a GetKbdByName request issued.
+                     ;; The two checks below avoid false positive caused
+                     ;; by requests such as SetMap (e.g. XCape).
+                     (= requestMajor xcb:keysyms:-opcode)
+                     (= requestMinor
+                        (eieio-oref-default 'xcb:xkb:GetKbdByName '~opcode)))
+            ;; (xcb:keysyms:-update-keytypes obj deviceID)
+            (xcb:keysyms:-update-keycodes obj deviceID)
+            (xcb:keysyms:-update-modkeys obj deviceID))
+        ;; Device changed; update the per-client flags and local data.
+        (xcb:keysyms:-set-per-client-flags obj deviceID)
+        (xcb:keysyms:-update-keytypes obj deviceID)
+        (xcb:keysyms:-update-keycodes obj deviceID)
+        (xcb:keysyms:-update-modkeys obj deviceID)))))
 
-(cl-defmethod xcb:keysyms:keycode->keysym ((obj xcb:connection)
-                                           keycode modifiers)
-  "Get the keysym from KeyPress event
+(cl-defmethod xcb:keysyms:-on-MapNotify ((obj xcb:connection) data)
+  "Handle 'MapNotify' event."
+  (let ((obj1 (make-instance 'xcb:xkb:MapNotify)))
+    (xcb:unmarshal obj1 data)
+    (with-slots (deviceID changed firstType nTypes firstKeySym nKeySyms) obj1
+      ;; Ensure this event is for the current device.
+      (when (= deviceID xcb:keysyms:-device)
+        (when (/= 0 (logand changed xcb:xkb:MapPart:KeyTypes))
+          (xcb:keysyms:-update-keytypes obj deviceID firstType nTypes))
+        (when (/= 0 (logand changed xcb:xkb:MapPart:KeySyms))
+          (xcb:keysyms:-update-keycodes obj deviceID firstKeySym nKeySyms))
+        (when (/= 0 (logand changed xcb:xkb:MapPart:ModifierMap))
+          (xcb:keysyms:-update-modkeys obj deviceID))))))
 
-SHIFT LOCK is ignored."
-  (let* ((keysyms (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (group (delq nil (mapcar (lambda (i)
-                                    (when (= keycode (car i)) (cdr i)))
-                                  keysyms)))
-         (mode-switch-on (and xcb:keysyms:mode-switch-mask ;not initialized
-                              (/= 0 (logand modifiers
-                                            xcb:keysyms:mode-switch-mask))))
-         (mask (logior (if (= 0 (logand modifiers xcb:keysyms:shift-mask)) 0 1)
-                       (if (= 0 (logand modifiers xcb:keysyms:lock-mask))
-                           0 2))))
-    (pcase (length group)
-      (1 (setq group (vector (elt group 0) nil)))
-      (2 (setq group (vector (elt group 0) (elt group 1))))
-      (3 (setq group (if mode-switch-on
-                         (vector (elt group 2) nil)
-                       (vector (elt group 0) (elt group 1)))))
-      (_ (setq group (if mode-switch-on
-                         (vector (elt group 2) (elt group 3))
-                       (vector (elt group 0) (elt group 1))))))
-    (unless (aref group 0)
-      (setq group (vector 0 (aref group 1))))
-    (unless (aref group 1)
-      (setq group (aref group 0)
-            group (if (<= #x20 group #xff)
-                      ;; Only do case conversions for Latin-1 characters
-                      (vector (downcase group) (upcase group))
-                    (vector group group))))
-    (if (and xcb:keysyms:num-lock-mask  ;not initialized
-             (/= 0 (logand modifiers xcb:keysyms:num-lock-mask))
-             (<= #xff80 (aref group 1) #xffbe)) ;keypad
-        (if (= mask 1) (aref group 0) (aref group 1))
-      (pcase mask
-        (0 (aref group 0))              ;SHIFT off, CAPS LOCK off
-        (1 (aref group 1))              ;SHIFT on, CAPS LOCK off
-        (2                              ;SHIFT off, CAPS LOCK on
-         (if (<= #x20 (aref group 0) #xff)
-             (upcase (aref group 0)) (aref group 0)))
-        (3                              ;SHIFT on, CAPS LOCK on
-         (if (<= #x20 (aref group 1) #xff)
-             (upcase (aref group 1)) (aref group 1)))))))
+(cl-defmethod xcb:keysyms:-update-keytypes ((obj xcb:connection) device
+                                            &optional first-keytype count)
+  "Update key types.
 
-(cl-defmethod xcb:keysyms:keysym->keycode ((obj xcb:connection) keysym)
-  "Convert X keysym to (first match) keycode"
-  (car (rassoc keysym (plist-get (slot-value obj 'extra-plist) 'keysyms))))
+FIRST-KEYTYPE and count specify the range of key types to update."
+  (let (full partial)
+    (if (and first-keytype count)
+        (setq full 0
+              partial xcb:xkb:MapPart:KeyTypes)
+      (setq full xcb:xkb:MapPart:KeyTypes
+            partial 0
+            first-keytype 0
+            count 0))
+    (with-slots (deviceID present firstType nTypes totalTypes types-rtrn)
+        (xcb:+request-unchecked+reply obj
+            (make-instance 'xcb:xkb:GetMap
+                           :deviceSpec device
+                           :full full
+                           :partial partial
+                           :firstType first-keytype
+                           :nTypes count
+                           :firstKeySym 0
+                           :nKeySyms 0
+                           :firstKeyAction 0
+                           :nKeyActions 0
+                           :firstKeyBehavior 0
+                           :nKeyBehaviors 0
+                           :virtualMods 0
+                           :firstKeyExplicit 0
+                           :nKeyExplicit 0
+                           :firstModMapKey 0
+                           :nModMapKeys 0
+                           :firstVModMapKey 0
+                           :nVModMapKeys 0))
+      (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeyTypes)))
+      (when (/= 0 full)
+        (setq xcb:keysyms:-device deviceID
+              xcb:keysyms:-keytypes (make-vector totalTypes nil)))
+      (setq xcb:keysyms:-keytypes
+            (vconcat (substring xcb:keysyms:-keytypes 0 firstType)
+                     types-rtrn
+                     (substring xcb:keysyms:-keytypes (min (+ firstType nTypes)
+                                                           totalTypes)))))))
+
+(cl-defmethod xcb:keysyms:-update-keycodes ((obj xcb:connection) device
+                                            &optional first-keycode count)
+  "Update keycode-keysym mapping.
+
+FIRST-KEYCODE and COUNT specify the keycode range to update."
+  (let (full partial)
+    (if (and first-keycode count)
+        (setq full 0
+              partial xcb:xkb:MapPart:KeySyms)
+      (setq full xcb:xkb:MapPart:KeySyms
+            partial 0
+            first-keycode 0
+            count 0))
+    (with-slots (deviceID minKeyCode maxKeyCode present
+                          firstKeySym nKeySyms syms-rtrn)
+        (xcb:+request-unchecked+reply obj
+            (make-instance 'xcb:xkb:GetMap
+                           :deviceSpec device
+                           :full full
+                           :partial partial
+                           :firstType 0
+                           :nTypes 0
+                           :firstKeySym first-keycode
+                           :nKeySyms count
+                           :firstKeyAction 0
+                           :nKeyActions 0
+                           :firstKeyBehavior 0
+                           :nKeyBehaviors 0
+                           :virtualMods 0
+                           :firstKeyExplicit 0
+                           :nKeyExplicit 0
+                           :firstModMapKey 0
+                           :nModMapKeys 0
+                           :firstVModMapKey 0
+                           :nVModMapKeys 0))
+      (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeySyms)))
+      (when (or (/= 0 full)
+                ;; Unlikely?
+                (/= xcb:keysyms:-min-keycode minKeyCode)
+                (/= xcb:keysyms:-max-keycode maxKeyCode))
+        (setq xcb:keysyms:-min-keycode minKeyCode
+              xcb:keysyms:-max-keycode maxKeyCode
+              xcb:keysyms:-keycodes (make-vector (- xcb:keysyms:-max-keycode
+                                                    xcb:keysyms:-min-keycode
+                                                    -1)
+                                                 nil)))
+      (setq xcb:keysyms:-keycodes
+            (vconcat
+             (substring xcb:keysyms:-keycodes 0 (- firstKeySym
+                                                   xcb:keysyms:-min-keycode))
+             syms-rtrn
+             (substring xcb:keysyms:-keycodes
+                        (- (min (+ firstKeySym nKeySyms)
+                                xcb:keysyms:-max-keycode)
+                           xcb:keysyms:-min-keycode)))))))
+
+(cl-defmethod xcb:keysyms:-update-modkeys ((obj xcb:connection) device)
+  "Update modifier keys."
+  (with-slots (deviceID present modmap-rtrn)
+      (xcb:+request-unchecked+reply obj
+          (make-instance 'xcb:xkb:GetMap
+                         :deviceSpec device
+                         :full xcb:xkb:MapPart:ModifierMap
+                         :partial 0
+                         :firstType 0
+                         :nTypes 0
+                         :firstKeySym 0
+                         :nKeySyms 0
+                         :firstKeyAction 0
+                         :nKeyActions 0
+                         :firstKeyBehavior 0
+                         :nKeyBehaviors 0
+                         :virtualMods 0
+                         :firstKeyExplicit 0
+                         :nKeyExplicit 0
+                         :firstModMapKey 0
+                         :nModMapKeys 0
+                         :firstVModMapKey 0
+                         :nVModMapKeys 0))
+    (cl-assert (/= 0 (logand present xcb:xkb:MapPart:ModifierMap)))
+    (setq xcb:keysyms:-modkeys modmap-rtrn))
+  (setq xcb:keysyms:meta-mask 0
+        xcb:keysyms:control-mask xcb:ModMask:Control
+        xcb:keysyms:shift-mask xcb:ModMask:Shift
+        xcb:keysyms:hyper-mask 0
+        xcb:keysyms:super-mask 0
+        xcb:keysyms:alt-mask 0
+        xcb:keysyms:lock-mask xcb:ModMask:Lock)
+  ;; Reference: 'x_find_modifier_meanings' in 'xterm.c'.
+  (dolist (modkey xcb:keysyms:-modkeys)
+    (with-slots (keycode mods) modkey
+      (let ((keysym (xcb:keysyms:keycode->keysym obj keycode 0)))
+        (when (/= 0 (car keysym))
+          (pcase (xcb:keysyms:keysym->event obj (car keysym) nil t)
+            ((or `lmeta* `rmeta*)
+             (setq xcb:keysyms:meta-mask (logior xcb:keysyms:meta-mask mods)))
+            ((or `lcontrol* `rcontrol*)
+             (setq xcb:keysyms:control-mask (logior xcb:keysyms:control-mask
+                                                    mods)))
+            ((or `lshift* `rshift*)
+             (setq xcb:keysyms:shift-mask (logior xcb:keysyms:shift-mask
+                                                  mods)))
+            ((or `lhyper* `rhyper*)
+             (setq xcb:keysyms:hyper-mask (logior xcb:keysyms:hyper-mask
+                                                  mods)))
+            ((or `lsuper* `rsuper*)
+             (setq xcb:keysyms:super-mask (logior xcb:keysyms:super-mask
+                                                  mods)))
+            ((or `caps-lock `shift-lock*)
+             (setq xcb:keysyms:lock-mask (logior xcb:keysyms:lock-mask mods)))
+            ((or `lalt* `ralt*)
+             (setq xcb:keysyms:alt-mask (logior xcb:keysyms:alt-mask
+                                                mods))))))))
+  ;; Meta fallbacks to Alt.
+  (unless (/= 0 xcb:keysyms:meta-mask)
+    (setq xcb:keysyms:meta-mask xcb:keysyms:alt-mask
+          xcb:keysyms:alt-mask 0))
+  ;; A key cannot be both Meta and Alt.
+  (when (and (/= 0 xcb:keysyms:meta-mask)
+             (/= 0 xcb:keysyms:alt-mask)
+             (/= 0 (logand xcb:keysyms:meta-mask xcb:keysyms:alt-mask)))
+    (setq xcb:keysyms:alt-mask (logand xcb:keysyms:alt-mask
+                                       (lognot xcb:keysyms:meta-mask)))))
+
+(cl-defmethod xcb:keysyms:keycode->keysym ((_obj xcb:connection) keycode
+                                           modifiers)
+  "Convert keycode to (keysym . mod-mask).
+
+Return (0 . 0) when conversion fails."
+  (let ((preserve 0)
+        group group-info group-number index keytype)
+    ;; Reference: `XkbTranslateKeyCode' in 'XKBBind.c'.
+    (catch 'return
+      ;; Check keycode range.
+      (unless (<= xcb:keysyms:-min-keycode keycode xcb:keysyms:-max-keycode)
+        (throw 'return '(0 . 0)))
+      ;; Retrieve KeySymMap and group info.
+      (setq keycode (aref xcb:keysyms:-keycodes
+                          (- keycode xcb:keysyms:-min-keycode))
+            group-info (slot-value keycode 'groupInfo)
+            group-number (logand group-info #xF)) ; See <XKBstr.h>.
+      ;; Check group number.
+      (when (= group-number 0)
+        (throw 'return '(0 . 0)))
+      (setq group (logand (lsh modifiers -13) #b11)) ;The 13, 14 bits.
+      ;; Wrap group.
+      (when (>= group group-number)
+        (pcase (logand group-info #xC0) ;See <XKBstr.h>.
+          (`xcb:xkb:GroupsWrap:RedirectIntoRange
+           (setq group (logand #xFF (lsh group-info -4))) ;See <XKBstr.h>.
+           ;; Check if i's also out of range.
+           (when (>= group group-number)
+             (setq group 0)))
+          (`xcb:xkb:GroupsWrap:ClampIntoRange
+           (setq group (1- group-number)))
+          (_
+           (setq group (% group group-number)))))
+      ;; Calculate the index of keysym.
+      (setq index (* group (slot-value keycode 'width)))
+      ;; Get key type.
+      (setq keytype (aref xcb:keysyms:-keytypes
+                          (elt (slot-value keycode 'kt-index) group)))
+      ;; Find the shift level and preserved modifiers.
+      (with-slots (mods-mask hasPreserve map (preserve* preserve)) keytype
+        (catch 'break
+          (dolist (entry map)
+            (with-slots (active (mods-mask* mods-mask) level) entry
+              (when (and (= 1 active)
+                         (= (logand modifiers mods-mask) mods-mask*))
+                (cl-incf index level)
+                (when (= 1 hasPreserve)
+                  (setq preserve (slot-value (elt preserve*
+                                                  (cl-position entry map))
+                                             'mask)))
+                (throw 'break nil)))))
+        ;; FIXME: Use of preserved modifiers (e.g. capitalize the keysym
+        ;;        when LOCK is preserved)?
+        (cons (elt (slot-value keycode 'syms) index)
+              (logand mods-mask (lognot preserve)))))))
+
+(cl-defmethod xcb:keysyms:keysym->keycode ((_obj xcb:connection) keysym)
+  "Convert keysym to (the first matching) keycode.
+
+Return 0 if conversion fails."
+  (let ((index 0)
+        (continue t))
+    ;; Traverse all keycodes, column by column.
+    ;; Reference: `XKeysymToKeycode' in 'XKBBind.c'.
+    (catch 'break
+      (when (= 0 keysym)
+        (throw 'break 0))
+      (while continue
+        (setq continue nil)
+        (dotimes (i (- xcb:keysyms:-max-keycode xcb:keysyms:-min-keycode -1))
+          (with-slots (nSyms syms) (aref xcb:keysyms:-keycodes i)
+            (when (< index nSyms)
+              (setq continue t)
+              (when (= keysym (elt syms index))
+                (throw 'break (+ i xcb:keysyms:-min-keycode))))))
+        (cl-incf index))
+      0)))
 
 ;; This list is largely base on 'lispy_function_keys' in 'keyboard.c'.
-;; Emacs has a built-in variable `x-keysym-table' providing Latin-1 and legacy
-;; keysyms, which seems not very useful here.
 (defconst xcb:keysyms:-function-keys
   `[                                    ;#xff00 - #xff0f
     ,@(make-list 8 nil) backspace tab linefeed clear nil return nil nil
@@ -347,9 +542,9 @@ SHIFT LOCK is ignored."
   "Emacs event representations of XF86keysym (#x1008ff00 - #x1008ffff)")
 
 (cl-defmethod xcb:keysyms:event->keysym ((obj xcb:connection) event)
-  "Translate Emacs key event EVENT to X Keysym.
+  "Translate Emacs key event EVENT to (keysym . mod-mask).
 
-This function returns nil when it fails to convert an event."
+Return (0 . 0) when conversion fails."
   (let ((modifiers (event-modifiers event))
         (event (event-basic-type event))
         keysym)
@@ -361,30 +556,48 @@ This function returns nil when it fails to convert an event."
                 (`mouse-3 xcb:ButtonIndex:3)
                 (`mouse-4 xcb:ButtonIndex:4)
                 (`mouse-5 xcb:ButtonIndex:5)
-                (_ (if (setq keysym (cl-position event
-                                                 xcb:keysyms:-function-keys))
-                       ;; Function keys
-                       (logior keysym #xff00)
-                     (if (setq keysym (cl-position event
-                                                   xcb:keysyms:-xf86-keys))
-                         ;; XF86 keys
-                         (logior keysym #x1008ff00)
-                       (if (setq keysym
-                                 (cl-position event
-                                              xcb:keysyms:-iso-function-keys))
-                           ;; ISO function keys
-                           (logior keysym #xfe00)))))))
-      (if (<= #x20 event #xff)          ;Latin-1
-          (setq keysym event)
-        (when (<= #x100 event #x10ffff) ;Unicode
-          (setq keysym (+ #x1000000 event)))))
-    (when keysym
+                (_
+                 (cond
+                  ((setq keysym (cl-position event
+                                             xcb:keysyms:-function-keys))
+                   ;; Function keys.
+                   (logior keysym #xff00))
+                  ((setq keysym (cl-position event xcb:keysyms:-xf86-keys))
+                   ;; XF86 keys.
+                   (logior keysym #x1008ff00))
+                  ((setq keysym (cl-position event
+                                             xcb:keysyms:-iso-function-keys))
+                   ;; ISO function keys.
+                   (logior keysym #xfe00))
+                  (t
+                   ;; Finally try system-specific keysyms.
+                   (car (rassq event system-key-alist)))))))
+      (setq keysym
+            (cond
+             ((<= #x20 event #xff)
+              ;; Latin-1.
+              event)
+             ((<= #x100 event #x10ffff)
+              ;; Unicode.
+              (+ #x1000000 event))
+             (t (or
+                 ;; Try system-specific keysyms.
+                 (car (rassq event system-key-alist))
+                 ;; Try legacy keysyms.
+                 (catch 'break
+                   (maphash (lambda (key val)
+                              (when (= event val)
+                                (throw 'break key)))
+                            x-keysym-table)))))))
+    (if (not keysym)
+        '(0 . 0)
       (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
-            (keysyms (plist-get (slot-value obj 'extra-plist) 'keysyms)))
-        (unless (or (not keycode)
-                    (equal keysym (cdr (assoc keycode keysyms))))
-          ;; Shift key is required to input the KEYSYM
-          (cl-pushnew 'shift modifiers)))
+            keysym*)
+        (when (/= 0 keycode)
+          (setq keysym* (xcb:keysyms:keycode->keysym obj keycode 0))
+          (unless (= keysym (car keysym*))
+            ;; This keysym requires additional modifiers to input.
+            (push (cdr keysym*) modifiers))))
       (when modifiers
         ;; Do transforms: * -> x-*-keysym -> xcb:keysyms:*-mask.
         (setq modifiers (mapcar (lambda (i)
@@ -397,20 +610,18 @@ This function returns nil when it fails to convert an event."
                                 modifiers)
               modifiers (mapcar (lambda (i)
                                   (pcase i
+                                    ((and x (pred integerp)) x)
                                     (`meta xcb:keysyms:meta-mask)
                                     (`control xcb:keysyms:control-mask)
                                     (`shift xcb:keysyms:shift-mask)
                                     (`hyper xcb:keysyms:hyper-mask)
                                     (`super xcb:keysyms:super-mask)
                                     (`alt xcb:keysyms:alt-mask)
-                                    (`down 0)
-                                    ;; FIXME: more?
-                                    (_ 0)))
+                                    (_
+                                     ;; Include but not limit to: down.
+                                     0)))
                                 modifiers)))
-      (unless (memq nil modifiers)
-        `(,keysym
-          ;; state for KeyPress event
-          ,(apply #'logior modifiers))))))
+      (cons keysym (apply #'logior modifiers)))))
 
 (cl-defmethod xcb:keysyms:keysym->event ((_obj xcb:connection) keysym
                                          &optional mask allow-modifiers)
@@ -418,6 +629,9 @@ This function returns nil when it fails to convert an event."
 
 One may use MASK to provide modifier keys.  If ALLOW-MODIFIERS is non-nil,
 this function will also return symbols for pure modifiers keys."
+  ;; Convert nil to 0.
+  (unless mask
+    (setq mask 0))
   (let ((event (cond ((<= #x20 keysym #xff)
                       keysym)
                      ((<= #xff00 keysym #xffff)
@@ -430,11 +644,16 @@ this function will also return symbols for pure modifiers keys."
                       (aref xcb:keysyms:-xf86-keys (logand keysym #xff)))
                      ((<= #xfe00 keysym #xfeff)
                       (aref xcb:keysyms:-iso-function-keys
-                            (logand keysym #xff)))))
+                            (logand keysym #xff)))
+                     (t (or
+                         ;; Search system-specific keysyms.
+                         (car (assq keysym system-key-alist))
+                         ;; Search `x-keysym-table' for legacy keysyms.
+                         (gethash keysym x-keysym-table)))))
         mod-alt mod-meta mod-hyper mod-super)
     (when event
       (if allow-modifiers
-          (when mask
+          (when (/= 0 mask)
             ;; Clear modifier bits for modifier keys.
             (pcase event
               ((or `lmeta* `rmeta*)
@@ -444,13 +663,11 @@ this function will also return symbols for pure modifiers keys."
               ((or `lshift* `rshift*)
                (setq mask (logand mask (lognot xcb:keysyms:shift-mask))))
               ((or `lhyper* `rhyper*)
-               (when xcb:keysyms:hyper-mask
-                 (setq mask (logand mask (lognot xcb:keysyms:hyper-mask)))))
+               (setq mask (logand mask (lognot xcb:keysyms:hyper-mask))))
               ((or `lsuper* `rsuper*)
                (setq mask (logand mask (lognot xcb:keysyms:super-mask))))
               ((or `lalt* `ralt*)
-               (when xcb:keysyms:alt-mask
-                 (setq mask (logand mask (lognot xcb:keysyms:alt-mask)))))))
+               (setq mask (logand mask (lognot xcb:keysyms:alt-mask))))))
         (when (memq event
                     '(lshift*
                       rshift*
@@ -470,7 +687,7 @@ this function will also return symbols for pure modifiers keys."
                       kp-numlock))
           (setq event nil))))
     (when event
-      (if (not mask)
+      (if (= 0 mask)
           event
         ;; Set mod-* if possible.
         (when x-alt-keysym
@@ -503,13 +720,11 @@ this function will also return symbols for pure modifiers keys."
                    (or (not (<= #x20 keysym #xff)) ;Not a Latin-1 character
                        (<= ?A keysym ?Z)))         ;An uppercase letter
           (push 'shift event))
-        (when (and xcb:keysyms:hyper-mask
-                   (/= 0 (logand mask xcb:keysyms:hyper-mask)))
+        (when (/= 0 (logand mask xcb:keysyms:hyper-mask))
           (push (or mod-hyper 'hyper) event))
         (when (/= 0 (logand mask xcb:keysyms:super-mask))
           (push (or mod-super 'super) event))
-        (when (and xcb:keysyms:alt-mask
-                   (/= 0 (logand mask xcb:keysyms:alt-mask)))
+        (when (/= 0 (logand mask xcb:keysyms:alt-mask))
           (push (or mod-alt 'alt) event))
         (event-convert-list event)))))
 

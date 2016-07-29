@@ -101,9 +101,7 @@
 			    (+
 			     (xcb:-fieldref 'driver-name-length)
 			     3)
-			    (lognot
-			     (xelb-parse-expression
-			      (xelb-node-subnode node))))
+			    (lognot 3))
 			   (xcb:-fieldref 'driver-name-length)))
 		   :type xcb:-list)
    (pad~3 :initform 4 :type xcb:-pad-align)
