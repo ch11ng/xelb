@@ -1,6 +1,1 @@
-Makefile
 README.md
-el_client.el
-
-# Exclude xcb-xkb.el for now, as it does not work on Emacs 24
-xcb-xkb.el
