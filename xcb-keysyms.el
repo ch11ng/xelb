@@ -544,9 +544,9 @@ Return 0 if conversion fails."
   "Emacs event representations of XF86keysym (#x1008ff00 - #x1008ffff)")
 
 (cl-defmethod xcb:keysyms:event->keysym ((obj xcb:connection) event)
-  "Translate Emacs key event EVENT to X Keysym.
+  "Translate Emacs key event EVENT to (keysym . mod-mask).
 
-This function returns nil when it fails to convert an event."
+Return (0 . 0) when conversion fails."
   (let ((modifiers (event-modifiers event))
         (event (event-basic-type event))
         keysym)
@@ -575,7 +575,8 @@ This function returns nil when it fails to convert an event."
           (setq keysym event)
         (when (<= #x100 event #x10ffff) ;Unicode
           (setq keysym (+ #x1000000 event)))))
-    (when keysym
+    (if (not keysym)
+        '(0 . 0)
       (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
             keysym*)
         (when (/= 0 keycode)
@@ -602,14 +603,11 @@ This function returns nil when it fails to convert an event."
                                     (`hyper xcb:keysyms:hyper-mask)
                                     (`super xcb:keysyms:super-mask)
                                     (`alt xcb:keysyms:alt-mask)
-                                    (`down 0)
-                                    ;; FIXME: more?
-                                    (_ 0)))
+                                    (_
+                                     ;; Include but not limit to: down.
+                                     0)))
                                 modifiers)))
-      (unless (memq nil modifiers)
-        `(,keysym
-          ;; state for KeyPress event
-          ,(apply #'logior modifiers))))))
+      (cons keysym (apply #'logior modifiers)))))
 
 (cl-defmethod xcb:keysyms:keysym->event ((_obj xcb:connection) keysym
                                          &optional mask allow-modifiers)
@@ -617,6 +615,9 @@ This function returns nil when it fails to convert an event."
 
 One may use MASK to provide modifier keys.  If ALLOW-MODIFIERS is non-nil,
 this function will also return symbols for pure modifiers keys."
+  ;; Convert nil to 0.
+  (unless mask
+    (setq mask 0))
   (let ((event (cond ((<= #x20 keysym #xff)
                       keysym)
                      ((<= #xff00 keysym #xffff)
@@ -633,7 +634,7 @@ this function will also return symbols for pure modifiers keys."
         mod-alt mod-meta mod-hyper mod-super)
     (when event
       (if allow-modifiers
-          (when mask
+          (when (/= 0 mask)
             ;; Clear modifier bits for modifier keys.
             (pcase event
               ((or `lmeta* `rmeta*)
@@ -643,13 +644,11 @@ this function will also return symbols for pure modifiers keys."
               ((or `lshift* `rshift*)
                (setq mask (logand mask (lognot xcb:keysyms:shift-mask))))
               ((or `lhyper* `rhyper*)
-               (when xcb:keysyms:hyper-mask
-                 (setq mask (logand mask (lognot xcb:keysyms:hyper-mask)))))
+               (setq mask (logand mask (lognot xcb:keysyms:hyper-mask))))
               ((or `lsuper* `rsuper*)
                (setq mask (logand mask (lognot xcb:keysyms:super-mask))))
               ((or `lalt* `ralt*)
-               (when xcb:keysyms:alt-mask
-                 (setq mask (logand mask (lognot xcb:keysyms:alt-mask)))))))
+               (setq mask (logand mask (lognot xcb:keysyms:alt-mask))))))
         (when (memq event
                     '(lshift*
                       rshift*
@@ -669,7 +668,7 @@ this function will also return symbols for pure modifiers keys."
                       kp-numlock))
           (setq event nil))))
     (when event
-      (if (not mask)
+      (if (= 0 mask)
           event
         ;; Set mod-* if possible.
         (when x-alt-keysym
@@ -702,13 +701,11 @@ this function will also return symbols for pure modifiers keys."
                    (or (not (<= #x20 keysym #xff)) ;Not a Latin-1 character
                        (<= ?A keysym ?Z)))         ;An uppercase letter
           (push 'shift event))
-        (when (and xcb:keysyms:hyper-mask
-                   (/= 0 (logand mask xcb:keysyms:hyper-mask)))
+        (when (/= 0 (logand mask xcb:keysyms:hyper-mask))
           (push (or mod-hyper 'hyper) event))
         (when (/= 0 (logand mask xcb:keysyms:super-mask))
           (push (or mod-super 'super) event))
-        (when (and xcb:keysyms:alt-mask
-                   (/= 0 (logand mask xcb:keysyms:alt-mask)))
+        (when (/= 0 (logand mask xcb:keysyms:alt-mask))
           (push (or mod-alt 'alt) event))
         (event-convert-list event)))))
 
