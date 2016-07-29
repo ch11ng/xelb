@@ -144,6 +144,36 @@ an `xelb-auto-padding' attribute."
                          (eq (xelb-node-name i) 'doc)))
           (throw 'break i))))))
 
+(defun xelb-node-size (node)
+  "Return the size of NODE in bytes."
+  (pcase (xelb-node-name node)
+    (`pad (xelb-node-attr node 'bytes))
+    (`field (xelb-type-size (xelb-node-type node)))
+    (`list (* (xelb-type-size (xelb-node-type node))
+              (xelb-parse-expression (xelb-node-subnode node))))
+    ((or `comment `doc) 0)
+    (x (error "Unexpected element: <%s>" x))))
+
+(defun xelb-type-size (type &optional slot)
+  "Return size of TYPE in bytes."
+  (pcase (indirect-variable type)
+    (`xcb:-ignore 0)
+    ((or `xcb:-u1 `xcb:-i1 `xcb:void) 1)
+    ((or `xcb:-u2 `xcb:-i2) 2)
+    ((or `xcb:-u4 `xcb:-i4) 4)
+    (`xcb:-u8 8)
+    (`xcb:-pad (cl--slot-descriptor-initform slot))
+    (`xcb:-list
+     (let ((initform (cadr (cl--slot-descriptor-initform slot))))
+       (* (plist-get initform 'size)
+          (xelb-type-size (plist-get initform 'type)))))
+    ((and x (guard (child-of-class-p x 'xcb:-struct)))
+     (apply #'+
+            (mapcar (lambda (slot)
+                      (xelb-type-size (cl--slot-descriptor-type slot) slot))
+                    (eieio-class-slots x))))
+    (x (error "Unknown size of type: %s" x))))
+
 (defsubst xelb-generate-pad-name ()
   "Generate a new slot name for <pad>."
   (make-symbol (format "pad~%d" (cl-incf xelb-pad-count))))
@@ -287,7 +317,10 @@ an `xelb-auto-padding' attribute."
   (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
         (contents (xelb-node-subnodes node)))
     `((defclass ,name (xcb:-union)
-        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
+        ,(apply #'nconc
+                `((~size :initform
+                         ,(apply #'max (mapcar #'xelb-node-size contents))))
+                (mapcar #'xelb-parse-structure-content contents))))))
 
 (defun xelb-parse-xidtype (node)
   "Parse <xidtype>."

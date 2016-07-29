@@ -743,7 +743,7 @@ Note that this method auto pads the result to 32 bytes, as is always the case."
   (cl-call-next-method obj (substring byte-array 4))) ;skip the first 4 bytes
 
 (defclass xcb:-union (xcb:-struct)
-  nil
+  ((~size :initarg :~size :type xcb:-ignore)) ;Size of the largest member.
   :documentation "Union type.")
 ;;
 (cl-defmethod xcb:marshal ((obj xcb:-union))
@@ -751,8 +751,9 @@ Note that this method auto pads the result to 32 bytes, as is always the case."
 
 This result is converted from the first bounded slot."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        result slot type name)
-    (while (and (not result) slots)
+        (size (slot-value obj '~size))
+        result slot type name tmp)
+    (while (and (not result) slots (> size (length result)))
       (setq slot (pop slots))
       (setq type (cl--slot-descriptor-type slot)
             name (eieio-slot-descriptor-name slot))
@@ -762,9 +763,12 @@ This result is converted from the first bounded slot."
                   (and (eq type 'xcb:-list)
                        (not (slot-boundp obj (plist-get (slot-value obj name)
                                                         'name)))))
-        (setq result (xcb:-marshal-field obj
-                                         (cl--slot-descriptor-type slot)
-                                         (slot-value obj name)))))
+        (setq tmp (xcb:-marshal-field obj (cl--slot-descriptor-type slot)
+                                      (slot-value obj name)))
+        (when (> (length tmp) (length result))
+          (setq result tmp))))
+    (when (> size (length result))
+      (setq result (vconcat result (make-vector (- size (length result)) 0))))
     result))
 ;;
 (cl-defmethod xcb:unmarshal ((obj xcb:-union) byte-array &optional ctx)
@@ -772,7 +776,7 @@ This result is converted from the first bounded slot."
 
 The optional argument CTX is for <paramref>."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        slot-name consumed tmp type)
+        slot-name tmp type)
     (dolist (slot slots)
       (setq type (cl--slot-descriptor-type slot))
       (unless (eq type 'xcb:-ignore)
@@ -781,9 +785,8 @@ The optional argument CTX is for <paramref>."
                                         (when (slot-boundp obj slot-name)
                                           (eieio-oref-default obj slot-name))
                                         ctx))
-        (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))
-        (setq consumed (cadr tmp))))
-    consumed))                          ;consume byte-array only once
+        (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))))
+    (slot-value obj '~size)))
 
 
 

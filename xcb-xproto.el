@@ -686,7 +686,8 @@
 
 (defclass xcb:ClientMessageData
   (xcb:-union)
-  ((data8 :initarg :data8 :type xcb:-ignore)
+  ((~size :initform 20)
+   (data8 :initarg :data8 :type xcb:-ignore)
    (data8~ :initform
 	   '(name data8 type xcb:CARD8 size 20)
 	   :type xcb:-list)

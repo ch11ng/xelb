@@ -415,7 +415,8 @@
 
 (defclass xcb:xkb:Behavior
   (xcb:-union)
-  ((common :initarg :common :type xcb:xkb:CommonBehavior)
+  ((~size :initform 2)
+   (common :initarg :common :type xcb:xkb:CommonBehavior)
    (default :initarg :default :type xcb:xkb:DefaultBehavior)
    (lock :initarg :lock :type xcb:xkb:LockBehavior)
    (radioGroup :initarg :radioGroup :type xcb:xkb:RadioGroupBehavior)
@@ -862,7 +863,8 @@
 
 (defclass xcb:xkb:Action
   (xcb:-union)
-  ((noaction :initarg :noaction :type xcb:xkb:SANoAction)
+  ((~size :initform 8)
+   (noaction :initarg :noaction :type xcb:xkb:SANoAction)
    (setmods :initarg :setmods :type xcb:xkb:SASetMods)
    (latchmods :initarg :latchmods :type xcb:xkb:SALatchMods)
    (lockmods :initarg :lockmods :type xcb:xkb:SALockMods)

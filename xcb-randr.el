@@ -963,7 +963,8 @@
 
 (defclass xcb:randr:NotifyData
   (xcb:-union)
-  ((cc :initarg :cc :type xcb:randr:CrtcChange)
+  ((~size :initform 28)
+   (cc :initarg :cc :type xcb:randr:CrtcChange)
    (oc :initarg :oc :type xcb:randr:OutputChange)
    (op :initarg :op :type xcb:randr:OutputProperty)
    (pc :initarg :pc :type xcb:randr:ProviderChange)
