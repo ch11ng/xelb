@@ -367,6 +367,7 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
   "Disconnect from X server."
+  (xcb:flush obj)
   (delete-process (slot-value obj 'process))
   ;; Reset every slot to its default value
   (let ((slots (eieio-class-slots 'xcb:connection)))
