@@ -42,7 +42,7 @@
 ;;;; EWMH Atoms
 
 (eval-and-compile
-  (defconst xcb:ewmh:-atoms             ;_NET_WM_CM_Sn are left out
+  (defconst xcb:ewmh:-atoms
     '( ;; Root Window Properties (and Related Messages)
       _NET_SUPPORTED
       _NET_CLIENT_LIST
@@ -91,6 +91,7 @@
       _NET_WM_FULLSCREEN_MONITORS
       ;; Other Properties
       _NET_WM_FULL_PLACEMENT
+      _NET_WM_CM_S0  ;_NET_WM_CM_Sn (n = 1, 2, ...) are left out here.
       ;; _NET_WM_WINDOW_TYPE hint
       _NET_WM_WINDOW_TYPE_DESKTOP
       _NET_WM_WINDOW_TYPE_DOCK
@@ -147,8 +148,8 @@ This method also initializes ICCCM module automatically."
   (when (or force (not xcb:Atom:_NET_SUPPORTED))
     (xcb:icccm:init obj)                ;required
     (let ((atoms xcb:ewmh:-atoms))
-      (dotimes (i (x-display-screens))
-        (push (intern (format "_NET_WM_CM_S%d" i)) atoms))
+      (dotimes (i (1- (x-display-screens)))
+        (push (intern (format "_NET_WM_CM_S%d" (1+ i))) atoms))
       (xcb:icccm:intern-atoms obj atoms force))))
 
 ;;;; Client message
