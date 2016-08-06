@@ -226,7 +226,7 @@ Return COUNT-th match."
   (catch 'return
     (unless formats
       (throw 'return nil))
-    (dolist (f formats)
+    (dolist (f (slot-value formats 'formats))
       (when (and (if (/= 0 (logand mask xcb:renderutil:PICT_FORMAT:ID))
                      (eq (slot-value template 'id) (slot-value f 'id))
                    t)
@@ -265,7 +265,7 @@ Return COUNT-th match."
                          (slot-value f 'colormap))
                    t))
         (when (= count 0)
-          (throw 'return f)
+          (throw 'return (slot-value f 'id))
           (cl-decf count))))))
 
 (defun xcb:renderutil:find-standard (formats format)
