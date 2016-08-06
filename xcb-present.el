@@ -80,6 +80,8 @@
 (defclass xcb:present:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)))
 
@@ -132,21 +134,23 @@
 (defclass xcb:present:QueryCapabilities~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (capabilities :initarg :capabilities :type xcb:CARD32)))
 
 (defclass xcb:present:Generic
   (xcb:-event)
-  ((extension :initarg :extension :type xcb:CARD8)
+  ((~code :initform 0)
+   (extension :initarg :extension :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (length :initarg :length :type xcb:CARD32)
    (evtype :initarg :evtype :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
    (event :initarg :event :type xcb:present:EVENT)))
 
 (defclass xcb:present:ConfigureNotify
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 0)
    (pad~0 :initform 2 :type xcb:-pad)
    (event :initarg :event :type xcb:present:EVENT)
    (window :initarg :window :type xcb:WINDOW)
@@ -161,10 +165,8 @@
    (pixmap-flags :initarg :pixmap-flags :type xcb:CARD32)))
 
 (defclass xcb:present:CompleteNotify
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 1)
    (kind :initarg :kind :type xcb:CARD8)
    (mode :initarg :mode :type xcb:CARD8)
    (event :initarg :event :type xcb:present:EVENT)
@@ -174,10 +176,8 @@
    (msc :initarg :msc :type xcb:CARD64)))
 
 (defclass xcb:present:IdleNotify
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 2)
    (pad~0 :initform 2 :type xcb:-pad)
    (event :initarg :event :type xcb:present:EVENT)
    (window :initarg :window :type xcb:WINDOW)
@@ -186,10 +186,8 @@
    (idle-fence :initarg :idle-fence :type xcb:sync:FENCE)))
 
 (defclass xcb:present:RedirectNotify
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 3)
    (update-window :initarg :update-window :type xcb:BOOL)
    (pad~0 :initform 1 :type xcb:-pad)
    (event :initarg :event :type xcb:present:EVENT)
@@ -217,12 +215,15 @@
 	      :type xcb:-list)))
 
 (defconst xcb:present:event-number-class-alist
-  '((0 . xcb:present:Generic)
-    (0 . xcb:present:ConfigureNotify)
+  '((0 . xcb:present:Generic))
+  "(event-number . event-class) alist")
+
+(defconst xcb:present:xge-number-class-alist
+  '((0 . xcb:present:ConfigureNotify)
     (1 . xcb:present:CompleteNotify)
     (2 . xcb:present:IdleNotify)
     (3 . xcb:present:RedirectNotify))
-  "(event-number . event-class) alist")
+  "(xge-number . event-class) alist")
 
 
 

@@ -54,6 +54,8 @@
 (defclass xcb:screensaver:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major-version :initarg :server-major-version :type xcb:CARD16)
    (server-minor-version :initarg :server-minor-version :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)))
@@ -65,6 +67,8 @@
 (defclass xcb:screensaver:QueryInfo~reply
   (xcb:-reply)
   ((state :initarg :state :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (saver-window :initarg :saver-window :type xcb:WINDOW)
    (ms-until-server :initarg :ms-until-server :type xcb:CARD32)
    (ms-since-user-input :initarg :ms-since-user-input :type xcb:CARD32)
@@ -140,7 +144,9 @@
 
 (defclass xcb:screensaver:Notify
   (xcb:-event)
-  ((state :initarg :state :type xcb:BYTE)
+  ((~code :initform 0)
+   (state :initarg :state :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)

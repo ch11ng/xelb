@@ -77,6 +77,8 @@
 (defclass xcb:xf86vidmode:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)))
 
@@ -88,6 +90,8 @@
 (defclass xcb:xf86vidmode:GetModeLine~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (dotclock :initarg :dotclock :type xcb:xf86vidmode:DOTCLOCK)
    (hdisplay :initarg :hdisplay :type xcb:CARD16)
    (hsyncstart :initarg :hsyncstart :type xcb:CARD16)
@@ -145,6 +149,8 @@
 (defclass xcb:xf86vidmode:GetMonitor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (vendor-length :initarg :vendor-length :type xcb:CARD8)
    (model-length :initarg :model-length :type xcb:CARD8)
    (num-hsync :initarg :num-hsync :type xcb:CARD8)
@@ -200,6 +206,8 @@
 (defclass xcb:xf86vidmode:GetAllModeLines~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (modecount :initarg :modecount :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (modeinfo :initarg :modeinfo :type xcb:-ignore)
@@ -295,6 +303,8 @@
 (defclass xcb:xf86vidmode:ValidateModeLine~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)))
 
@@ -330,6 +340,8 @@
 (defclass xcb:xf86vidmode:GetViewPort~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (x :initarg :x :type xcb:CARD32)
    (y :initarg :y :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -350,6 +362,8 @@
 (defclass xcb:xf86vidmode:GetDotClocks~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (flags :initarg :flags :type xcb:CARD32)
    (clocks :initarg :clocks :type xcb:CARD32)
    (maxclocks :initarg :maxclocks :type xcb:CARD32)
@@ -389,6 +403,8 @@
 (defclass xcb:xf86vidmode:GetGamma~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (red :initarg :red :type xcb:CARD32)
    (green :initarg :green :type xcb:CARD32)
    (blue :initarg :blue :type xcb:CARD32)
@@ -402,6 +418,8 @@
 (defclass xcb:xf86vidmode:GetGammaRamp~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (size :initarg :size :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (red :initarg :red :type xcb:-ignore)
@@ -477,6 +495,8 @@
 (defclass xcb:xf86vidmode:GetGammaRampSize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (size :initarg :size :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)))
 
@@ -488,36 +508,38 @@
 (defclass xcb:xf86vidmode:GetPermissions~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (permissions :initarg :permissions :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)))
 
 (defclass xcb:xf86vidmode:BadClock
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:xf86vidmode:BadHTimings
   (xcb:-error)
-  nil)
+  ((~code :initform 1)))
 
 (defclass xcb:xf86vidmode:BadVTimings
   (xcb:-error)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:xf86vidmode:ModeUnsuitable
   (xcb:-error)
-  nil)
+  ((~code :initform 3)))
 
 (defclass xcb:xf86vidmode:ExtensionDisabled
   (xcb:-error)
-  nil)
+  ((~code :initform 4)))
 
 (defclass xcb:xf86vidmode:ClientNotLocal
   (xcb:-error)
-  nil)
+  ((~code :initform 5)))
 
 (defclass xcb:xf86vidmode:ZoomLocked
   (xcb:-error)
-  nil)
+  ((~code :initform 6)))
 
 (defconst xcb:xf86vidmode:error-number-class-alist
   '((0 . xcb:xf86vidmode:BadClock)

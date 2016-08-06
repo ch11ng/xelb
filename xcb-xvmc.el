@@ -57,6 +57,8 @@
 (defclass xcb:xvmc:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major :initarg :major :type xcb:CARD32)
    (minor :initarg :minor :type xcb:CARD32)))
 
@@ -67,6 +69,8 @@
 (defclass xcb:xvmc:ListSurfaceTypes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num :initarg :num :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (surfaces :initarg :surfaces :type xcb:-ignore)
@@ -87,6 +91,8 @@
 (defclass xcb:xvmc:CreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width-actual :initarg :width-actual :type xcb:CARD16)
    (height-actual :initarg :height-actual :type xcb:CARD16)
    (flags-return :initarg :flags-return :type xcb:CARD32)
@@ -110,6 +116,8 @@
 (defclass xcb:xvmc:CreateSurface~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (priv-data :initarg :priv-data :type xcb:-ignore)
    (priv-data~ :initform
@@ -133,6 +141,8 @@
 (defclass xcb:xvmc:CreateSubpicture~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width-actual :initarg :width-actual :type xcb:CARD16)
    (height-actual :initarg :height-actual :type xcb:CARD16)
    (num-palette-entries :initarg :num-palette-entries :type xcb:CARD16)
@@ -161,6 +171,8 @@
 (defclass xcb:xvmc:ListSubpictureTypes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num :initarg :num :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (types :initarg :types :type xcb:-ignore)

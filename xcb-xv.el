@@ -192,26 +192,30 @@
 
 (defclass xcb:xv:BadPort
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:xv:BadEncoding
   (xcb:-error)
-  nil)
+  ((~code :initform 1)))
 
 (defclass xcb:xv:BadControl
   (xcb:-error)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:xv:VideoNotify
   (xcb:-event)
-  ((reason :initarg :reason :type xcb:BYTE)
+  ((~code :initform 0)
+   (reason :initarg :reason :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (port :initarg :port :type xcb:xv:PORT)))
 
 (defclass xcb:xv:PortNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 1)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (port :initarg :port :type xcb:xv:PORT)
    (attribute :initarg :attribute :type xcb:ATOM)
@@ -223,6 +227,8 @@
 (defclass xcb:xv:QueryExtension~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major :initarg :major :type xcb:CARD16)
    (minor :initarg :minor :type xcb:CARD16)))
 
@@ -233,6 +239,8 @@
 (defclass xcb:xv:QueryAdaptors~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-adaptors :initarg :num-adaptors :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (info :initarg :info :type xcb:-ignore)
@@ -248,6 +256,8 @@
 (defclass xcb:xv:QueryEncodings~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-encodings :initarg :num-encodings :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (info :initarg :info :type xcb:-ignore)
@@ -263,7 +273,9 @@
    (time :initarg :time :type xcb:TIMESTAMP)))
 (defclass xcb:xv:GrabPort~reply
   (xcb:-reply)
-  ((result :initarg :result :type xcb:BYTE)))
+  ((result :initarg :result :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:xv:UngrabPort
   (xcb:-request)
@@ -364,6 +376,8 @@
 (defclass xcb:xv:QueryBestSize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (actual-width :initarg :actual-width :type xcb:CARD16)
    (actual-height :initarg :actual-height :type xcb:CARD16)))
 
@@ -382,6 +396,8 @@
 (defclass xcb:xv:GetPortAttribute~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (value :initarg :value :type xcb:INT32)))
 
 (defclass xcb:xv:QueryPortAttributes
@@ -391,6 +407,8 @@
 (defclass xcb:xv:QueryPortAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-attributes :initarg :num-attributes :type xcb:CARD32)
    (text-size :initarg :text-size :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
@@ -407,6 +425,8 @@
 (defclass xcb:xv:ListImageFormats~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-formats :initarg :num-formats :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (format :initarg :format :type xcb:-ignore)
@@ -425,6 +445,8 @@
 (defclass xcb:xv:QueryImageAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-planes :initarg :num-planes :type xcb:CARD32)
    (data-size :initarg :data-size :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD16)

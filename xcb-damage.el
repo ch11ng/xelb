@@ -44,7 +44,7 @@
 
 (defclass xcb:damage:BadDamage
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:damage:QueryVersion
   (xcb:-request)
@@ -54,6 +54,8 @@
 (defclass xcb:damage:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -86,7 +88,9 @@
 
 (defclass xcb:damage:Notify
   (xcb:-event)
-  ((level :initarg :level :type xcb:CARD8)
+  ((~code :initform 0)
+   (level :initarg :level :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (damage :initarg :damage :type xcb:damage:DAMAGE)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)

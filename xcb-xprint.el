@@ -82,6 +82,8 @@
 (defclass xcb:xprint:PrintQueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)))
 
@@ -104,6 +106,8 @@
 (defclass xcb:xprint:PrintGetPrinterList~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (listCount :initarg :listCount :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (printers :initarg :printers :type xcb:-ignore)
@@ -145,6 +149,8 @@
 (defclass xcb:xprint:PrintGetContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context :initarg :context :type xcb:CARD32)))
 
 (defclass xcb:xprint:PrintDestroyContext
@@ -158,6 +164,8 @@
 (defclass xcb:xprint:PrintGetScreenOfContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)))
 
 (defclass xcb:xprint:PrintStartJob
@@ -213,6 +221,8 @@
 (defclass xcb:xprint:PrintGetDocumentData~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status-code :initarg :status-code :type xcb:CARD32)
    (finished-flag :initarg :finished-flag :type xcb:CARD32)
    (dataLen :initarg :dataLen :type xcb:CARD32)
@@ -247,6 +257,8 @@
 (defclass xcb:xprint:PrintInputSelected~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (event-mask :initarg :event-mask :type xcb:CARD32)
    (all-events-mask :initarg :all-events-mask :type xcb:CARD32)))
 
@@ -259,6 +271,8 @@
 (defclass xcb:xprint:PrintGetAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (stringLen :initarg :stringLen :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (attributes :initarg :attributes :type xcb:-ignore)
@@ -282,6 +296,8 @@
 (defclass xcb:xprint:PrintGetOneAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (valueLen :initarg :valueLen :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (value :initarg :value :type xcb:-ignore)
@@ -310,6 +326,8 @@
 (defclass xcb:xprint:PrintGetPageDimensions~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)
    (offset-x :initarg :offset-x :type xcb:CARD16)
@@ -323,6 +341,8 @@
 (defclass xcb:xprint:PrintQueryScreens~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (listCount :initarg :listCount :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (roots :initarg :roots :type xcb:-ignore)
@@ -339,6 +359,8 @@
 (defclass xcb:xprint:PrintSetImageResolution~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (previous-resolutions :initarg :previous-resolutions :type xcb:CARD16)))
 
 (defclass xcb:xprint:PrintGetImageResolution
@@ -348,26 +370,32 @@
 (defclass xcb:xprint:PrintGetImageResolution~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (image-resolution :initarg :image-resolution :type xcb:CARD16)))
 
 (defclass xcb:xprint:Notify
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:CARD8)
+  ((~code :initform 0)
+   (detail :initarg :detail :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (context :initarg :context :type xcb:xprint:PCONTEXT)
    (cancel :initarg :cancel :type xcb:BOOL)))
 
 (defclass xcb:xprint:AttributNotify
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:CARD8)
+  ((~code :initform 1)
+   (detail :initarg :detail :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (context :initarg :context :type xcb:xprint:PCONTEXT)))
 
 (defclass xcb:xprint:BadContext
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:xprint:BadSequence
   (xcb:-error)
-  nil)
+  ((~code :initform 1)))
 
 (defconst xcb:xprint:error-number-class-alist
   '((0 . xcb:xprint:BadContext)

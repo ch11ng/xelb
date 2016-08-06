@@ -39,6 +39,8 @@
 (defclass xcb:ge:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)))

@@ -41,6 +41,8 @@
 (defclass xcb:dri3:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)))
 
@@ -52,6 +54,8 @@
 (defclass xcb:dri3:Open~reply
   (xcb:-reply)
   ((nfd :initarg :nfd :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (device-fd :type xcb:-fd)
    (pad~0 :initform 24 :type xcb:-pad)))
 
@@ -75,6 +79,8 @@
 (defclass xcb:dri3:BufferFromPixmap~reply
   (xcb:-reply)
   ((nfd :initarg :nfd :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (size :initarg :size :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)
@@ -101,6 +107,8 @@
 (defclass xcb:dri3:FDFromFence~reply
   (xcb:-reply)
   ((nfd :initarg :nfd :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (fence-fd :type xcb:-fd)
    (pad~0 :initform 24 :type xcb:-pad)))
 

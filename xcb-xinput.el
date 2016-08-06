@@ -61,6 +61,8 @@
 (defclass xcb:xinput:GetExtensionVersion~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major :initarg :server-major :type xcb:CARD16)
    (server-minor :initarg :server-minor :type xcb:CARD16)
    (present :initarg :present :type xcb:BOOL)
@@ -166,6 +168,8 @@
 (defclass xcb:xinput:ListInputDevices~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (devices-len :initarg :devices-len :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (devices :initarg :devices :type xcb:-ignore)
@@ -210,6 +214,8 @@
 (defclass xcb:xinput:OpenDevice~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-classes :initarg :num-classes :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (class-info :initarg :class-info :type xcb:-ignore)
@@ -234,6 +240,8 @@
 (defclass xcb:xinput:SetDeviceMode~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -256,6 +264,8 @@
 (defclass xcb:xinput:GetSelectedExtensionEvents~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-this-classes :initarg :num-this-classes :type xcb:CARD16)
    (num-all-classes :initarg :num-all-classes :type xcb:CARD16)
    (pad~0 :initform 20 :type xcb:-pad)
@@ -294,6 +304,8 @@
 (defclass xcb:xinput:GetDeviceDontPropagateList~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-classes :initarg :num-classes :type xcb:CARD16)
    (pad~0 :initform 22 :type xcb:-pad)
    (classes :initarg :classes :type xcb:-ignore)
@@ -321,6 +333,8 @@
 (defclass xcb:xinput:GetDeviceMotionEvents~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-events :initarg :num-events :type xcb:CARD32)
    (num-axes :initarg :num-axes :type xcb:CARD8)
    (device-mode :initarg :device-mode :type xcb:CARD8)
@@ -339,6 +353,8 @@
 (defclass xcb:xinput:ChangeKeyboardDevice~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -352,6 +368,8 @@
 (defclass xcb:xinput:ChangePointerDevice~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -374,6 +392,8 @@
 (defclass xcb:xinput:GrabDevice~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -466,6 +486,8 @@
 (defclass xcb:xinput:GetDeviceFocus~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (focus :initarg :focus :type xcb:WINDOW)
    (time :initarg :time :type xcb:TIMESTAMP)
    (revert-to :initarg :revert-to :type xcb:CARD8)
@@ -612,6 +634,8 @@
 (defclass xcb:xinput:GetFeedbackControl~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-feedbacks :initarg :num-feedbacks :type xcb:CARD16)
    (pad~0 :initform 22 :type xcb:-pad)
    (feedbacks :initarg :feedbacks :type xcb:-ignore)
@@ -758,6 +782,8 @@
 (defclass xcb:xinput:GetDeviceKeyMapping~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (keysyms-per-keycode :initarg :keysyms-per-keycode :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (keysyms :initarg :keysyms :type xcb:-ignore)
@@ -789,6 +815,8 @@
 (defclass xcb:xinput:GetDeviceModifierMapping~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (keycodes-per-modifier :initarg :keycodes-per-modifier :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (keymaps :initarg :keymaps :type xcb:-ignore)
@@ -815,6 +843,8 @@
 (defclass xcb:xinput:SetDeviceModifierMapping~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -826,6 +856,8 @@
 (defclass xcb:xinput:GetDeviceButtonMapping~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (map-size :initarg :map-size :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (map :initarg :map :type xcb:-ignore)
@@ -849,6 +881,8 @@
 (defclass xcb:xinput:SetDeviceButtonMapping~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -929,6 +963,8 @@
 (defclass xcb:xinput:QueryDeviceState~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-classes :initarg :num-classes :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (classes :initarg :classes :type xcb:-ignore)
@@ -983,6 +1019,8 @@
 (defclass xcb:xinput:SetDeviceValuators~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -1115,6 +1153,8 @@
 (defclass xcb:xinput:GetDeviceControl~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)
    (control :initarg :control :type xcb:xinput:DeviceState)))
@@ -1221,6 +1261,8 @@
 (defclass xcb:xinput:ChangeDeviceControl~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
@@ -1232,6 +1274,8 @@
 (defclass xcb:xinput:ListDeviceProperties~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-atoms :initarg :num-atoms :type xcb:CARD16)
    (pad~0 :initform 22 :type xcb:-pad)
    (atoms :initarg :atoms :type xcb:-ignore)
@@ -1300,6 +1344,8 @@
 (defclass xcb:xinput:GetDeviceProperty~reply
   (xcb:-reply)
   ((xi-reply-type :initarg :xi-reply-type :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (type :initarg :type :type xcb:ATOM)
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (num-items :initarg :num-items :type xcb:CARD32)
@@ -1358,6 +1404,8 @@
 (defclass xcb:xinput:XIQueryPointer~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (child :initarg :child :type xcb:WINDOW)
    (root-x :initarg :root-x :type xcb:xinput:FP1616)
@@ -1500,6 +1548,8 @@
 (defclass xcb:xinput:XIGetClientPointer~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (set :initarg :set :type xcb:BOOL)
    (pad~1 :initform 1 :type xcb:-pad)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
@@ -1562,6 +1612,8 @@
 (defclass xcb:xinput:XIQueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)))
@@ -1736,6 +1788,8 @@
 (defclass xcb:xinput:XIQueryDevice~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-infos :initarg :num-infos :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (infos :initarg :infos :type xcb:-ignore)
@@ -1760,6 +1814,8 @@
 (defclass xcb:xinput:XIGetFocus~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (focus :initarg :focus :type xcb:WINDOW)
    (pad~1 :initform 20 :type xcb:-pad)))
 
@@ -1786,6 +1842,8 @@
 (defclass xcb:xinput:XIGrabDevice~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (pad~1 :initform 23 :type xcb:-pad)))
 
@@ -1862,6 +1920,8 @@
 (defclass xcb:xinput:XIPassiveGrabDevice~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-modifiers :initarg :num-modifiers :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (modifiers :initarg :modifiers :type xcb:-ignore)
@@ -1893,6 +1953,8 @@
 (defclass xcb:xinput:XIListProperties~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-properties :initarg :num-properties :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (properties :initarg :properties :type xcb:-ignore)
@@ -1956,6 +2018,8 @@
 (defclass xcb:xinput:XIGetProperty~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (type :initarg :type :type xcb:ATOM)
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (num-items :initarg :num-items :type xcb:CARD32)
@@ -1994,6 +2058,8 @@
 (defclass xcb:xinput:XIGetSelectedEvents~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-masks :initarg :num-masks :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (masks :initarg :masks :type xcb:-ignore)
@@ -2021,7 +2087,9 @@
 
 (defclass xcb:xinput:DeviceValuator
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:CARD8)
+  ((~code :initform 0)
+   (device-id :initarg :device-id :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (device-state :initarg :device-state :type xcb:CARD16)
    (num-valuators :initarg :num-valuators :type xcb:CARD8)
    (first-valuator :initarg :first-valuator :type xcb:CARD8)
@@ -2034,7 +2102,9 @@
 
 (defclass xcb:xinput:DeviceKeyPress
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BYTE)
+  ((~code :initform 1)
+   (detail :initarg :detail :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
@@ -2049,23 +2119,25 @@
 
 (defclass xcb:xinput:DeviceKeyRelease
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:xinput:DeviceButtonPress
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 3)))
 
 (defclass xcb:xinput:DeviceButtonRelease
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 4)))
 
 (defclass xcb:xinput:DeviceMotionNotify
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 5)))
 
 (defclass xcb:xinput:DeviceFocusIn
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BYTE)
+  ((~code :initform 6)
+   (detail :initarg :detail :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (window :initarg :window :type xcb:WINDOW)
    (mode :initarg :mode :type xcb:BYTE)
@@ -2074,15 +2146,15 @@
 
 (defclass xcb:xinput:DeviceFocusOut
   (xcb:-event xcb:xinput:DeviceFocusIn)
-  nil)
+  ((~code :initform 7)))
 
 (defclass xcb:xinput:ProximityIn
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 8)))
 
 (defclass xcb:xinput:ProximityOut
   (xcb:-event xcb:xinput:DeviceKeyPress)
-  nil)
+  ((~code :initform 9)))
 
 (defconst xcb:xinput:ClassesReportedMask:OutOfProximity 128)
 (defconst xcb:xinput:ClassesReportedMask:DeviceModeAbsolute 64)
@@ -2092,7 +2164,9 @@
 
 (defclass xcb:xinput:DeviceStateNotify
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:BYTE)
+  ((~code :initform 10)
+   (device-id :initarg :device-id :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (num-keys :initarg :num-keys :type xcb:CARD8)
    (num-buttons :initarg :num-buttons :type xcb:CARD8)
@@ -2113,7 +2187,9 @@
 
 (defclass xcb:xinput:DeviceMappingNotify
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:BYTE)
+  ((~code :initform 11)
+   (device-id :initarg :device-id :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (request :initarg :request :type xcb:CARD8)
    (first-keycode :initarg :first-keycode :type xcb:xinput:KeyCode)
    (count :initarg :count :type xcb:CARD8)
@@ -2126,14 +2202,18 @@
 
 (defclass xcb:xinput:ChangeDeviceNotify
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:BYTE)
+  ((~code :initform 12)
+   (device-id :initarg :device-id :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (request :initarg :request :type xcb:CARD8)
    (pad~0 :initform 23 :type xcb:-pad)))
 
 (defclass xcb:xinput:DeviceKeyStateNotify
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:BYTE)
+  ((~code :initform 13)
+   (device-id :initarg :device-id :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 28)
@@ -2141,7 +2221,9 @@
 
 (defclass xcb:xinput:DeviceButtonStateNotify
   (xcb:-event)
-  ((device-id :initarg :device-id :type xcb:BYTE)
+  ((~code :initform 14)
+   (device-id :initarg :device-id :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (buttons :initarg :buttons :type xcb:-ignore)
    (buttons~ :initform
 	     '(name buttons type xcb:CARD8 size 28)
@@ -2156,7 +2238,9 @@
 
 (defclass xcb:xinput:DevicePresenceNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 15)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (devchange :initarg :devchange :type xcb:BYTE)
    (device-id :initarg :device-id :type xcb:BYTE)
@@ -2165,7 +2249,9 @@
 
 (defclass xcb:xinput:DevicePropertyNotify
   (xcb:-event)
-  ((state :initarg :state :type xcb:BYTE)
+  ((~code :initform 16)
+   (state :initarg :state :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (property :initarg :property :type xcb:ATOM)
    (pad~0 :initform 19 :type xcb:-pad)
@@ -2175,10 +2261,8 @@
 (defconst xcb:xinput:ChangeReason:DeviceChange 2)
 
 (defclass xcb:xinput:DeviceChanged
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 1)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (num-classes :initarg :num-classes :type xcb:CARD16)
@@ -2194,10 +2278,8 @@
 (defconst xcb:xinput:KeyEventFlags:KeyRepeat 65536)
 
 (defclass xcb:xinput:KeyPress
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 2)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2244,16 +2326,14 @@
 		:type xcb:-list)))
 
 (defclass xcb:xinput:KeyRelease
-  (xcb:-event xcb:KeyPress)
-  nil)
+  (xcb:-event xcb:xinput:KeyPress)
+  ((~evtype :initform 3)))
 
 (defconst xcb:xinput:PointerEventFlags:PointerEmulated 65536)
 
 (defclass xcb:xinput:ButtonPress
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 4)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2300,12 +2380,12 @@
 		:type xcb:-list)))
 
 (defclass xcb:xinput:ButtonRelease
-  (xcb:-event xcb:ButtonPress)
-  nil)
+  (xcb:-event xcb:xinput:ButtonPress)
+  ((~evtype :initform 5)))
 
 (defclass xcb:xinput:Motion
-  (xcb:-event xcb:ButtonPress)
-  nil)
+  (xcb:-event xcb:xinput:ButtonPress)
+  ((~evtype :initform 6)))
 
 (defconst xcb:xinput:NotifyMode:Normal 0)
 (defconst xcb:xinput:NotifyMode:Grab 1)
@@ -2324,10 +2404,8 @@
 (defconst xcb:xinput:NotifyDetail:None 7)
 
 (defclass xcb:xinput:Enter
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 7)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (sourceid :initarg :sourceid :type xcb:xinput:DeviceId)
@@ -2353,15 +2431,15 @@
 
 (defclass xcb:xinput:Leave
   (xcb:-event xcb:xinput:Enter)
-  nil)
+  ((~evtype :initform 8)))
 
 (defclass xcb:xinput:FocusIn
   (xcb:-event xcb:xinput:Enter)
-  nil)
+  ((~evtype :initform 9)))
 
 (defclass xcb:xinput:FocusOut
   (xcb:-event xcb:xinput:Enter)
-  nil)
+  ((~evtype :initform 10)))
 
 (defconst xcb:xinput:HierarchyMask:MasterAdded 1)
 (defconst xcb:xinput:HierarchyMask:MasterRemoved 2)
@@ -2382,10 +2460,8 @@
    (flags :initarg :flags :type xcb:CARD32)))
 
 (defclass xcb:xinput:Hierarchy
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 11)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (flags :initarg :flags :type xcb:CARD32)
@@ -2402,10 +2478,8 @@
 (defconst xcb:xinput:PropertyFlag:Modified 2)
 
 (defclass xcb:xinput:Property
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 12)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (property :initarg :property :type xcb:ATOM)
@@ -2413,10 +2487,8 @@
    (pad~0 :initform 11 :type xcb:-pad)))
 
 (defclass xcb:xinput:RawKeyPress
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 13)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2464,13 +2536,11 @@
 
 (defclass xcb:xinput:RawKeyRelease
   (xcb:-event xcb:xinput:RawKeyPress)
-  nil)
+  ((~evtype :initform 14)))
 
 (defclass xcb:xinput:RawButtonPress
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 15)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2518,20 +2588,18 @@
 
 (defclass xcb:xinput:RawButtonRelease
   (xcb:-event xcb:xinput:RawButtonPress)
-  nil)
+  ((~evtype :initform 16)))
 
 (defclass xcb:xinput:RawMotion
   (xcb:-event xcb:xinput:RawButtonPress)
-  nil)
+  ((~evtype :initform 17)))
 
 (defconst xcb:xinput:TouchEventFlags:TouchPendingEnd 65536)
 (defconst xcb:xinput:TouchEventFlags:TouchEmulatingPointer 131072)
 
 (defclass xcb:xinput:TouchBegin
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 18)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2579,19 +2647,17 @@
 
 (defclass xcb:xinput:TouchUpdate
   (xcb:-event xcb:xinput:TouchBegin)
-  nil)
+  ((~evtype :initform 19)))
 
 (defclass xcb:xinput:TouchEnd
   (xcb:-event xcb:xinput:TouchBegin)
-  nil)
+  ((~evtype :initform 20)))
 
 (defconst xcb:xinput:TouchOwnershipFlags:None 0)
 
 (defclass xcb:xinput:TouchOwnership
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 21)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (touchid :initarg :touchid :type xcb:CARD32)
@@ -2604,10 +2670,8 @@
    (pad~1 :initform 8 :type xcb:-pad)))
 
 (defclass xcb:xinput:RawTouchBegin
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 22)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (detail :initarg :detail :type xcb:CARD32)
@@ -2655,20 +2719,18 @@
 
 (defclass xcb:xinput:RawTouchUpdate
   (xcb:-event xcb:xinput:RawTouchBegin)
-  nil)
+  ((~evtype :initform 23)))
 
 (defclass xcb:xinput:RawTouchEnd
   (xcb:-event xcb:xinput:RawTouchBegin)
-  nil)
+  ((~evtype :initform 24)))
 
 (defconst xcb:xinput:BarrierFlags:PointerReleased 1)
 (defconst xcb:xinput:BarrierFlags:DeviceIsGrabbed 2)
 
 (defclass xcb:xinput:BarrierHit
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
+  (xcb:-generic-event)
+  ((~evtype :initform 25)
    (deviceid :initarg :deviceid :type xcb:xinput:DeviceId)
    (time :initarg :time :type xcb:TIMESTAMP)
    (eventid :initarg :eventid :type xcb:CARD32)
@@ -2686,27 +2748,27 @@
 
 (defclass xcb:xinput:BarrierLeave
   (xcb:-event xcb:xinput:BarrierHit)
-  nil)
+  ((~evtype :initform 26)))
 
 (defclass xcb:xinput:Device
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:xinput:Event
   (xcb:-error)
-  nil)
+  ((~code :initform 1)))
 
 (defclass xcb:xinput:Mode
   (xcb:-error)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:xinput:DeviceBusy
   (xcb:-error)
-  nil)
+  ((~code :initform 3)))
 
 (defclass xcb:xinput:Class
   (xcb:-error)
-  nil)
+  ((~code :initform 4)))
 
 (defconst xcb:xinput:error-number-class-alist
   '((0 . xcb:xinput:Device)
@@ -2733,8 +2795,11 @@
     (13 . xcb:xinput:DeviceKeyStateNotify)
     (14 . xcb:xinput:DeviceButtonStateNotify)
     (15 . xcb:xinput:DevicePresenceNotify)
-    (16 . xcb:xinput:DevicePropertyNotify)
-    (1 . xcb:xinput:DeviceChanged)
+    (16 . xcb:xinput:DevicePropertyNotify))
+  "(event-number . event-class) alist")
+
+(defconst xcb:xinput:xge-number-class-alist
+  '((1 . xcb:xinput:DeviceChanged)
     (2 . xcb:xinput:KeyPress)
     (3 . xcb:xinput:KeyRelease)
     (4 . xcb:xinput:ButtonPress)
@@ -2760,7 +2825,7 @@
     (24 . xcb:xinput:RawTouchEnd)
     (25 . xcb:xinput:BarrierHit)
     (26 . xcb:xinput:BarrierLeave))
-  "(event-number . event-class) alist")
+  "(xge-number . event-class) alist")
 
 
 

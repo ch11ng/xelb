@@ -37,6 +37,8 @@
 (defclass xcb:bigreq:Enable~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (maximum-request-length :initarg :maximum-request-length :type xcb:CARD32)))
 
 

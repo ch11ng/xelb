@@ -89,13 +89,15 @@
 
 (defclass xcb:sync:Counter
   (xcb:-error)
-  ((bad-counter :initarg :bad-counter :type xcb:CARD32)
+  ((~code :initform 0)
+   (bad-counter :initarg :bad-counter :type xcb:CARD32)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)))
 
 (defclass xcb:sync:Alarm
   (xcb:-error)
-  ((bad-alarm :initarg :bad-alarm :type xcb:CARD32)
+  ((~code :initform 1)
+   (bad-alarm :initarg :bad-alarm :type xcb:CARD32)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)))
 
@@ -107,6 +109,8 @@
 (defclass xcb:sync:Initialize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD8)
    (minor-version :initarg :minor-version :type xcb:CARD8)
    (pad~1 :initform 22 :type xcb:-pad)))
@@ -117,6 +121,8 @@
 (defclass xcb:sync:ListSystemCounters~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (counters-len :initarg :counters-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (counters :initarg :counters :type xcb:-ignore)
@@ -143,6 +149,8 @@
 (defclass xcb:sync:QueryCounter~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (counter-value :initarg :counter-value :type xcb:sync:INT64)))
 
 (defclass xcb:sync:Await
@@ -223,6 +231,8 @@
 (defclass xcb:sync:QueryAlarm~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (trigger :initarg :trigger :type xcb:sync:TRIGGER)
    (delta :initarg :delta :type xcb:sync:INT64)
    (events :initarg :events :type xcb:BOOL)
@@ -242,6 +252,8 @@
 (defclass xcb:sync:GetPriority~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (priority :initarg :priority :type xcb:INT32)))
 
 (defclass xcb:sync:CreateFence
@@ -273,6 +285,8 @@
 (defclass xcb:sync:QueryFence~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (triggered :initarg :triggered :type xcb:BOOL)
    (pad~1 :initform 23 :type xcb:-pad)))
 
@@ -286,7 +300,9 @@
 
 (defclass xcb:sync:CounterNotify
   (xcb:-event)
-  ((kind :initarg :kind :type xcb:CARD8)
+  ((~code :initform 0)
+   (kind :initarg :kind :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (counter :initarg :counter :type xcb:sync:COUNTER)
    (wait-value :initarg :wait-value :type xcb:sync:INT64)
    (counter-value :initarg :counter-value :type xcb:sync:INT64)
@@ -297,7 +313,9 @@
 
 (defclass xcb:sync:AlarmNotify
   (xcb:-event)
-  ((kind :initarg :kind :type xcb:CARD8)
+  ((~code :initform 1)
+   (kind :initarg :kind :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (alarm :initarg :alarm :type xcb:sync:ALARM)
    (counter-value :initarg :counter-value :type xcb:sync:INT64)
    (alarm-value :initarg :alarm-value :type xcb:sync:INT64)

@@ -46,6 +46,8 @@
 (defclass xcb:composite:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -97,6 +99,8 @@
 (defclass xcb:composite:GetOverlayWindow~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (overlay-win :initarg :overlay-win :type xcb:WINDOW)
    (pad~1 :initform 20 :type xcb:-pad)))
 

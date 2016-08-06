@@ -45,19 +45,19 @@
 
 (defclass xcb:randr:BadOutput
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:randr:BadCrtc
   (xcb:-error)
-  nil)
+  ((~code :initform 1)))
 
 (defclass xcb:randr:BadMode
   (xcb:-error)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:randr:BadProvider
   (xcb:-error)
-  nil)
+  ((~code :initform 3)))
 
 (defconst xcb:randr:Rotation:Rotate_0 1)
 (defconst xcb:randr:Rotation:Rotate_90 2)
@@ -90,6 +90,8 @@
 (defclass xcb:randr:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -112,6 +114,8 @@
 (defclass xcb:randr:SetScreenConfig~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (new-timestamp :initarg :new-timestamp :type xcb:TIMESTAMP)
    (config-timestamp :initarg :config-timestamp :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
@@ -140,6 +144,8 @@
 (defclass xcb:randr:GetScreenInfo~reply
   (xcb:-reply)
   ((rotations :initarg :rotations :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (config-timestamp :initarg :config-timestamp :type xcb:TIMESTAMP)
@@ -170,6 +176,8 @@
 (defclass xcb:randr:GetScreenSizeRange~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (min-width :initarg :min-width :type xcb:CARD16)
    (min-height :initarg :min-height :type xcb:CARD16)
    (max-width :initarg :max-width :type xcb:CARD16)
@@ -223,6 +231,8 @@
 (defclass xcb:randr:GetScreenResources~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (config-timestamp :initarg :config-timestamp :type xcb:TIMESTAMP)
    (num-crtcs :initarg :num-crtcs :type xcb:CARD16)
@@ -266,6 +276,8 @@
 (defclass xcb:randr:GetOutputInfo~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (crtc :initarg :crtc :type xcb:randr:CRTC)
    (mm-width :initarg :mm-width :type xcb:CARD32)
@@ -308,6 +320,8 @@
 (defclass xcb:randr:ListOutputProperties~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-atoms :initarg :num-atoms :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (atoms :initarg :atoms :type xcb:-ignore)
@@ -324,6 +338,8 @@
 (defclass xcb:randr:QueryOutputProperty~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pending :initarg :pending :type xcb:BOOL)
    (range :initarg :range :type xcb:BOOL)
    (immutable :initarg :immutable :type xcb:BOOL)
@@ -387,6 +403,8 @@
 (defclass xcb:randr:GetOutputProperty~reply
   (xcb:-reply)
   ((format :initarg :format :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (type :initarg :type :type xcb:ATOM)
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (num-items :initarg :num-items :type xcb:CARD32)
@@ -413,6 +431,8 @@
 (defclass xcb:randr:CreateMode~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (mode :initarg :mode :type xcb:randr:MODE)
    (pad~1 :initform 20 :type xcb:-pad)))
 
@@ -441,6 +461,8 @@
 (defclass xcb:randr:GetCrtcInfo~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
@@ -481,6 +503,8 @@
 (defclass xcb:randr:SetCrtcConfig~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (pad~0 :initform 20 :type xcb:-pad)))
 
@@ -491,6 +515,8 @@
 (defclass xcb:randr:GetCrtcGammaSize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (size :initarg :size :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)))
 
@@ -501,6 +527,8 @@
 (defclass xcb:randr:GetCrtcGamma~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (size :initarg :size :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (red :initarg :red :type xcb:-ignore)
@@ -552,6 +580,8 @@
 (defclass xcb:randr:GetScreenResourcesCurrent~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (config-timestamp :initarg :config-timestamp :type xcb:TIMESTAMP)
    (num-crtcs :initarg :num-crtcs :type xcb:CARD16)
@@ -613,6 +643,8 @@
 (defclass xcb:randr:GetCrtcTransform~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pending-transform :initarg :pending-transform :type xcb:render:TRANSFORM)
    (has-transforms :initarg :has-transforms :type xcb:BOOL)
    (pad~1 :initform 3 :type xcb:-pad)
@@ -653,6 +685,8 @@
 (defclass xcb:randr:GetPanning~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (left :initarg :left :type xcb:CARD16)
    (top :initarg :top :type xcb:CARD16)
@@ -687,6 +721,8 @@
 (defclass xcb:randr:SetPanning~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)))
 
 (defclass xcb:randr:SetOutputPrimary
@@ -702,6 +738,8 @@
 (defclass xcb:randr:GetOutputPrimary~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (output :initarg :output :type xcb:randr:OUTPUT)))
 
 (defclass xcb:randr:GetProviders
@@ -711,6 +749,8 @@
 (defclass xcb:randr:GetProviders~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (num-providers :initarg :num-providers :type xcb:CARD16)
    (pad~1 :initform 18 :type xcb:-pad)
@@ -733,6 +773,8 @@
 (defclass xcb:randr:GetProviderInfo~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (capabilities :initarg :capabilities :type xcb:CARD32)
    (num-crtcs :initarg :num-crtcs :type xcb:CARD16)
@@ -791,6 +833,8 @@
 (defclass xcb:randr:ListProviderProperties~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-atoms :initarg :num-atoms :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (atoms :initarg :atoms :type xcb:-ignore)
@@ -807,6 +851,8 @@
 (defclass xcb:randr:QueryProviderProperty~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pending :initarg :pending :type xcb:BOOL)
    (range :initarg :range :type xcb:BOOL)
    (immutable :initarg :immutable :type xcb:BOOL)
@@ -870,6 +916,8 @@
 (defclass xcb:randr:GetProviderProperty~reply
   (xcb:-reply)
   ((format :initarg :format :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (type :initarg :type :type xcb:ATOM)
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (num-items :initarg :num-items :type xcb:CARD32)
@@ -886,7 +934,9 @@
 
 (defclass xcb:randr:ScreenChangeNotify
   (xcb:-event)
-  ((rotation :initarg :rotation :type xcb:CARD8)
+  ((~code :initform 0)
+   (rotation :initarg :rotation :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (config-timestamp :initarg :config-timestamp :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
@@ -973,7 +1023,9 @@
 
 (defclass xcb:randr:Notify
   (xcb:-event)
-  ((subCode :initarg :subCode :type xcb:CARD8)
+  ((~code :initform 1)
+   (subCode :initarg :subCode :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (u :initarg :u :type xcb:randr:NotifyData)))
 
 (defclass xcb:randr:MonitorInfo
@@ -1002,6 +1054,8 @@
 (defclass xcb:randr:GetMonitors~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
    (nMonitors :initarg :nMonitors :type xcb:CARD32)
    (nOutputs :initarg :nOutputs :type xcb:CARD32)

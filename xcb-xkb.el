@@ -616,7 +616,8 @@
 
 (defclass xcb:xkb:Keyboard
   (xcb:-error)
-  ((value :initarg :value :type xcb:CARD32)
+  ((~code :initform 0)
+   (value :initarg :value :type xcb:CARD32)
    (minorOpcode :initarg :minorOpcode :type xcb:CARD16)
    (majorOpcode :initarg :majorOpcode :type xcb:CARD8)
    (pad~0 :initform 21 :type xcb:-pad)))
@@ -895,6 +896,8 @@
 (defclass xcb:xkb:UseExtension~reply
   (xcb:-reply)
   ((supported :initarg :supported :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (serverMajor :initarg :serverMajor :type xcb:CARD16)
    (serverMinor :initarg :serverMinor :type xcb:CARD16)
    (pad~0 :initform 20 :type xcb:-pad)))
@@ -977,6 +980,8 @@
 (defclass xcb:xkb:GetState~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (mods :initarg :mods :type xcb:CARD8)
    (baseMods :initarg :baseMods :type xcb:CARD8)
    (latchedMods :initarg :latchedMods :type xcb:CARD8)
@@ -1016,6 +1021,8 @@
 (defclass xcb:xkb:GetControls~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (mouseKeysDfltBtn :initarg :mouseKeysDfltBtn :type xcb:CARD8)
    (numGroups :initarg :numGroups :type xcb:CARD8)
    (groupsWrap :initarg :groupsWrap :type xcb:CARD8)
@@ -1111,6 +1118,8 @@
 (defclass xcb:xkb:GetMap~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~0 :initform 2 :type xcb:-pad)
    (minKeyCode :initarg :minKeyCode :type xcb:KEYCODE)
    (maxKeyCode :initarg :maxKeyCode :type xcb:KEYCODE)
@@ -1304,6 +1313,8 @@
 (defclass xcb:xkb:GetCompatMap~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (groupsRtrn :initarg :groupsRtrn :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)
    (firstSIRtrn :initarg :firstSIRtrn :type xcb:CARD16)
@@ -1355,6 +1366,8 @@
 (defclass xcb:xkb:GetIndicatorState~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (state :initarg :state :type xcb:CARD32)
    (pad~0 :initform 20 :type xcb:-pad)))
 
@@ -1367,6 +1380,8 @@
 (defclass xcb:xkb:GetIndicatorMap~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (which :initarg :which :type xcb:CARD32)
    (realIndicators :initarg :realIndicators :type xcb:CARD32)
    (nIndicators :initarg :nIndicators :type xcb:CARD8)
@@ -1402,6 +1417,8 @@
 (defclass xcb:xkb:GetNamedIndicator~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (indicator :initarg :indicator :type xcb:ATOM)
    (found :initarg :found :type xcb:BOOL)
    (on :initarg :on :type xcb:BOOL)
@@ -1448,6 +1465,8 @@
 (defclass xcb:xkb:GetNames~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (which :initarg :which :type xcb:CARD32)
    (minKeyCode :initarg :minKeyCode :type xcb:KEYCODE)
    (maxKeyCode :initarg :maxKeyCode :type xcb:KEYCODE)
@@ -1644,6 +1663,8 @@
 (defclass xcb:xkb:PerClientFlags~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (supported :initarg :supported :type xcb:CARD32)
    (value :initarg :value :type xcb:CARD32)
    (autoCtrls :initarg :autoCtrls :type xcb:CARD32)
@@ -1658,6 +1679,8 @@
 (defclass xcb:xkb:ListComponents~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (nKeymaps :initarg :nKeymaps :type xcb:CARD16)
    (nKeycodes :initarg :nKeycodes :type xcb:CARD16)
    (nTypes :initarg :nTypes :type xcb:CARD16)
@@ -1720,6 +1743,8 @@
 (defclass xcb:xkb:GetKbdByName~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (minKeyCode :initarg :minKeyCode :type xcb:KEYCODE)
    (maxKeyCode :initarg :maxKeyCode :type xcb:KEYCODE)
    (loaded :initarg :loaded :type xcb:BOOL)
@@ -1996,6 +2021,8 @@
 (defclass xcb:xkb:GetDeviceInfo~reply
   (xcb:-reply)
   ((deviceID :initarg :deviceID :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (present :initarg :present :type xcb:CARD16)
    (supported :initarg :supported :type xcb:CARD16)
    (unsupported :initarg :unsupported :type xcb:CARD16)
@@ -2066,6 +2093,8 @@
 (defclass xcb:xkb:SetDebuggingFlags~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (currentFlags :initarg :currentFlags :type xcb:CARD32)
    (currentCtrls :initarg :currentCtrls :type xcb:CARD32)
    (supportedFlags :initarg :supportedFlags :type xcb:CARD32)
@@ -2074,7 +2103,9 @@
 
 (defclass xcb:xkb:NewKeyboardNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 0)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (oldDeviceID :initarg :oldDeviceID :type xcb:CARD8)
@@ -2089,7 +2120,9 @@
 
 (defclass xcb:xkb:MapNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 1)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (ptrBtnActions :initarg :ptrBtnActions :type xcb:CARD8)
@@ -2115,7 +2148,9 @@
 
 (defclass xcb:xkb:StateNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 2)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (mods :initarg :mods :type xcb:CARD8)
@@ -2140,7 +2175,9 @@
 
 (defclass xcb:xkb:ControlsNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 3)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (numGroups :initarg :numGroups :type xcb:CARD8)
@@ -2156,7 +2193,9 @@
 
 (defclass xcb:xkb:IndicatorStateNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 4)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (pad~0 :initform 3 :type xcb:-pad)
@@ -2166,7 +2205,9 @@
 
 (defclass xcb:xkb:IndicatorMapNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 5)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (pad~0 :initform 3 :type xcb:-pad)
@@ -2176,7 +2217,9 @@
 
 (defclass xcb:xkb:NamesNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 6)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)
@@ -2197,7 +2240,9 @@
 
 (defclass xcb:xkb:CompatMapNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 7)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (changedGroups :initarg :changedGroups :type xcb:CARD8)
@@ -2208,7 +2253,9 @@
 
 (defclass xcb:xkb:BellNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 8)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (bellClass :initarg :bellClass :type xcb:CARD8)
@@ -2223,7 +2270,9 @@
 
 (defclass xcb:xkb:ActionMessage
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 9)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (keycode :initarg :keycode :type xcb:KEYCODE)
@@ -2239,7 +2288,9 @@
 
 (defclass xcb:xkb:AccessXNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 10)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (keycode :initarg :keycode :type xcb:KEYCODE)
@@ -2250,7 +2301,9 @@
 
 (defclass xcb:xkb:ExtensionDeviceNotify
   (xcb:-event)
-  ((xkbType :initarg :xkbType :type xcb:CARD8)
+  ((~code :initform 11)
+   (xkbType :initarg :xkbType :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (deviceID :initarg :deviceID :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)

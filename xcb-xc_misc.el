@@ -39,6 +39,8 @@
 (defclass xcb:xc_misc:GetVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major-version :initarg :server-major-version :type xcb:CARD16)
    (server-minor-version :initarg :server-minor-version :type xcb:CARD16)))
 
@@ -48,6 +50,8 @@
 (defclass xcb:xc_misc:GetXIDRange~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (start-id :initarg :start-id :type xcb:CARD32)
    (count :initarg :count :type xcb:CARD32)))
 
@@ -58,6 +62,8 @@
 (defclass xcb:xc_misc:GetXIDList~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ids-len :initarg :ids-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (ids :initarg :ids :type xcb:-ignore)

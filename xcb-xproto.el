@@ -294,7 +294,9 @@
 
 (defclass xcb:KeyPress
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:KEYCODE)
+  ((~code :initform 2)
+   (detail :initarg :detail :type xcb:KEYCODE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
@@ -309,7 +311,7 @@
 
 (defclass xcb:KeyRelease
   (xcb:-event xcb:KeyPress)
-  nil)
+  ((~code :initform 3)))
 
 (defconst xcb:ButtonMask:1 256)
 (defconst xcb:ButtonMask:2 512)
@@ -320,7 +322,9 @@
 
 (defclass xcb:ButtonPress
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BUTTON)
+  ((~code :initform 4)
+   (detail :initarg :detail :type xcb:BUTTON)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
@@ -335,14 +339,16 @@
 
 (defclass xcb:ButtonRelease
   (xcb:-event xcb:ButtonPress)
-  nil)
+  ((~code :initform 5)))
 
 (defconst xcb:Motion:Normal 0)
 (defconst xcb:Motion:Hint 1)
 
 (defclass xcb:MotionNotify
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BYTE)
+  ((~code :initform 6)
+   (detail :initarg :detail :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
@@ -371,7 +377,9 @@
 
 (defclass xcb:EnterNotify
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BYTE)
+  ((~code :initform 7)
+   (detail :initarg :detail :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (root :initarg :root :type xcb:WINDOW)
    (event :initarg :event :type xcb:WINDOW)
@@ -386,29 +394,34 @@
 
 (defclass xcb:LeaveNotify
   (xcb:-event xcb:EnterNotify)
-  nil)
+  ((~code :initform 8)))
 
 (defclass xcb:FocusIn
   (xcb:-event)
-  ((detail :initarg :detail :type xcb:BYTE)
+  ((~code :initform 9)
+   (detail :initarg :detail :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (mode :initarg :mode :type xcb:BYTE)
    (pad~0 :initform 3 :type xcb:-pad)))
 
 (defclass xcb:FocusOut
   (xcb:-event xcb:FocusIn)
-  nil)
+  ((~code :initform 10)))
 
 (defclass xcb:KeymapNotify
   (xcb:-event)
-  ((keys :initarg :keys :type xcb:-ignore)
+  ((~code :initform 11)
+   (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 31)
 	  :type xcb:-list)))
 
 (defclass xcb:Expose
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 12)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (x :initarg :x :type xcb:CARD16)
    (y :initarg :y :type xcb:CARD16)
@@ -419,7 +432,9 @@
 
 (defclass xcb:GraphicsExposure
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 13)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (x :initarg :x :type xcb:CARD16)
    (y :initarg :y :type xcb:CARD16)
@@ -432,7 +447,9 @@
 
 (defclass xcb:NoExposure
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 14)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)
@@ -444,14 +461,18 @@
 
 (defclass xcb:VisibilityNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 15)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (state :initarg :state :type xcb:BYTE)
    (pad~1 :initform 3 :type xcb:-pad)))
 
 (defclass xcb:CreateNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 16)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (parent :initarg :parent :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (x :initarg :x :type xcb:INT16)
@@ -464,13 +485,17 @@
 
 (defclass xcb:DestroyNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 17)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)))
 
 (defclass xcb:UnmapNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 18)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (from-configure :initarg :from-configure :type xcb:BOOL)
@@ -478,7 +503,9 @@
 
 (defclass xcb:MapNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 19)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (override-redirect :initarg :override-redirect :type xcb:BOOL)
@@ -486,13 +513,17 @@
 
 (defclass xcb:MapRequest
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 20)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (parent :initarg :parent :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)))
 
 (defclass xcb:ReparentNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 21)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (parent :initarg :parent :type xcb:WINDOW)
@@ -503,7 +534,9 @@
 
 (defclass xcb:ConfigureNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 22)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (above-sibling :initarg :above-sibling :type xcb:WINDOW)
@@ -517,7 +550,9 @@
 
 (defclass xcb:ConfigureRequest
   (xcb:-event)
-  ((stack-mode :initarg :stack-mode :type xcb:BYTE)
+  ((~code :initform 23)
+   (stack-mode :initarg :stack-mode :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
    (parent :initarg :parent :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (sibling :initarg :sibling :type xcb:WINDOW)
@@ -530,7 +565,9 @@
 
 (defclass xcb:GravityNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 24)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (x :initarg :x :type xcb:INT16)
@@ -538,7 +575,9 @@
 
 (defclass xcb:ResizeRequest
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 25)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)))
@@ -548,7 +587,9 @@
 
 (defclass xcb:CirculateNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 26)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event :initarg :event :type xcb:WINDOW)
    (window :initarg :window :type xcb:WINDOW)
    (pad~1 :initform 4 :type xcb:-pad)
@@ -557,14 +598,16 @@
 
 (defclass xcb:CirculateRequest
   (xcb:-event xcb:CirculateNotify)
-  nil)
+  ((~code :initform 27)))
 
 (defconst xcb:Property:NewValue 0)
 (defconst xcb:Property:Delete 1)
 
 (defclass xcb:PropertyNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 28)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (atom :initarg :atom :type xcb:ATOM)
    (time :initarg :time :type xcb:TIMESTAMP)
@@ -573,7 +616,9 @@
 
 (defclass xcb:SelectionClear
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 29)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (owner :initarg :owner :type xcb:WINDOW)
    (selection :initarg :selection :type xcb:ATOM)))
@@ -653,7 +698,9 @@
 
 (defclass xcb:SelectionRequest
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 30)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (owner :initarg :owner :type xcb:WINDOW)
    (requestor :initarg :requestor :type xcb:WINDOW)
@@ -663,7 +710,9 @@
 
 (defclass xcb:SelectionNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 31)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (time :initarg :time :type xcb:TIMESTAMP)
    (requestor :initarg :requestor :type xcb:WINDOW)
    (selection :initarg :selection :type xcb:ATOM)
@@ -677,7 +726,9 @@
 
 (defclass xcb:ColormapNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 32)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (colormap :initarg :colormap :type xcb:COLORMAP)
    (new :initarg :new :type xcb:BOOL)
@@ -702,7 +753,9 @@
 
 (defclass xcb:ClientMessage
   (xcb:-event)
-  ((format :initarg :format :type xcb:CARD8)
+  ((~code :initform 33)
+   (format :initarg :format :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (type :initarg :type :type xcb:ATOM)
    (data :initarg :data :type xcb:ClientMessageData)))
@@ -713,92 +766,93 @@
 
 (defclass xcb:MappingNotify
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 34)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (request :initarg :request :type xcb:BYTE)
    (first-keycode :initarg :first-keycode :type xcb:KEYCODE)
    (count :initarg :count :type xcb:CARD8)
    (pad~1 :initform 1 :type xcb:-pad)))
 
 (defclass xcb:GeGeneric
-  (xcb:-event)
-  ((extension :type xcb:CARD8)
-   (length :type xcb:CARD32)
-   (evtype :type xcb:CARD16)
-   (pad~0 :initform 22 :type xcb:-pad)))
+  (xcb:-generic-event)
+  ((pad~0 :initform 22 :type xcb:-pad)))
 
 (defclass xcb:Request
   (xcb:-error)
-  ((bad-value :initarg :bad-value :type xcb:CARD32)
+  ((~code :initform 1)
+   (bad-value :initarg :bad-value :type xcb:CARD32)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)))
 
 (defclass xcb:Value
   (xcb:-error)
-  ((bad-value :initarg :bad-value :type xcb:CARD32)
+  ((~code :initform 2)
+   (bad-value :initarg :bad-value :type xcb:CARD32)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)))
 
 (defclass xcb:Window
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 3)))
 
 (defclass xcb:Pixmap
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 4)))
 
 (defclass xcb:Atom
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 5)))
 
 (defclass xcb:Cursor
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 6)))
 
 (defclass xcb:Font
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 7)))
 
 (defclass xcb:Match
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 8)))
 
 (defclass xcb:Drawable
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 9)))
 
 (defclass xcb:Access
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 10)))
 
 (defclass xcb:Alloc
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 11)))
 
 (defclass xcb:Colormap
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 12)))
 
 (defclass xcb:GContext
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 13)))
 
 (defclass xcb:IDChoice
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 14)))
 
 (defclass xcb:Name
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 15)))
 
 (defclass xcb:Length
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 16)))
 
 (defclass xcb:Implementation
   (xcb:-error xcb:Request)
-  nil)
+  ((~code :initform 17)))
 
 (defconst xcb:WindowClass:CopyFromParent 0)
 (defconst xcb:WindowClass:InputOutput 1)
@@ -940,6 +994,8 @@
 (defclass xcb:GetWindowAttributes~reply
   (xcb:-reply)
   ((backing-store :initarg :backing-store :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (visual :initarg :visual :type xcb:VISUALID)
    (class :initarg :class :type xcb:CARD16)
    (bit-gravity :initarg :bit-gravity :type xcb:CARD8)
@@ -1068,6 +1124,8 @@
 (defclass xcb:GetGeometry~reply
   (xcb:-reply)
   ((depth :initarg :depth :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
@@ -1084,6 +1142,8 @@
 (defclass xcb:QueryTree~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (parent :initarg :parent :type xcb:WINDOW)
    (children-len :initarg :children-len :type xcb:CARD16)
@@ -1108,6 +1168,8 @@
 (defclass xcb:InternAtom~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (atom :initarg :atom :type xcb:ATOM)))
 
 (defclass xcb:GetAtomName
@@ -1118,6 +1180,8 @@
 (defclass xcb:GetAtomName~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (name :initarg :name :type xcb:-ignore)
@@ -1171,6 +1235,8 @@
 (defclass xcb:GetProperty~reply
   (xcb:-reply)
   ((format :initarg :format :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (type :initarg :type :type xcb:ATOM)
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (value-len :initarg :value-len :type xcb:CARD32)
@@ -1193,6 +1259,8 @@
 (defclass xcb:ListProperties~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (atoms-len :initarg :atoms-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (atoms :initarg :atoms :type xcb:-ignore)
@@ -1217,6 +1285,8 @@
 (defclass xcb:GetSelectionOwner~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (owner :initarg :owner :type xcb:WINDOW)))
 
 (defclass xcb:ConvertSelection
@@ -1267,7 +1337,9 @@
    (time :initarg :time :type xcb:TIMESTAMP)))
 (defclass xcb:GrabPointer~reply
   (xcb:-reply)
-  ((status :initarg :status :type xcb:BYTE)))
+  ((status :initarg :status :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:UngrabPointer
   (xcb:-request)
@@ -1324,7 +1396,9 @@
    (pad~0 :initform 2 :type xcb:-pad)))
 (defclass xcb:GrabKeyboard~reply
   (xcb:-reply)
-  ((status :initarg :status :type xcb:BYTE)))
+  ((status :initarg :status :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:UngrabKeyboard
   (xcb:-request)
@@ -1384,6 +1458,8 @@
 (defclass xcb:QueryPointer~reply
   (xcb:-reply)
   ((same-screen :initarg :same-screen :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (root :initarg :root :type xcb:WINDOW)
    (child :initarg :child :type xcb:WINDOW)
    (root-x :initarg :root-x :type xcb:INT16)
@@ -1409,6 +1485,8 @@
 (defclass xcb:GetMotionEvents~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (events-len :initarg :events-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (events :initarg :events :type xcb:-ignore)
@@ -1428,6 +1506,8 @@
 (defclass xcb:TranslateCoordinates~reply
   (xcb:-reply)
   ((same-screen :initarg :same-screen :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (child :initarg :child :type xcb:WINDOW)
    (dst-x :initarg :dst-x :type xcb:INT16)
    (dst-y :initarg :dst-y :type xcb:INT16)))
@@ -1463,6 +1543,8 @@
 (defclass xcb:GetInputFocus~reply
   (xcb:-reply)
   ((revert-to :initarg :revert-to :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (focus :initarg :focus :type xcb:WINDOW)))
 
 (defclass xcb:QueryKeymap
@@ -1471,6 +1553,8 @@
 (defclass xcb:QueryKeymap~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 32)
@@ -1520,6 +1604,8 @@
 (defclass xcb:QueryFont~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (min-bounds :initarg :min-bounds :type xcb:CHARINFO)
    (pad~1 :initform 4 :type xcb:-pad)
    (max-bounds :initarg :max-bounds :type xcb:CHARINFO)
@@ -1569,6 +1655,8 @@
 (defclass xcb:QueryTextExtents~reply
   (xcb:-reply)
   ((draw-direction :initarg :draw-direction :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (font-ascent :initarg :font-ascent :type xcb:INT16)
    (font-descent :initarg :font-descent :type xcb:INT16)
    (overall-ascent :initarg :overall-ascent :type xcb:INT16)
@@ -1600,6 +1688,8 @@
 (defclass xcb:ListFonts~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (names-len :initarg :names-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (names :initarg :names :type xcb:-ignore)
@@ -1622,6 +1712,8 @@
 (defclass xcb:ListFontsWithInfo~reply
   (xcb:-reply)
   ((name-len :initarg :name-len :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (min-bounds :initarg :min-bounds :type xcb:CHARINFO)
    (pad~0 :initform 4 :type xcb:-pad)
    (max-bounds :initarg :max-bounds :type xcb:CHARINFO)
@@ -1667,6 +1759,8 @@
 (defclass xcb:GetFontPath~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (path-len :initarg :path-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (path :initarg :path :type xcb:-ignore)
@@ -2098,6 +2192,8 @@
 (defclass xcb:GetImage~reply
   (xcb:-reply)
   ((depth :initarg :depth :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (visual :initarg :visual :type xcb:VISUALID)
    (pad~0 :initform 20 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
@@ -2206,6 +2302,8 @@
 (defclass xcb:ListInstalledColormaps~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (cmaps-len :initarg :cmaps-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (cmaps :initarg :cmaps :type xcb:-ignore)
@@ -2226,6 +2324,8 @@
 (defclass xcb:AllocColor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (red :initarg :red :type xcb:CARD16)
    (green :initarg :green :type xcb:CARD16)
    (blue :initarg :blue :type xcb:CARD16)
@@ -2247,6 +2347,8 @@
 (defclass xcb:AllocNamedColor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pixel :initarg :pixel :type xcb:CARD32)
    (exact-red :initarg :exact-red :type xcb:CARD16)
    (exact-green :initarg :exact-green :type xcb:CARD16)
@@ -2265,6 +2367,8 @@
 (defclass xcb:AllocColorCells~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pixels-len :initarg :pixels-len :type xcb:CARD16)
    (masks-len :initarg :masks-len :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)
@@ -2292,6 +2396,8 @@
 (defclass xcb:AllocColorPlanes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pixels-len :initarg :pixels-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
    (red-mask :initarg :red-mask :type xcb:CARD32)
@@ -2371,6 +2477,8 @@
 (defclass xcb:QueryColors~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (colors-len :initarg :colors-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
    (colors :initarg :colors :type xcb:-ignore)
@@ -2394,6 +2502,8 @@
 (defclass xcb:LookupColor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (exact-red :initarg :exact-red :type xcb:CARD16)
    (exact-green :initarg :exact-green :type xcb:CARD16)
    (exact-blue :initarg :exact-blue :type xcb:CARD16)
@@ -2469,6 +2579,8 @@
 (defclass xcb:QueryBestSize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)))
 
@@ -2486,6 +2598,8 @@
 (defclass xcb:QueryExtension~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (present :initarg :present :type xcb:BOOL)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)
    (first-event :initarg :first-event :type xcb:CARD8)
@@ -2497,6 +2611,8 @@
 (defclass xcb:ListExtensions~reply
   (xcb:-reply)
   ((names-len :initarg :names-len :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
    (names :initarg :names :type xcb:-ignore)
    (names~ :initform
@@ -2528,6 +2644,8 @@
 (defclass xcb:GetKeyboardMapping~reply
   (xcb:-reply)
   ((keysyms-per-keycode :initarg :keysyms-per-keycode :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
    (keysyms :initarg :keysyms :type xcb:-ignore)
    (keysyms~ :initform
@@ -2584,6 +2702,8 @@
 (defclass xcb:GetKeyboardControl~reply
   (xcb:-reply)
   ((global-auto-repeat :initarg :global-auto-repeat :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (led-mask :initarg :led-mask :type xcb:CARD32)
    (key-click-percent :initarg :key-click-percent :type xcb:CARD8)
    (bell-percent :initarg :bell-percent :type xcb:CARD8)
@@ -2616,6 +2736,8 @@
 (defclass xcb:GetPointerControl~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (acceleration-numerator :initarg :acceleration-numerator :type xcb:CARD16)
    (acceleration-denominator :initarg :acceleration-denominator :type xcb:CARD16)
    (threshold :initarg :threshold :type xcb:CARD16)
@@ -2644,6 +2766,8 @@
 (defclass xcb:GetScreenSaver~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (timeout :initarg :timeout :type xcb:CARD16)
    (interval :initarg :interval :type xcb:CARD16)
    (prefer-blanking :initarg :prefer-blanking :type xcb:BYTE)
@@ -2690,6 +2814,8 @@
 (defclass xcb:ListHosts~reply
   (xcb:-reply)
   ((mode :initarg :mode :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (hosts-len :initarg :hosts-len :type xcb:CARD16)
    (pad~0 :initform 22 :type xcb:-pad)
    (hosts :initarg :hosts :type xcb:-ignore)
@@ -2759,7 +2885,9 @@
 	 :type xcb:-list)))
 (defclass xcb:SetPointerMapping~reply
   (xcb:-reply)
-  ((status :initarg :status :type xcb:BYTE)))
+  ((status :initarg :status :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:GetPointerMapping
   (xcb:-request)
@@ -2767,6 +2895,8 @@
 (defclass xcb:GetPointerMapping~reply
   (xcb:-reply)
   ((map-len :initarg :map-len :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
    (map :initarg :map :type xcb:-ignore)
    (map~ :initform
@@ -2796,7 +2926,9 @@
 	      :type xcb:-list)))
 (defclass xcb:SetModifierMapping~reply
   (xcb:-reply)
-  ((status :initarg :status :type xcb:BYTE)))
+  ((status :initarg :status :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:GetModifierMapping
   (xcb:-request)
@@ -2804,6 +2936,8 @@
 (defclass xcb:GetModifierMapping~reply
   (xcb:-reply)
   ((keycodes-per-modifier :initarg :keycodes-per-modifier :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
    (keycodes :initarg :keycodes :type xcb:-ignore)
    (keycodes~ :initform

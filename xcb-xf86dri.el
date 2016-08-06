@@ -44,6 +44,8 @@
 (defclass xcb:xf86dri:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (dri-major-version :initarg :dri-major-version :type xcb:CARD16)
    (dri-minor-version :initarg :dri-minor-version :type xcb:CARD16)
    (dri-minor-patch :initarg :dri-minor-patch :type xcb:CARD32)))
@@ -55,6 +57,8 @@
 (defclass xcb:xf86dri:QueryDirectRenderingCapable~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (is-capable :initarg :is-capable :type xcb:BOOL)))
 
 (defclass xcb:xf86dri:OpenConnection
@@ -64,6 +68,8 @@
 (defclass xcb:xf86dri:OpenConnection~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (sarea-handle-low :initarg :sarea-handle-low :type xcb:CARD32)
    (sarea-handle-high :initarg :sarea-handle-high :type xcb:CARD32)
    (bus-id-len :initarg :bus-id-len :type xcb:CARD32)
@@ -86,6 +92,8 @@
 (defclass xcb:xf86dri:GetClientDriverName~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (client-driver-major-version :initarg :client-driver-major-version :type xcb:CARD32)
    (client-driver-minor-version :initarg :client-driver-minor-version :type xcb:CARD32)
    (client-driver-patch-version :initarg :client-driver-patch-version :type xcb:CARD32)
@@ -106,6 +114,8 @@
 (defclass xcb:xf86dri:CreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (hw-context :initarg :hw-context :type xcb:CARD32)))
 
 (defclass xcb:xf86dri:DestroyContext
@@ -122,6 +132,8 @@
 (defclass xcb:xf86dri:CreateDrawable~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (hw-drawable-handle :initarg :hw-drawable-handle :type xcb:CARD32)))
 
 (defclass xcb:xf86dri:DestroyDrawable
@@ -138,6 +150,8 @@
 (defclass xcb:xf86dri:GetDrawableInfo~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (drawable-table-index :initarg :drawable-table-index :type xcb:CARD32)
    (drawable-table-stamp :initarg :drawable-table-stamp :type xcb:CARD32)
    (drawable-origin-X :initarg :drawable-origin-X :type xcb:INT16)
@@ -167,6 +181,8 @@
 (defclass xcb:xf86dri:GetDeviceInfo~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (framebuffer-handle-low :initarg :framebuffer-handle-low :type xcb:CARD32)
    (framebuffer-handle-high :initarg :framebuffer-handle-high :type xcb:CARD32)
    (framebuffer-origin-offset :initarg :framebuffer-origin-offset :type xcb:CARD32)
@@ -187,6 +203,8 @@
 (defclass xcb:xf86dri:AuthConnection~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (authenticated :initarg :authenticated :type xcb:CARD32)))
 
 

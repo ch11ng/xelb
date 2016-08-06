@@ -93,6 +93,8 @@
 (defclass xcb:res:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major :initarg :server-major :type xcb:CARD16)
    (server-minor :initarg :server-minor :type xcb:CARD16)))
 
@@ -102,6 +104,8 @@
 (defclass xcb:res:QueryClients~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-clients :initarg :num-clients :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (clients :initarg :clients :type xcb:-ignore)
@@ -117,6 +121,8 @@
 (defclass xcb:res:QueryClientResources~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-types :initarg :num-types :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (types :initarg :types :type xcb:-ignore)
@@ -132,6 +138,8 @@
 (defclass xcb:res:QueryClientPixmapBytes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (bytes :initarg :bytes :type xcb:CARD32)
    (bytes-overflow :initarg :bytes-overflow :type xcb:CARD32)))
 
@@ -147,6 +155,8 @@
 (defclass xcb:res:QueryClientIds~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-ids :initarg :num-ids :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (ids :initarg :ids :type xcb:-ignore)
@@ -168,6 +178,8 @@
 (defclass xcb:res:QueryResourceBytes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-sizes :initarg :num-sizes :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (sizes :initarg :sizes :type xcb:-ignore)

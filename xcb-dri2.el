@@ -73,6 +73,8 @@
 (defclass xcb:dri2:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)))
 
@@ -84,6 +86,8 @@
 (defclass xcb:dri2:Connect~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (driver-name-length :initarg :driver-name-length :type xcb:CARD32)
    (device-name-length :initarg :device-name-length :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
@@ -119,6 +123,8 @@
 (defclass xcb:dri2:Authenticate~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (authenticated :initarg :authenticated :type xcb:CARD32)))
 
 (defclass xcb:dri2:CreateDrawable
@@ -143,6 +149,8 @@
 (defclass xcb:dri2:GetBuffers~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD32)
    (height :initarg :height :type xcb:CARD32)
    (count :initarg :count :type xcb:CARD32)
@@ -162,7 +170,9 @@
    (src :initarg :src :type xcb:CARD32)))
 (defclass xcb:dri2:CopyRegion~reply
   (xcb:-reply)
-  ((pad~0 :initform 1 :type xcb:-pad)))
+  ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:dri2:GetBuffersWithFormat
   (xcb:-request)
@@ -176,6 +186,8 @@
 (defclass xcb:dri2:GetBuffersWithFormat~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD32)
    (height :initarg :height :type xcb:CARD32)
    (count :initarg :count :type xcb:CARD32)
@@ -199,6 +211,8 @@
 (defclass xcb:dri2:SwapBuffers~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (swap-hi :initarg :swap-hi :type xcb:CARD32)
    (swap-lo :initarg :swap-lo :type xcb:CARD32)))
 
@@ -209,6 +223,8 @@
 (defclass xcb:dri2:GetMSC~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ust-hi :initarg :ust-hi :type xcb:CARD32)
    (ust-lo :initarg :ust-lo :type xcb:CARD32)
    (msc-hi :initarg :msc-hi :type xcb:CARD32)
@@ -229,6 +245,8 @@
 (defclass xcb:dri2:WaitMSC~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ust-hi :initarg :ust-hi :type xcb:CARD32)
    (ust-lo :initarg :ust-lo :type xcb:CARD32)
    (msc-hi :initarg :msc-hi :type xcb:CARD32)
@@ -245,6 +263,8 @@
 (defclass xcb:dri2:WaitSBC~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ust-hi :initarg :ust-hi :type xcb:CARD32)
    (ust-lo :initarg :ust-lo :type xcb:CARD32)
    (msc-hi :initarg :msc-hi :type xcb:CARD32)
@@ -266,12 +286,16 @@
 (defclass xcb:dri2:GetParam~reply
   (xcb:-reply)
   ((is-param-recognized :initarg :is-param-recognized :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (value-hi :initarg :value-hi :type xcb:CARD32)
    (value-lo :initarg :value-lo :type xcb:CARD32)))
 
 (defclass xcb:dri2:BufferSwapComplete
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 0)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event-type :initarg :event-type :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
@@ -283,7 +307,9 @@
 
 (defclass xcb:dri2:InvalidateBuffers
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 1)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:DRAWABLE)))
 
 (defconst xcb:dri2:event-number-class-alist

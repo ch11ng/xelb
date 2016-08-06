@@ -41,6 +41,8 @@
 (defclass xcb:xselinux:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major :initarg :server-major :type xcb:CARD16)
    (server-minor :initarg :server-minor :type xcb:CARD16)))
 
@@ -60,6 +62,8 @@
 (defclass xcb:xselinux:GetDeviceCreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -86,6 +90,8 @@
 (defclass xcb:xselinux:GetDeviceContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -110,6 +116,8 @@
 (defclass xcb:xselinux:GetWindowCreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -125,6 +133,8 @@
 (defclass xcb:xselinux:GetWindowContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -167,6 +177,8 @@
 (defclass xcb:xselinux:GetPropertyCreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -191,6 +203,8 @@
 (defclass xcb:xselinux:GetPropertyUseContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -207,6 +221,8 @@
 (defclass xcb:xselinux:GetPropertyContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -223,6 +239,8 @@
 (defclass xcb:xselinux:GetPropertyDataContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -238,6 +256,8 @@
 (defclass xcb:xselinux:ListProperties~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (properties-len :initarg :properties-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (properties :initarg :properties :type xcb:-ignore)
@@ -262,6 +282,8 @@
 (defclass xcb:xselinux:GetSelectionCreateContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -286,6 +308,8 @@
 (defclass xcb:xselinux:GetSelectionUseContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -301,6 +325,8 @@
 (defclass xcb:xselinux:GetSelectionContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -316,6 +342,8 @@
 (defclass xcb:xselinux:GetSelectionDataContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)
@@ -330,6 +358,8 @@
 (defclass xcb:xselinux:ListSelections~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (selections-len :initarg :selections-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (selections :initarg :selections :type xcb:-ignore)
@@ -345,6 +375,8 @@
 (defclass xcb:xselinux:GetClientContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-len :initarg :context-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (context :initarg :context :type xcb:-ignore)

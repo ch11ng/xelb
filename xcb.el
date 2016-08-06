@@ -327,23 +327,43 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                (setq cache (substring cache reply-length))
                (setf (slot-value connection 'reply-sequence) sequence)))
             (x                          ;event
-             (xcb:-log "Event received: %s" (substring cache 0 32))
-             (let (synthetic listener)
+             (let (synthetic listener event-length)
                (when (/= 0 (logand x #x80)) ;synthetic event
                  (setq synthetic t
                        x (logand x #x7f))) ;low 7 bits is the event number
-               (when (<= 64 x 127)
-                 ;; Extension event; add the second byte.
-                 (cl-incf x (aref cache 1)))
                (setq listener
                      (plist-get (slot-value connection 'event-plist) x))
+               (pcase listener
+                 (`xge
+                  (setq event-length (funcall (if xcb:lsb
+                                                  #'xcb:-unpack-u4-lsb
+                                                #'xcb:-unpack-u4)
+                                              cache 4))
+                  (when (< (length cache) event-length)
+                    ;; Too short.
+                    (throw 'break nil))
+                  (setq listener
+                        (lax-plist-get (slot-value connection 'event-plist)
+                                       (vector (aref cache 1)
+                                               (funcall
+                                                (if xcb:lsb
+                                                    #'xcb:-unpack-u2-lsb
+                                                  #'xcb:-unpack-u2)
+                                                cache 8)))))
+                 (`xkb
+                  (setq listener
+                        (lax-plist-get (slot-value connection 'event-plist)
+                                       (vector (aref cache 1))))))
                (when listener
                  (with-slots (event-queue) connection
                    (setf event-queue (nconc event-queue
                                             `([,listener
                                                ,(substring cache 0 32)
-                                               ,synthetic]))))))
-             (setq cache (substring cache 32))))))
+                                               ,synthetic])))))
+               (unless event-length
+                 (setq event-length 32))
+               (xcb:-log "Event received: %s" (substring cache 0 event-length))
+               (setq cache (substring cache event-length)))))))
       (setf (slot-value connection 'lock) nil))
     (unless (slot-value connection 'lock)
       (with-slots (message-cache) connection
@@ -391,15 +411,26 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
   (slot-value (xcb:get-setup obj) 'maximum-request-length))
 
 (cl-defmethod xcb:+event ((obj xcb:connection) event listener)
-  "attach EVENT LISTENER
+  "Attach function LISTENER to event EVENT.
 
 Note that event listeners attached this way are shared with the super- and sub-
 classes of EVENT (since they have the same event number)."
   (let* ((event-number (xcb:-error-or-event-class->number obj event))
          (plist (slot-value obj 'event-plist))
-         (listeners (plist-get plist event-number)))
+         key listeners)
+    (when (consp event-number)
+      (setq key (car event-number)
+            event-number (cdr event-number)
+            listeners (plist-get plist key))
+      ;; Add a placeholder.
+      (setf (slot-value obj 'event-plist)
+            (plist-put plist key
+                       (if (child-of-class-p event 'xcb:-generic-event)
+                           'xge 'xkb))))
+    (setq listeners (lax-plist-get plist event-number))
     (setf (slot-value obj 'event-plist)
-          (plist-put plist event-number (append listeners (list listener))))))
+          (lax-plist-put plist event-number (append listeners
+                                                    (list listener))))))
 
 (cl-defmethod xcb:flush ((obj xcb:connection))
   "Flush request data to X server."
@@ -588,14 +619,12 @@ Otherwise no error will ever be reported."
       (if multiple
           ;; Multiple replies
           (dolist (i (cdr reply-data))
-            (setq reply (make-instance class-name
-                                       :length (/ (- (length i) 32) 4)))
+            (setq reply (make-instance class-name))
             (xcb:unmarshal reply i)
             (setq replies (nconc replies (list reply))))
         ;; Single reply
         (setq reply-data (cadr reply-data)
-              replies (make-instance class-name
-                                     :length (/ (- (length reply-data) 32) 4)))
+              replies (make-instance class-name))
         (xcb:unmarshal replies reply-data)))
     (setq errors
           (mapcar (lambda (i)
@@ -695,32 +724,69 @@ Sync by sending a GetInputFocus request and waiting until it's processed."
     (cl-decf (slot-value obj 'event-lock))))
 
 (cl-defmethod xcb:-error-or-event-class->number ((obj xcb:connection) class)
-  "Return the error/event number of a error/event class CLASS."
+  "Return the error/event number of a error/event class CLASS.
+
+If CLASS is a generic event, return (XGE-CODE . [EXTENSION EVTYPE]);
+Or if it's an XKB event, return (XKB-EVENT-CODE [XKB-CODE])."
   (unless (symbolp class) (setq class (eieio-class-name class)))
-  (let* ((is-error (child-of-class-p class 'xcb:-error))
-         (prefix (replace-regexp-in-string ":[^:]+$" ":" (symbol-name class)))
-         (first (when (string= prefix "xcb:") 0))
-         (alist (intern-soft (concat prefix (if is-error
-                                                "error-number-class-alist"
-                                              "event-number-class-alist"))))
-         result parents)
-    (unless first
-      (setq first (cdr (assoc (intern (substring prefix 0 -1))
-                              (slot-value obj
-                                          (if is-error
-                                              'extension-first-error-alist
-                                            'extension-first-event-alist))))))
-    (when alist
-      (setq result (+ (or first 0) (car (rassoc class (symbol-value alist))))))
-    (if result
-        result
+  (let ((prefix (replace-regexp-in-string ":[^:]+$" ":" (symbol-name class)))
+        first-code alist result parents)
+    (cond
+     ((child-of-class-p class 'xcb:-error)
+      ;; Error.
+      (if (string= prefix "xcb:")
+          (setq first-code 0
+                alist xcb:error-number-class-alist)
+        (setq first-code
+              (cdr (assq (intern (substring prefix 0 -1))
+                         (slot-value obj
+                                     'extension-first-error-alist)))
+              alist (symbol-value
+                     (intern-soft (concat prefix
+                                          "error-number-class-alist")))))
+      (setq result (car (rassq class alist)))
+      (when result
+        (setq result (+ first-code result))))
+     ((child-of-class-p class 'xcb:-generic-event)
+      ;; Generic event.
+      (setq alist (symbol-value
+                   (intern-soft (concat prefix "xge-number-class-alist")))
+            result (plist-get (slot-value obj 'extension-opcode-plist) class))
+      ;; Ensure the extension has been initialized.
+      (when result
+        (setq result `(35 . [,result ,(cdr (rassq class alist))]))))
+     ((string= prefix "xcb:xkb:")
+      ;; XKB event.
+      (eval-and-compile (require 'xcb-xkb))
+      ;; XKB uses a single event code for all events.
+      (setq result (cdr (assq 'xcb:xkb
+                              (slot-value obj 'extension-first-event-alist))))
+      ;; Ensure the XKB extension has been initialized.
+      (when result
+        (setq alist xcb:xkb:event-number-class-alist
+              result `(,result . [,(car (rassq class alist))]))))
+     (t
+      ;; Other event.
+      (if (string= prefix "xcb:")
+          (setq first-code 0
+                alist xcb:event-number-class-alist)
+        (setq first-code
+              (cdr (assq (intern (substring prefix 0 -1))
+                         (slot-value obj 'extension-first-event-alist)))
+              alist (symbol-value
+                     (intern-soft (concat prefix
+                                          "event-number-class-alist")))))
+      (setq result (car (rassq class alist)))
+      (when result
+        (setq result (+ first-code result)))))
+    (unless result
       ;; Fallback to use the error/event number of one superclass. Thus if the
       ;; error/event number of a subclass differs from that of its parent, it
       ;; must be explicitly pointed out.
       (setq parents (eieio-class-parents class))
       (while (and parents (not result))
-        (setq result (xcb:-error-or-event-class->number obj (pop parents))))
-      result)))
+        (setq result (xcb:-error-or-event-class->number obj (pop parents)))))
+    result))
 
 (cl-defmethod xcb:-event-number->class ((obj xcb:connection) number)
   "Return the event class that has the event number NUMBER.

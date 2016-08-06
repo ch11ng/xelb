@@ -48,6 +48,8 @@
 (defclass xcb:xinerama:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major :initarg :major :type xcb:CARD16)
    (minor :initarg :minor :type xcb:CARD16)))
 
@@ -58,6 +60,8 @@
 (defclass xcb:xinerama:GetState~reply
   (xcb:-reply)
   ((state :initarg :state :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (window :initarg :window :type xcb:WINDOW)))
 
 (defclass xcb:xinerama:GetScreenCount
@@ -67,6 +71,8 @@
 (defclass xcb:xinerama:GetScreenCount~reply
   (xcb:-reply)
   ((screen-count :initarg :screen-count :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (window :initarg :window :type xcb:WINDOW)))
 
 (defclass xcb:xinerama:GetScreenSize
@@ -77,6 +83,8 @@
 (defclass xcb:xinerama:GetScreenSize~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD32)
    (height :initarg :height :type xcb:CARD32)
    (window :initarg :window :type xcb:WINDOW)
@@ -88,6 +96,8 @@
 (defclass xcb:xinerama:IsActive~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (state :initarg :state :type xcb:CARD32)))
 
 (defclass xcb:xinerama:QueryScreens
@@ -96,6 +106,8 @@
 (defclass xcb:xinerama:QueryScreens~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (number :initarg :number :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (screen-info :initarg :screen-info :type xcb:-ignore)

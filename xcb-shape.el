@@ -49,7 +49,9 @@
 
 (defclass xcb:shape:Notify
   (xcb:-event)
-  ((shape-kind :initarg :shape-kind :type xcb:shape:KIND)
+  ((~code :initform 0)
+   (shape-kind :initarg :shape-kind :type xcb:shape:KIND)
+   (~sequence :type xcb:CARD16)
    (affected-window :initarg :affected-window :type xcb:WINDOW)
    (extents-x :initarg :extents-x :type xcb:INT16)
    (extents-y :initarg :extents-y :type xcb:INT16)
@@ -65,6 +67,8 @@
 (defclass xcb:shape:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)))
 
@@ -122,6 +126,8 @@
 (defclass xcb:shape:QueryExtents~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (bounding-shaped :initarg :bounding-shaped :type xcb:BOOL)
    (clip-shaped :initarg :clip-shaped :type xcb:BOOL)
    (pad~1 :initform 2 :type xcb:-pad)
@@ -147,7 +153,9 @@
    (destination-window :initarg :destination-window :type xcb:WINDOW)))
 (defclass xcb:shape:InputSelected~reply
   (xcb:-reply)
-  ((enabled :initarg :enabled :type xcb:BOOL)))
+  ((enabled :initarg :enabled :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:shape:GetRectangles
   (xcb:-request)
@@ -158,6 +166,8 @@
 (defclass xcb:shape:GetRectangles~reply
   (xcb:-reply)
   ((ordering :initarg :ordering :type xcb:BYTE)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (rectangles-len :initarg :rectangles-len :type xcb:CARD32)
    (pad~0 :initform 20 :type xcb:-pad)
    (rectangles :initarg :rectangles :type xcb:-ignore)

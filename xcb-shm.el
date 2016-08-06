@@ -37,7 +37,9 @@
 
 (defclass xcb:shm:Completion
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 0)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (minor-event :initarg :minor-event :type xcb:CARD16)
    (major-event :initarg :major-event :type xcb:BYTE)
@@ -47,7 +49,7 @@
 
 (defclass xcb:shm:BadSeg
   (xcb:-error xcb:Value)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:shm:QueryVersion
   (xcb:-request)
@@ -55,6 +57,8 @@
 (defclass xcb:shm:QueryVersion~reply
   (xcb:-reply)
   ((shared-pixmaps :initarg :shared-pixmaps :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)
    (uid :initarg :uid :type xcb:CARD16)
@@ -111,6 +115,8 @@
 (defclass xcb:shm:GetImage~reply
   (xcb:-reply)
   ((depth :initarg :depth :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (visual :initarg :visual :type xcb:VISUALID)
    (size :initarg :size :type xcb:CARD32)))
 
@@ -144,6 +150,8 @@
 (defclass xcb:shm:CreateSegment~reply
   (xcb:-reply)
   ((nfd :initarg :nfd :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (shm-fd :type xcb:-fd)
    (pad~0 :initform 24 :type xcb:-pad)))
 

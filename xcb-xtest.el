@@ -42,6 +42,8 @@
 (defclass xcb:xtest:GetVersion~reply
   (xcb:-reply)
   ((major-version :initarg :major-version :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD16)))
 
 (defconst xcb:xtest:Cursor:None 0)
@@ -54,7 +56,9 @@
    (cursor :initarg :cursor :type xcb:CURSOR)))
 (defclass xcb:xtest:CompareCursor~reply
   (xcb:-reply)
-  ((same :initarg :same :type xcb:BOOL)))
+  ((same :initarg :same :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:xtest:FakeInput
   (xcb:-request)

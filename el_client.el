@@ -53,22 +53,18 @@
   "Excluded replies for Emacs < 25 (they're too long to load/compile).")
 
 (defvar xelb-prefix "xcb:" "Namespace of this module.")
-(make-variable-buffer-local 'xelb-prefix)
 
 (defvar xelb-error-alist nil "Record X errors in this module.")
-(make-variable-buffer-local 'xelb-error-alist)
 
 (defvar xelb-event-alist nil "Record X events in this module.")
-(make-variable-buffer-local 'xelb-event-alist)
+
+(defvar xelb-xge-alist nil "Record X generic events in this module.")
 
 (defvar xelb-imports nil "Record imported libraries.")
-(make-variable-buffer-local 'xelb-imports)
 
 (defvar xelb-pad-count -1 "<pad> node counter.")
-(make-variable-buffer-local 'xelb-pad-count)
 
 (defvar xelb-request-fields nil "Fields in the current request.")
-(make-variable-buffer-local 'xelb-request-fields)
 
 ;;;; Helper functions
 
@@ -92,8 +88,8 @@
                                                                  type-name))))
             type
           (error "Undefined type :%s" type-name))
-      (if (setq type (or (intern-soft (concat "xcb:" type-name))
-                         (intern-soft (concat xelb-prefix type-name))))
+      (if (setq type (or (intern-soft (concat xelb-prefix type-name))
+                         (intern-soft (concat "xcb:" type-name))))
           ;; Defined by the core protocol or this extension.
           type
         (catch 'break
@@ -274,6 +270,11 @@ an `xelb-auto-padding' attribute."
          `(defconst ,(intern (concat xelb-prefix "event-number-class-alist"))
             ',xelb-event-alist "(event-number . event-class) alist"))
         (princ "\n"))
+      (when xelb-xge-alist
+        (pp
+         `(defconst ,(intern (concat xelb-prefix "xge-number-class-alist"))
+            ',xelb-xge-alist "(xge-number . event-class) alist"))
+        (princ "\n"))
       ;; Print footer
       (princ (format "\
 
@@ -355,7 +356,8 @@ an `xelb-auto-padding' attribute."
 (defun xelb-parse-typedef (node)
   "Parse <typedef>."
   (let* ((oldname (xelb-node-attr node 'oldname))
-         (oldname (or (intern-soft (concat "xcb:" oldname))
+         (oldname (or (intern-soft (concat xelb-prefix oldname))
+                      (intern-soft (concat "xcb:" oldname))
                       (intern (concat xelb-prefix oldname))))
          (newname (intern (concat xelb-prefix
                                   (xelb-node-attr node 'newname)))))
@@ -415,6 +417,10 @@ The `combine-adjacent' attribute is simply ignored."
             ;; The optional reply body
             ,(when reply-name
                (delq nil reply-contents)
+               ;; Insert slots for sequence number and reply length.
+               (setcdr reply-contents (append '((~sequence :type xcb:CARD16)
+                                                (length :type xcb:CARD32))
+                                              (cdr reply-contents)))
                `(defclass ,reply-name (xcb:-reply) ,reply-contents))
             ,(when (memq reply-name xelb-excluded-replies<25)
                ;; Bring back the original defination of `defclass'.
@@ -423,25 +429,28 @@ The `combine-adjacent' attribute is simply ignored."
                     (fset 'defclass (symbol-function 'xcb:-defclass)))))))))
 
 (defun xelb-parse-event (node)
-  "Parse <event>.
-
-The `no-sequence-number' is ignored here since it's only used for
-KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
+  "Parse <event>."
   (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
         (event-number (string-to-number (xelb-node-attr node 'number)))
+        (no-sequence-number (xelb-node-attr node 'no-sequence-number))
         (xge (xelb-node-attr node 'xge))
-        (contents (xelb-node-subnodes node t)))
+        (contents (xelb-node-subnodes node t))
+        xge-extension)
+    (setq xge-extension (and xge (not (eq name 'xcb:GeGeneric))))
     (setq contents
           (apply #'nconc (mapcar #'xelb-parse-structure-content contents)))
-    (when xge                           ;generic event
-      (setq contents
-            (append
-             '((extension :type xcb:CARD8)
-               (length :type xcb:CARD32)
-               (evtype :type xcb:CARD16))
-             contents)))
-    (setq xelb-event-alist (nconc xelb-event-alist `((,event-number . ,name))))
-    `((defclass ,name (xcb:-event) ,contents))))
+    (unless (or no-sequence-number xge)
+      (setcdr contents (append '((~sequence :type xcb:CARD16))
+                               (cdr contents))))
+    ;; Add the event code.
+    (unless (and xge (not xge-extension))
+      (push `(,(if xge '~evtype '~code) :initform ,event-number) contents))
+    (if xge-extension
+        (setq xelb-xge-alist
+              (nconc xelb-xge-alist `((,event-number . ,name))))
+      (setq xelb-event-alist
+            (nconc xelb-event-alist `((,event-number . ,name)))))
+    `((defclass ,name (,(if xge 'xcb:-generic-event 'xcb:-event)) ,contents))))
 
 (defun xelb-parse-error (node)
   "Parse <error>."
@@ -450,27 +459,40 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
         (contents (xelb-node-subnodes node t)))
     (setq xelb-error-alist (nconc xelb-error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error)
-        ,(apply #'nconc (mapcar #'xelb-parse-structure-content contents))))))
+        ,(append
+          ;; The error code.
+          `((~code :initform ,error-number))
+          ;; The contents.
+          (apply #'nconc (mapcar #'xelb-parse-structure-content contents)))))))
 
 (defun xelb-parse-eventcopy (node)
   "Parse <eventcopy>."
   (let* ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
          (refname (xelb-node-attr node 'ref))
-         (refname (or (intern-soft (concat "xcb:" refname))
+         (refname (or (intern-soft (concat xelb-prefix refname))
+                      (intern-soft (concat "xcb:" refname))
                       (intern (concat xelb-prefix refname))))
+         (xge (child-of-class-p refname 'xcb:-generic-event))
          (event-number (string-to-number (xelb-node-attr node 'number))))
-    (setq xelb-event-alist (nconc xelb-event-alist `((,event-number . ,name))))
-    `((defclass ,name (xcb:-event ,refname) nil)))) ;shadow the method of ref
+    (if xge
+        (setq xelb-xge-alist
+              (nconc xelb-xge-alist `((,event-number . ,name))))
+      (setq xelb-event-alist
+            (nconc xelb-event-alist `((,event-number . ,name)))))
+    `((defclass ,name (xcb:-event ,refname) ;Shadow the method of ref.
+        ((,(if xge '~evtype '~code) :initform ,event-number))))))
 
 (defun xelb-parse-errorcopy (node)
   "Parse <errorcopy>."
   (let* ((name (intern (concat xelb-prefix (xelb-node-attr node 'name))))
          (refname (xelb-node-attr node 'ref))
-         (refname (or (intern-soft (concat "xcb:" refname))
+         (refname (or (intern-soft (concat xelb-prefix refname))
+                      (intern-soft (concat "xcb:" refname))
                       (intern (concat xelb-prefix refname))))
          (error-number (string-to-number (xelb-node-attr node 'number))))
     (setq xelb-error-alist (nconc xelb-error-alist `((,error-number . ,name))))
-    `((defclass ,name (xcb:-error ,refname) nil)))) ;shadow the method of ref
+    `((defclass ,name (xcb:-error ,refname) ;Shadow the method of ref
+        ((~code :initform ,error-number))))))
 
 ;;;; XCB: structure contents
 
@@ -659,7 +681,8 @@ KeymapNotify event; instead, we handle this case in `xcb:unmarshal'."
   "Parse <enumref>."
   (let ((name (concat (xelb-node-attr node 'ref) ":"
                       (xelb-node-subnode node))))
-    (symbol-value (or (intern-soft (concat "xcb:" name))
+    (symbol-value (or (intern-soft (concat xelb-prefix name))
+                      (intern-soft (concat "xcb:" name))
                       (intern (concat xelb-prefix name))))))
 
 (defun xelb-parse-unop (node)

@@ -84,7 +84,8 @@
 
 (defclass xcb:record:BadContext
   (xcb:-error)
-  ((invalid-record :initarg :invalid-record :type xcb:CARD32)))
+  ((~code :initform 0)
+   (invalid-record :initarg :invalid-record :type xcb:CARD32)))
 
 (defclass xcb:record:QueryVersion
   (xcb:-request)
@@ -94,6 +95,8 @@
 (defclass xcb:record:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD16)
    (minor-version :initarg :minor-version :type xcb:CARD16)))
 
@@ -155,6 +158,8 @@
 (defclass xcb:record:GetContext~reply
   (xcb:-reply)
   ((enabled :initarg :enabled :type xcb:BOOL)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (element-header :initarg :element-header :type xcb:record:ElementHeader)
    (pad~0 :initform 3 :type xcb:-pad)
    (num-intercepted-clients :initarg :num-intercepted-clients :type xcb:CARD32)
@@ -172,6 +177,8 @@
 (defclass xcb:record:EnableContext~reply
   (xcb:-reply)
   ((category :initarg :category :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (element-header :initarg :element-header :type xcb:record:ElementHeader)
    (client-swapped :initarg :client-swapped :type xcb:BOOL)
    (pad~0 :initform 2 :type xcb:-pad)

@@ -45,6 +45,8 @@
 (defclass xcb:xfixes:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -77,7 +79,9 @@
 
 (defclass xcb:xfixes:SelectionNotify
   (xcb:-event)
-  ((subtype :initarg :subtype :type xcb:CARD8)
+  ((~code :initform 0)
+   (subtype :initarg :subtype :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (owner :initarg :owner :type xcb:WINDOW)
    (selection :initarg :selection :type xcb:ATOM)
@@ -98,7 +102,9 @@
 
 (defclass xcb:xfixes:CursorNotify
   (xcb:-event)
-  ((subtype :initarg :subtype :type xcb:CARD8)
+  ((~code :initform 1)
+   (subtype :initarg :subtype :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
    (window :initarg :window :type xcb:WINDOW)
    (cursor-serial :initarg :cursor-serial :type xcb:CARD32)
    (timestamp :initarg :timestamp :type xcb:TIMESTAMP)
@@ -117,6 +123,8 @@
 (defclass xcb:xfixes:GetCursorImage~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
    (width :initarg :width :type xcb:CARD16)
@@ -137,7 +145,7 @@
 
 (defclass xcb:xfixes:BadRegion
   (xcb:-error)
-  nil)
+  ((~code :initform 0)))
 
 (defconst xcb:xfixes:Region:None 0)
 
@@ -244,6 +252,8 @@
 (defclass xcb:xfixes:FetchRegion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (extents :initarg :extents :type xcb:RECTANGLE)
    (pad~1 :initform 16 :type xcb:-pad)
    (rectangles :initarg :rectangles :type xcb:-ignore)
@@ -299,6 +309,8 @@
 (defclass xcb:xfixes:GetCursorName~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (atom :initarg :atom :type xcb:ATOM)
    (nbytes :initarg :nbytes :type xcb:CARD16)
    (pad~1 :initform 18 :type xcb:-pad)
@@ -314,6 +326,8 @@
 (defclass xcb:xfixes:GetCursorImageAndName~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
    (width :initarg :width :type xcb:CARD16)

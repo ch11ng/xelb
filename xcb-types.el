@@ -690,17 +690,11 @@ and the second the consumed length."
   :documentation "X request type.")
 
 (defclass xcb:-reply (xcb:-struct)
-  ((length :initarg :length ;reply length, used in e.g. GetKeyboardMapping
-           :type xcb:-ignore))
+  ((~reply :initform 1 :type xcb:-u1))
   :documentation "X reply type.")
-;;
-(cl-defmethod xcb:unmarshal ((obj xcb:-reply) byte-array)
-  "Fill in fields in a reply OBJ according to its byte-array representation."
-  (cl-call-next-method obj (vconcat (substring byte-array 1 2)
-                                    (substring byte-array 8))))
 
 (defclass xcb:-event (xcb:-struct)
-  nil
+  ((~code :type xcb:-u1))
   :documentation "Event type.")
 ;; Implemented in 'xcb.el'
 (cl-defgeneric xcb:-error-or-event-class->number ((obj xcb:connection) class))
@@ -708,43 +702,45 @@ and the second the consumed length."
 (cl-defmethod xcb:marshal ((obj xcb:-event) connection &optional sequence)
   "Return the byte-array representation of event OBJ.
 
-This method is mainly designed for `xcb:SendEvent', where it's used to generate
-synthetic events. The CONNECTION argument is used to retrieve the event number
-for extensions. If SEQUENCE is non-nil, it is used as the sequence number in
-the synthetic event. Otherwise, 0 is assumed.
+This method is mainly designed for `xcb:SendEvent', where it's used to
+generate synthetic events.  The CONNECTION argument is used to retrieve
+the event number of extensions.  If SEQUENCE is non-nil, it is used as
+the sequence number of the synthetic event (if the event uses sequence
+number); otherwise, 0 is assumed.
 
-Note that this method auto pads the result to 32 bytes, as is always the case."
-  (let ((result (cl-call-next-method obj)))
-    (setq result (vconcat
-                  `[,(xcb:-error-or-event-class->number ;defined in 'xcb.el'
-                      connection (eieio-object-class obj))]
-                  result))
-    (unless (same-class-p obj 'xcb:KeymapNotify)
-      (setq result
-            (vconcat (substring result 0 2)
-                     (funcall (if (slot-value obj '~lsb) #'xcb:-pack-u2-lsb
-                                #'xcb:-pack-u2)
-                              (or sequence 0))
-                     (substring result 2))))
-    (cl-assert (>= 32 (length result)))
-    (setq result (vconcat result (make-vector (- 32 (length result)) 0)))))
-;;
-(cl-defmethod xcb:unmarshal ((obj xcb:-event) byte-array)
-  "Fill in event OBJ according to its byte-array representation BYTE-ARRAY."
-  (cl-call-next-method obj
-                       (if (same-class-p obj 'xcb:KeymapNotify)
-                           (substring byte-array 1) ;strip event code
-                         ;; Strip event code & sequence number
-                         (vconcat (substring byte-array 1 2)
-                                  (substring byte-array 4)))))
+This method auto-pads short results to 32 bytes."
+  (let ((event-number
+         (xcb:-error-or-event-class->number connection
+                                            (eieio-object-class obj)))
+        result)
+    (when (consp event-number)
+      (setq event-number (cdr event-number))
+      (if (= 1 (length event-number))
+          ;; XKB event.
+          (setf (slot-value obj 'xkbType) (aref event-number 0))
+        ;; Generic event.
+        (setf (slot-value obj 'extensions) (aref event-number 0)
+              (slot-value obj 'evtype) (aref event-number 1))))
+    (when (slot-exists-p obj '~sequence)
+      (setf (slot-value obj '~sequence) (or sequence 0)))
+    (setq result (cl-call-next-method obj))
+    (when (> 32 (length result))
+      (setq result (vconcat result (make-vector (- 32 (length result)) 0))))
+    result))
+
+(defclass xcb:-generic-event (xcb:-event)
+  ((~code :initform 35)
+   (~extension :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (~length :type xcb:CARD32)
+   (~evtype :type xcb:CARD16))
+  :documentation "Generic event type.")
 
 (defclass xcb:-error (xcb:-struct)
-  nil
+  ((~error :initform 0 :type xcb:-u1)
+   (~code :type xcb:-u1)
+   (~sequence :type xcb:CARD16))
   :documentation "X error type.")
-;;
-(cl-defmethod xcb:unmarshal ((obj xcb:-error) byte-array)
-  "Fill in error OBJ according to its byte-array representation BYTE-ARRAY."
-  (cl-call-next-method obj (substring byte-array 4))) ;skip the first 4 bytes
 
 (defclass xcb:-union (xcb:-struct)
   ((~size :initarg :~size :type xcb:-ignore)) ;Size of the largest member.

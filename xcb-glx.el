@@ -55,70 +55,73 @@
 
 (defclass xcb:glx:Generic
   (xcb:-error)
-  ((bad-value :initarg :bad-value :type xcb:CARD32)
+  ((~code :initform -1)
+   (bad-value :initarg :bad-value :type xcb:CARD32)
    (minor-opcode :initarg :minor-opcode :type xcb:CARD16)
    (major-opcode :initarg :major-opcode :type xcb:CARD8)
    (pad~0 :initform 21 :type xcb:-pad)))
 
 (defclass xcb:glx:BadContext
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 0)))
 
 (defclass xcb:glx:BadContextState
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 1)))
 
 (defclass xcb:glx:BadDrawable
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 2)))
 
 (defclass xcb:glx:BadPixmap
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 3)))
 
 (defclass xcb:glx:BadContextTag
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 4)))
 
 (defclass xcb:glx:BadCurrentWindow
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 5)))
 
 (defclass xcb:glx:BadRenderRequest
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 6)))
 
 (defclass xcb:glx:BadLargeRequest
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 7)))
 
 (defclass xcb:glx:UnsupportedPrivateRequest
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 8)))
 
 (defclass xcb:glx:BadFBConfig
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 9)))
 
 (defclass xcb:glx:BadPbuffer
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 10)))
 
 (defclass xcb:glx:BadCurrentDrawable
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 11)))
 
 (defclass xcb:glx:BadWindow
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 12)))
 
 (defclass xcb:glx:GLXBadProfileARB
   (xcb:-error xcb:glx:Generic)
-  nil)
+  ((~code :initform 13)))
 
 (defclass xcb:glx:PbufferClobber
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 0)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event-type :initarg :event-type :type xcb:CARD16)
    (draw-type :initarg :draw-type :type xcb:CARD16)
    (drawable :initarg :drawable :type xcb:glx:DRAWABLE)
@@ -133,7 +136,9 @@
 
 (defclass xcb:glx:BufferSwapComplete
   (xcb:-event)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((~code :initform 1)
+   (pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
    (event-type :initarg :event-type :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:glx:DRAWABLE)
@@ -195,6 +200,8 @@
 (defclass xcb:glx:MakeCurrent~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
    (pad~1 :initform 20 :type xcb:-pad)))
 
@@ -205,6 +212,8 @@
 (defclass xcb:glx:IsDirect~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (is-direct :initarg :is-direct :type xcb:BOOL)
    (pad~1 :initform 23 :type xcb:-pad)))
 
@@ -216,6 +225,8 @@
 (defclass xcb:glx:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)))
@@ -290,6 +301,8 @@
 (defclass xcb:glx:GetVisualConfigs~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-visuals :initarg :num-visuals :type xcb:CARD32)
    (num-properties :initarg :num-properties :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
@@ -326,6 +339,8 @@
 (defclass xcb:glx:VendorPrivateWithReply~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (retval :initarg :retval :type xcb:CARD32)
    (data1 :initarg :data1 :type xcb:-ignore)
    (data1~ :initform
@@ -346,6 +361,8 @@
 (defclass xcb:glx:QueryExtensionsString~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)))
@@ -358,6 +375,8 @@
 (defclass xcb:glx:QueryServerString~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (str-len :initarg :str-len :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)
@@ -386,6 +405,8 @@
 (defclass xcb:glx:GetFBConfigs~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-FB-configs :initarg :num-FB-configs :type xcb:CARD32)
    (num-properties :initarg :num-properties :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
@@ -434,6 +455,8 @@
 (defclass xcb:glx:QueryContext~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (attribs :initarg :attribs :type xcb:-ignore)
@@ -454,6 +477,8 @@
 (defclass xcb:glx:MakeContextCurrent~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
    (pad~1 :initform 20 :type xcb:-pad)))
 
@@ -484,6 +509,8 @@
 (defclass xcb:glx:GetDrawableAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
    (attribs :initarg :attribs :type xcb:-ignore)
@@ -629,6 +656,8 @@
 (defclass xcb:glx:GenLists~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ret-val :initarg :ret-val :type xcb:CARD32)))
 
 (defclass xcb:glx:FeedbackBuffer
@@ -652,6 +681,8 @@
 (defclass xcb:glx:RenderMode~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (ret-val :initarg :ret-val :type xcb:CARD32)
    (n :initarg :n :type xcb:CARD32)
    (new-mode :initarg :new-mode :type xcb:CARD32)
@@ -672,7 +703,9 @@
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)))
 (defclass xcb:glx:Finish~reply
   (xcb:-reply)
-  ((pad~0 :initform 1 :type xcb:-pad)))
+  ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)))
 
 (defclass xcb:glx:PixelStoref
   (xcb:-request)
@@ -703,6 +736,8 @@
 (defclass xcb:glx:ReadPixels~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -720,6 +755,8 @@
 (defclass xcb:glx:GetBooleanv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:BOOL)
@@ -738,6 +775,8 @@
 (defclass xcb:glx:GetClipPlane~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -755,6 +794,8 @@
 (defclass xcb:glx:GetDoublev~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
@@ -772,6 +813,8 @@
 (defclass xcb:glx:GetError~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (error :initarg :error :type xcb:INT32)))
 
 (defclass xcb:glx:GetFloatv
@@ -782,6 +825,8 @@
 (defclass xcb:glx:GetFloatv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -800,6 +845,8 @@
 (defclass xcb:glx:GetIntegerv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -819,6 +866,8 @@
 (defclass xcb:glx:GetLightfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -838,6 +887,8 @@
 (defclass xcb:glx:GetLightiv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -857,6 +908,8 @@
 (defclass xcb:glx:GetMapdv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
@@ -876,6 +929,8 @@
 (defclass xcb:glx:GetMapfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -895,6 +950,8 @@
 (defclass xcb:glx:GetMapiv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -914,6 +971,8 @@
 (defclass xcb:glx:GetMaterialfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -933,6 +992,8 @@
 (defclass xcb:glx:GetMaterialiv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -951,6 +1012,8 @@
 (defclass xcb:glx:GetPixelMapfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -969,6 +1032,8 @@
 (defclass xcb:glx:GetPixelMapuiv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD32)
@@ -987,6 +1052,8 @@
 (defclass xcb:glx:GetPixelMapusv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD16)
@@ -1005,6 +1072,8 @@
 (defclass xcb:glx:GetPolygonStipple~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -1022,6 +1091,8 @@
 (defclass xcb:glx:GetString~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)
@@ -1040,6 +1111,8 @@
 (defclass xcb:glx:GetTexEnvfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1059,6 +1132,8 @@
 (defclass xcb:glx:GetTexEnviv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1078,6 +1153,8 @@
 (defclass xcb:glx:GetTexGendv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
@@ -1097,6 +1174,8 @@
 (defclass xcb:glx:GetTexGenfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1116,6 +1195,8 @@
 (defclass xcb:glx:GetTexGeniv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1138,6 +1219,8 @@
 (defclass xcb:glx:GetTexImage~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (height :initarg :height :type xcb:INT32)
@@ -1160,6 +1243,8 @@
 (defclass xcb:glx:GetTexParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1179,6 +1264,8 @@
 (defclass xcb:glx:GetTexParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1199,6 +1286,8 @@
 (defclass xcb:glx:GetTexLevelParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1219,6 +1308,8 @@
 (defclass xcb:glx:GetTexLevelParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1237,7 +1328,9 @@
 (defclass xcb:glx:IsEnabled~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (ret-val :initarg :ret-val :type xcb:BOOL32)))
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (ret-val :initarg :ret-val :type xcb:glx:BOOL32)))
 
 (defclass xcb:glx:IsList
   (xcb:-request)
@@ -1247,7 +1340,9 @@
 (defclass xcb:glx:IsList~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (ret-val :initarg :ret-val :type xcb:BOOL32)))
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (ret-val :initarg :ret-val :type xcb:glx:BOOL32)))
 
 (defclass xcb:glx:Flush
   (xcb:-request)
@@ -1267,7 +1362,9 @@
 (defclass xcb:glx:AreTexturesResident~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (ret-val :initarg :ret-val :type xcb:BOOL32)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (ret-val :initarg :ret-val :type xcb:glx:BOOL32)
    (pad~1 :initform 20 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -1296,6 +1393,8 @@
 (defclass xcb:glx:GenTextures~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -1311,7 +1410,9 @@
 (defclass xcb:glx:IsTexture~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (ret-val :initarg :ret-val :type xcb:BOOL32)))
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (ret-val :initarg :ret-val :type xcb:glx:BOOL32)))
 
 (defclass xcb:glx:GetColorTable
   (xcb:-request)
@@ -1324,6 +1425,8 @@
 (defclass xcb:glx:GetColorTable~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
@@ -1344,6 +1447,8 @@
 (defclass xcb:glx:GetColorTableParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1363,6 +1468,8 @@
 (defclass xcb:glx:GetColorTableParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1384,6 +1491,8 @@
 (defclass xcb:glx:GetConvolutionFilter~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (height :initarg :height :type xcb:INT32)
@@ -1405,6 +1514,8 @@
 (defclass xcb:glx:GetConvolutionParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1424,6 +1535,8 @@
 (defclass xcb:glx:GetConvolutionParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1445,6 +1558,8 @@
 (defclass xcb:glx:GetSeparableFilter~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (row-w :initarg :row-w :type xcb:INT32)
    (col-h :initarg :col-h :type xcb:INT32)
@@ -1469,6 +1584,8 @@
 (defclass xcb:glx:GetHistogram~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
@@ -1489,6 +1606,8 @@
 (defclass xcb:glx:GetHistogramParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1508,6 +1627,8 @@
 (defclass xcb:glx:GetHistogramParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1530,6 +1651,8 @@
 (defclass xcb:glx:GetMinmax~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -1548,6 +1671,8 @@
 (defclass xcb:glx:GetMinmaxParameterfv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
@@ -1567,6 +1692,8 @@
 (defclass xcb:glx:GetMinmaxParameteriv~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1586,6 +1713,8 @@
 (defclass xcb:glx:GetCompressedTexImageARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
    (size :initarg :size :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
@@ -1616,6 +1745,8 @@
 (defclass xcb:glx:GenQueriesARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
@@ -1631,7 +1762,9 @@
 (defclass xcb:glx:IsQueryARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
-   (ret-val :initarg :ret-val :type xcb:BOOL32)))
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (ret-val :initarg :ret-val :type xcb:glx:BOOL32)))
 
 (defclass xcb:glx:GetQueryivARB
   (xcb:-request)
@@ -1642,6 +1775,8 @@
 (defclass xcb:glx:GetQueryivARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1661,6 +1796,8 @@
 (defclass xcb:glx:GetQueryObjectivARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
@@ -1680,6 +1817,8 @@
 (defclass xcb:glx:GetQueryObjectuivARB~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD32)

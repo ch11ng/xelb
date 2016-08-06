@@ -39,6 +39,8 @@
 (defclass xcb:dpms:GetVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major-version :initarg :server-major-version :type xcb:CARD16)
    (server-minor-version :initarg :server-minor-version :type xcb:CARD16)))
 
@@ -48,6 +50,8 @@
 (defclass xcb:dpms:Capable~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (capable :initarg :capable :type xcb:BOOL)
    (pad~1 :initform 23 :type xcb:-pad)))
 
@@ -57,6 +61,8 @@
 (defclass xcb:dpms:GetTimeouts~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (standby-timeout :initarg :standby-timeout :type xcb:CARD16)
    (suspend-timeout :initarg :suspend-timeout :type xcb:CARD16)
    (off-timeout :initarg :off-timeout :type xcb:CARD16)
@@ -93,6 +99,8 @@
 (defclass xcb:dpms:Info~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (power-level :initarg :power-level :type xcb:CARD16)
    (state :initarg :state :type xcb:BOOL)
    (pad~1 :initform 21 :type xcb:-pad)))

@@ -39,6 +39,8 @@
 (defclass xcb:xevie:QueryVersion~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (server-major-version :initarg :server-major-version :type xcb:CARD16)
    (server-minor-version :initarg :server-minor-version :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)))
@@ -50,6 +52,8 @@
 (defclass xcb:xevie:Start~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)))
 
 (defclass xcb:xevie:End
@@ -59,6 +63,8 @@
 (defclass xcb:xevie:End~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)))
 
 (defconst xcb:xevie:Datatype:Unmodified 0)
@@ -77,6 +83,8 @@
 (defclass xcb:xevie:Send~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)))
 
 (defclass xcb:xevie:SelectInput
@@ -86,6 +94,8 @@
 (defclass xcb:xevie:SelectInput~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)))
 
 
