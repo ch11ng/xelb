@@ -200,7 +200,7 @@
     (set-process-plist process
                        (plist-put (process-plist process) 'connection obj))
     (set-process-coding-system process 'binary 'binary)
-    (set-process-filter process 'xcb:-connection-filter)
+    (set-process-filter process #'xcb:-connection-setup-filter)
     (process-send-string                ;send setup packet
      process
      (apply #'unibyte-string
@@ -222,6 +222,47 @@
         (accept-process-output process 1 nil 1)))))
 
 (defconst xcb:-SEQUENCE-SEGMENT-MASK (lognot #xFFFF))
+
+(defun xcb:-connection-setup-filter (process message)
+  "Process filter used during connection setup."
+  (let* ((connection (plist-get (process-plist process) 'connection))
+         (cache (vconcat (slot-value connection 'message-cache) message)))
+    (setf (slot-value connection 'message-cache) cache)
+    (unless (or (slot-value connection 'lock)
+                ;; Shorter than the setup header.
+                (> 8 (length cache)))
+      (setf (slot-value connection 'lock) t)
+      (let ((data-len (+ 8 (* 4 (if xcb:lsb
+                                    (xcb:-unpack-u2-lsb cache 6)
+                                  (xcb:-unpack-u2 cache 6)))))
+            obj)
+        (when (>= (length cache) data-len)
+          (xcb:-log "Setup response: %s" cache)
+          (pcase (aref cache 0)
+            (0
+             ;; Connection failed.
+             (setq obj (make-instance 'xcb:SetupFailed))
+             (xcb:unmarshal obj cache)
+             (setq cache (substring cache data-len))
+             (error "[XELB] Connection failed: %s" (slot-value obj 'reason)))
+            (1
+             ;; Connection established.
+             (setf (slot-value connection 'message-cache) [])
+             (set-process-filter process #'xcb:-connection-filter)
+             (setq obj (make-instance 'xcb:Setup))
+             (xcb:unmarshal obj cache)
+             (setq cache (substring cache data-len))
+             (setf (slot-value connection 'setup-data) obj)
+             (setf (slot-value connection 'connected) t))
+            (2
+             ;; Authentication required.
+             (setq obj (make-instance 'xcb:SetupAuthenticate))
+             (xcb:unmarshal obj cache)
+             (setq cache (substring cache data-len))
+             (error "[XELB] Authentication not supported: %s"
+                    (slot-value obj 'reason)))
+            (x (error "Unrecognized setup status: %d" x)))))
+      (setf (slot-value connection 'lock) nil))))
 
 (cl-defmethod xcb:-convert-sequence ((obj xcb:connection) sequence16)
   "Convert 16-bit sequence number SEQUENCE16 (read from a packet).
@@ -249,43 +290,9 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
          (cache (vconcat (slot-value connection 'message-cache) message))
          (cache-length (length cache)))
     (setf (slot-value connection 'message-cache) cache)
-    (catch 'return
-      ;; Queue message when locked
-      (when (slot-value connection 'lock)
-        (throw 'return 'lock))
+    (unless (slot-value connection 'lock)
       ;; Start parsing message
       (setf (slot-value connection 'lock) t)
-      ;; Connection setup
-      (unless (slot-value connection 'connected)
-        (when (<= 8 (length cache)) ;at least setup header is available
-          (let ((data-len (+ 8 (* 4 (funcall (if xcb:lsb #'xcb:-unpack-u2-lsb
-                                               #'xcb:-unpack-u2)
-                                             cache 6))))
-                obj)
-            (when (>= (length cache) data-len)
-              (xcb:-log "Setup response: %s" cache)
-              (pcase (aref cache 0)
-                (0                      ;failed
-                 (setq obj (make-instance 'xcb:SetupFailed))
-                 (xcb:unmarshal obj cache)
-                 (setq cache (substring cache data-len))
-                 (error "[XELB] Connection failed: %s"
-                        (slot-value obj 'reason)))
-                (1                      ;success
-                 (setq obj (make-instance 'xcb:Setup))
-                 (xcb:unmarshal obj cache)
-                 (setq cache (substring cache data-len))
-                 (setf (slot-value connection 'setup-data) obj)
-                 (setf (slot-value connection 'connected) t))
-                (2                      ;authentication
-                 (setq obj (make-instance 'xcb:SetupAuthenticate))
-                 (xcb:unmarshal obj cache)
-                 (setq cache (substring cache data-len))
-                 (error "[XELB] Authentication not supported: %s"
-                        (slot-value obj 'reason)))
-                (x (error "Unrecognized setup status: %d" x))))))
-        (setf (slot-value connection 'lock) nil)
-        (throw 'return 'setup))
       ;; Process error/reply/event
       (catch 'break
         (while (<= 32 (length cache))
