@@ -268,7 +268,7 @@
   "Convert 16-bit sequence number SEQUENCE16 (read from a packet).
 
 The result would be 29 or 61 bits, depending on the machine."
-  (with-slots (request-sequence last-seen-sequence) obj
+  (with-slots (request-sequence) obj
     ;; Assume there are no more than #xFFFF requests sent since the
     ;; request corresponding to this packet was made.  Because errors
     ;; and replies are always read out in the process filter, this
@@ -279,7 +279,6 @@ The result would be 29 or 61 bits, depending on the machine."
       ;; `xcb:-cache-request' ensures sequence number never wraps.
       (when (> sequence request-sequence)
         (cl-decf sequence #x10000))
-      (setf last-seen-sequence sequence)
       sequence)))
 
 (defun xcb:-connection-filter (process message)
@@ -312,7 +311,8 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                                   (push `(,(aref cache 1) .
                                           ,(substring cache 0 32))
                                         struct))))
-               (setq cache (substring cache 32))))
+               (setq cache (substring cache 32))
+               (setf (slot-value connection 'last-seen-sequence) sequence)))
             (1                          ;reply
              (let* ((reply-words (funcall (if xcb:lsb #'xcb:-unpack-u4-lsb
                                             #'xcb:-unpack-u4)
@@ -339,7 +339,8 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                                     ;; Multiple replies
                                     `(,(car struct) ,@(cdr struct)
                                       ,(substring cache 0 reply-length))))))
-               (setq cache (substring cache reply-length))))
+               (setq cache (substring cache reply-length))
+               (setf (slot-value connection 'last-seen-sequence) sequence)))
             (x                          ;event
              (let (synthetic listener event-length)
                (when (/= 0 (logand x #x80)) ;synthetic event
