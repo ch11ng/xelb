@@ -375,14 +375,16 @@ whose fields are explicitly listed out."
    (win-gravity :initarg :win-gravity :initform 0 :type xcb:-ignore)))
 ;;
 (defclass xcb:icccm:get-WM_SIZE_HINTS (xcb:icccm:-GetProperty-explicit)
-  ((type :initform xcb:Atom:WM_SIZE_HINTS)
+  ((property :initform xcb:Atom:WM_SIZE_HINTS)
+   (type :initform xcb:Atom:WM_SIZE_HINTS)
    (long-length :initform 18)))         ;fixed
 (defclass xcb:icccm:get-WM_SIZE_HINTS~reply
   (xcb:icccm:-GetProperty-explicit~reply xcb:icccm:-WM_SIZE_HINTS)
   nil)
 (defclass xcb:icccm:set-WM_SIZE_HINTS
   (xcb:icccm:-ChangeProperty-explicit xcb:icccm:-WM_SIZE_HINTS)
-  ((type :initform xcb:Atom:WM_SIZE_HINTS)))
+  ((property :initform xcb:Atom:WM_SIZE_HINTS)
+   (type :initform xcb:Atom:WM_SIZE_HINTS)))
 
 ;; WM_NORMAL_HINTS
 (defclass xcb:icccm:get-WM_NORMAL_HINTS (xcb:icccm:get-WM_SIZE_HINTS)
