@@ -453,9 +453,10 @@ classes of EVENT (since they have the same event number)."
     (when (< 0 (length cache))
       (setf (slot-value obj 'request-cache) []) ;should be cleared ASAP
       (cl-incf (slot-value obj 'event-lock))
-      (process-send-string (slot-value obj 'process)
-                           (apply #'unibyte-string (append cache nil)))
-      (cl-decf (slot-value obj 'event-lock)))))
+      (unwind-protect
+          (process-send-string (slot-value obj 'process)
+                               (apply #'unibyte-string (append cache nil)))
+        (cl-decf (slot-value obj 'event-lock))))))
 
 (cl-defmethod xcb:get-extension-data ((obj xcb:connection) namespace)
   "Fetch the extension data from X server (block until data is retrieved)."
@@ -612,12 +613,13 @@ Otherwise no error will ever be reported."
     (let ((process (slot-value obj 'process)))
       ;; Wait until the request processed
       (cl-incf (slot-value obj 'event-lock))
-      (with-timeout (xcb:connection-timeout
-                     (warn "[XELB] Retrieve reply timeout"))
-        (while (and (> sequence (slot-value obj 'last-seen-sequence))
-                    (<= sequence (slot-value obj 'request-sequence)))
-          (accept-process-output process 1 nil 1)))
-      (cl-decf (slot-value obj 'event-lock))))
+      (unwind-protect
+          (with-timeout (xcb:connection-timeout
+                         (warn "[XELB] Retrieve reply timeout"))
+            (while (and (> sequence (slot-value obj 'last-seen-sequence))
+                        (<= sequence (slot-value obj 'request-sequence)))
+              (accept-process-output process 1 nil 1)))
+        (cl-decf (slot-value obj 'event-lock)))))
   (let* ((reply-plist (slot-value obj 'reply-plist))
          (reply-data (plist-get reply-plist sequence))
          (error-plist (slot-value obj 'error-plist))
@@ -725,12 +727,13 @@ Sync by sending a GetInputFocus request and waiting until it's processed."
     (xcb:flush obj)
     ;; Wait until request processed
     (cl-incf (slot-value obj 'event-lock))
-    (with-timeout (xcb:connection-timeout (warn "[XELB] Sync timeout"))
-      (while (and (> sequence (slot-value obj 'last-seen-sequence))
-                  ;; In case the sequence number has been wrapped.
-                  (<= sequence (slot-value obj 'request-sequence)))
-        (accept-process-output process 1 nil 1)))
-    (cl-decf (slot-value obj 'event-lock))
+    (unwind-protect
+        (with-timeout (xcb:connection-timeout (warn "[XELB] Sync timeout"))
+          (while (and (> sequence (slot-value obj 'last-seen-sequence))
+                      ;; In case the sequence number has been wrapped.
+                      (<= sequence (slot-value obj 'request-sequence)))
+            (accept-process-output process 1 nil 1)))
+      (cl-decf (slot-value obj 'event-lock)))
     ;; Discard any reply or error.
     (cl-remf (slot-value obj 'reply-plist) sequence)
     (cl-remf (slot-value obj 'error-plist) sequence)))
