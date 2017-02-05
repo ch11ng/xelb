@@ -1,7 +1,7 @@
 ;;; xcb-renderutil.el --- Utility functions for  -*- lexical-binding: t -*-
 ;;;                       the Render extension
 
-;; Copyright (C) 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
 
