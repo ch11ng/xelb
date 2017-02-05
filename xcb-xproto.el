@@ -195,7 +195,8 @@
    (authorization-protocol-data~ :initform
 				 '(name authorization-protocol-data type xcb:char size
 					(xcb:-fieldref 'authorization-protocol-data-len))
-				 :type xcb:-list)))
+				 :type xcb:-list)
+   (pad~3 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:SetupFailed
   (xcb:-struct)
