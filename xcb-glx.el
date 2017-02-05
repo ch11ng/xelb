@@ -1845,12 +1845,12 @@
     (11 . xcb:glx:BadCurrentDrawable)
     (12 . xcb:glx:BadWindow)
     (13 . xcb:glx:GLXBadProfileARB))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:glx:event-number-class-alist
   '((0 . xcb:glx:PbufferClobber)
     (1 . xcb:glx:BufferSwapComplete))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

@@ -1083,12 +1083,12 @@
     (1 . xcb:randr:BadCrtc)
     (2 . xcb:randr:BadMode)
     (3 . xcb:randr:BadProvider))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:randr:event-number-class-alist
   '((0 . xcb:randr:ScreenChangeNotify)
     (1 . xcb:randr:Notify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

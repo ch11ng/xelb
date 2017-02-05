@@ -692,7 +692,7 @@ The sequence number shall be returned by `xcb:+request-checked'."
   "Make a request and return its replies and errors.
 
 If MULTIPLE is nil, the return value is a list of which the car is the only
-reply and the cadr a list of errors. Otherwise, the car of the result is a
+reply and the cadr a list of errors.  Otherwise, the car of the result is a
 list of replies.
 
 WARNING: for requests that have multiple replies, you MUST supply a non-nil

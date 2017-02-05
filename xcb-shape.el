@@ -178,7 +178,7 @@
 
 (defconst xcb:shape:event-number-class-alist
   '((0 . xcb:shape:Notify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

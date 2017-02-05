@@ -422,12 +422,12 @@
 
 (defconst xcb:xfixes:error-number-class-alist
   '((0 . xcb:xfixes:BadRegion))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:xfixes:event-number-class-alist
   '((0 . xcb:xfixes:SelectionNotify)
     (1 . xcb:xfixes:CursorNotify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

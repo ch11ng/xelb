@@ -762,7 +762,7 @@
     (2 . xcb:render:PictOp)
     (3 . xcb:render:GlyphSet)
     (4 . xcb:render:Glyph))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 
 

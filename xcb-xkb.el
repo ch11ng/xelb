@@ -2320,7 +2320,7 @@
 
 (defconst xcb:xkb:error-number-class-alist
   '((0 . xcb:xkb:Keyboard))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:xkb:event-number-class-alist
   '((0 . xcb:xkb:NewKeyboardNotify)
@@ -2335,7 +2335,7 @@
     (9 . xcb:xkb:ActionMessage)
     (10 . xcb:xkb:AccessXNotify)
     (11 . xcb:xkb:ExtensionDeviceNotify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

@@ -216,14 +216,14 @@
 
 (defconst xcb:present:event-number-class-alist
   '((0 . xcb:present:Generic))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 (defconst xcb:present:xge-number-class-alist
   '((0 . xcb:present:ConfigureNotify)
     (1 . xcb:present:CompleteNotify)
     (2 . xcb:present:IdleNotify)
     (3 . xcb:present:RedirectNotify))
-  "(xge-number . event-class) alist")
+  "(xge-number . event-class) alist.")
 
 
 

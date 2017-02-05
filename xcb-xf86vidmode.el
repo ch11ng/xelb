@@ -549,7 +549,7 @@
     (4 . xcb:xf86vidmode:ExtensionDisabled)
     (5 . xcb:xf86vidmode:ClientNotLocal)
     (6 . xcb:xf86vidmode:ZoomLocked))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 
 

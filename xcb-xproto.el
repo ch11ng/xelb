@@ -2970,7 +2970,7 @@
     (15 . xcb:Name)
     (16 . xcb:Length)
     (17 . xcb:Implementation))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:event-number-class-alist
   '((2 . xcb:KeyPress)
@@ -3007,7 +3007,7 @@
     (33 . xcb:ClientMessage)
     (34 . xcb:MappingNotify)
     (35 . xcb:GeGeneric))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

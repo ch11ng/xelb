@@ -2776,7 +2776,7 @@
     (2 . xcb:xinput:Mode)
     (3 . xcb:xinput:DeviceBusy)
     (4 . xcb:xinput:Class))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:xinput:event-number-class-alist
   '((0 . xcb:xinput:DeviceValuator)
@@ -2796,7 +2796,7 @@
     (14 . xcb:xinput:DeviceButtonStateNotify)
     (15 . xcb:xinput:DevicePresenceNotify)
     (16 . xcb:xinput:DevicePropertyNotify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 (defconst xcb:xinput:xge-number-class-alist
   '((1 . xcb:xinput:DeviceChanged)
@@ -2825,7 +2825,7 @@
     (24 . xcb:xinput:RawTouchEnd)
     (25 . xcb:xinput:BarrierHit)
     (26 . xcb:xinput:BarrierLeave))
-  "(xge-number . event-class) alist")
+  "(xge-number . event-class) alist.")
 
 
 

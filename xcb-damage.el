@@ -99,11 +99,11 @@
 
 (defconst xcb:damage:error-number-class-alist
   '((0 . xcb:damage:BadDamage))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:damage:event-number-class-alist
   '((0 . xcb:damage:Notify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

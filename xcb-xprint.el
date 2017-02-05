@@ -400,12 +400,12 @@
 (defconst xcb:xprint:error-number-class-alist
   '((0 . xcb:xprint:BadContext)
     (1 . xcb:xprint:BadSequence))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:xprint:event-number-class-alist
   '((0 . xcb:xprint:Notify)
     (1 . xcb:xprint:AttributNotify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

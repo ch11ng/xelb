@@ -156,7 +156,7 @@
 
 (defconst xcb:screensaver:event-number-class-alist
   '((0 . xcb:screensaver:Notify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

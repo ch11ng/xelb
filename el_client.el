@@ -263,17 +263,17 @@ an `xelb-auto-padding' attribute."
       (when xelb-error-alist
         (pp
          `(defconst ,(intern (concat xelb-prefix "error-number-class-alist"))
-            ',xelb-error-alist "(error-number . error-class) alist"))
+            ',xelb-error-alist "(error-number . error-class) alist."))
         (princ "\n"))
       (when xelb-event-alist
         (pp
          `(defconst ,(intern (concat xelb-prefix "event-number-class-alist"))
-            ',xelb-event-alist "(event-number . event-class) alist"))
+            ',xelb-event-alist "(event-number . event-class) alist."))
         (princ "\n"))
       (when xelb-xge-alist
         (pp
          `(defconst ,(intern (concat xelb-prefix "xge-number-class-alist"))
-            ',xelb-xge-alist "(xge-number . event-class) alist"))
+            ',xelb-xge-alist "(xge-number . event-class) alist."))
         (princ "\n"))
       ;; Print footer
       (princ (format "\

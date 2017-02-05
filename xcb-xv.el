@@ -512,12 +512,12 @@
   '((0 . xcb:xv:BadPort)
     (1 . xcb:xv:BadEncoding)
     (2 . xcb:xv:BadControl))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:xv:event-number-class-alist
   '((0 . xcb:xv:VideoNotify)
     (1 . xcb:xv:PortNotify))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 

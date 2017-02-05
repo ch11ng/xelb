@@ -206,7 +206,7 @@
 
 (defconst xcb:record:error-number-class-alist
   '((0 . xcb:record:BadContext))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 
 

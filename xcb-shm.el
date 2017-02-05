@@ -157,11 +157,11 @@
 
 (defconst xcb:shm:error-number-class-alist
   '((0 . xcb:shm:BadSeg))
-  "(error-number . error-class) alist")
+  "(error-number . error-class) alist.")
 
 (defconst xcb:shm:event-number-class-alist
   '((0 . xcb:shm:Completion))
-  "(event-number . event-class) alist")
+  "(event-number . event-class) alist.")
 
 
 
