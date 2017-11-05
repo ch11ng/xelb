@@ -302,6 +302,7 @@ an `xelb-auto-padding' attribute."
     (`error (xelb-parse-error node))
     (`eventcopy (xelb-parse-eventcopy node))
     (`errorcopy (xelb-parse-errorcopy node))
+    (`eventstruct (xelb-parse-eventstruct node))
     ((or `comment `doc))                ;ignored
     (x (error "Unsupported top-level element: <%s>" x))))
 
@@ -493,6 +494,12 @@ The `combine-adjacent' attribute is simply ignored."
     (setq xelb-error-alist (nconc xelb-error-alist `((,error-number . ,name))))
     `((defclass ,name (xcb:-error ,refname) ;Shadow the method of ref
         ((~code :initform ,error-number))))))
+
+(defun xelb-parse-eventstruct (node)
+  "Parse <eventstruct>."
+  (let ((name (intern (concat xelb-prefix (xelb-node-attr node 'name)))))
+    ;; Only conventional events are supported (and we don't check opcode).
+    `((defclass ,name (xcb:-event) nil))))
 
 ;;;; XCB: structure contents
 

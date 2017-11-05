@@ -201,10 +201,12 @@
 	   :type xcb:-list)
    (pad~3 :initform 4 :type xcb:-pad-align)))
 
+(xcb:deftypealias 'xcb:xinput:EventTypeBase 'xcb:CARD8)
+
 (defclass xcb:xinput:InputClassInfo
   (xcb:-struct)
   ((class-id :initarg :class-id :type xcb:CARD8)
-   (event-type-base :initarg :event-type-base :type xcb:CARD8)))
+   (event-type-base :initarg :event-type-base :type xcb:xinput:EventTypeBase)))
 
 (defclass xcb:xinput:OpenDevice
   (xcb:-request)
@@ -970,29 +972,6 @@
    (classes :initarg :classes :type xcb:-ignore)
    (classes~ :initform
 	     '(name classes type xcb:xinput:InputState size
-		    (xcb:-fieldref 'num-classes))
-	     :type xcb:-list)))
-
-(defclass xcb:xinput:SendExtensionEvent
-  (xcb:-request)
-  ((~opcode :initform 31 :type xcb:-u1)
-   (destination :initarg :destination :type xcb:WINDOW)
-   (device-id :initarg :device-id :type xcb:CARD8)
-   (propagate :initarg :propagate :type xcb:BOOL)
-   (num-classes :initarg :num-classes :type xcb:CARD16)
-   (num-events :initarg :num-events :type xcb:CARD8)
-   (pad~0 :initform 3 :type xcb:-pad)
-   (events :initarg :events :type xcb:-ignore)
-   (events~ :initform
-	    '(name events type xcb:CARD8 size
-		   (*
-		    (xcb:-fieldref 'num-events)
-		    32))
-	    :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
-   (classes :initarg :classes :type xcb:-ignore)
-   (classes~ :initform
-	     '(name classes type xcb:xinput:EventClass size
 		    (xcb:-fieldref 'num-classes))
 	     :type xcb:-list)))
 
@@ -2749,6 +2728,31 @@
 (defclass xcb:xinput:BarrierLeave
   (xcb:-event xcb:xinput:BarrierHit)
   ((~evtype :initform 26)))
+
+(defclass xcb:xinput:EventForSend
+  (xcb:-event)
+  nil)
+
+(defclass xcb:xinput:SendExtensionEvent
+  (xcb:-request)
+  ((~opcode :initform 31 :type xcb:-u1)
+   (destination :initarg :destination :type xcb:WINDOW)
+   (device-id :initarg :device-id :type xcb:CARD8)
+   (propagate :initarg :propagate :type xcb:BOOL)
+   (num-classes :initarg :num-classes :type xcb:CARD16)
+   (num-events :initarg :num-events :type xcb:CARD8)
+   (pad~0 :initform 3 :type xcb:-pad)
+   (events :initarg :events :type xcb:-ignore)
+   (events~ :initform
+	    '(name events type xcb:xinput:EventForSend size
+		   (xcb:-fieldref 'num-events))
+	    :type xcb:-list)
+   (pad~1 :initform 4 :type xcb:-pad-align)
+   (classes :initarg :classes :type xcb:-ignore)
+   (classes~ :initform
+	     '(name classes type xcb:xinput:EventClass size
+		    (xcb:-fieldref 'num-classes))
+	     :type xcb:-list)))
 
 (defclass xcb:xinput:Device
   (xcb:-error)

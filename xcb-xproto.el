@@ -1644,7 +1644,7 @@
 	    '(name string type xcb:CHAR2B size nil)
 	    :type xcb:-list)))
 (cl-defmethod xcb:marshal
-    ((obj xcb:QueryTextExtents))
+  ((obj xcb:QueryTextExtents))
   nil
   (setf
    (slot-value obj 'odd-length)
