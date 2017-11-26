@@ -55,8 +55,10 @@
 (defvar xcb:keysyms:shift-lock-mask 0 "SHIFT-LOCK key mask.")
 (defvar xcb:keysyms:num-lock-mask 0 "NUM-LOCK key mask.")
 
-(cl-defmethod xcb:keysyms:init ((obj xcb:connection))
+(cl-defmethod xcb:keysyms:init ((obj xcb:connection) &optional callback)
   "Initialize keysyms module.
+
+CALLBACK specifies a function to call every time the keyboard is updated.
 
 This method must be called before using any other method in this module."
   (cond
@@ -72,11 +74,12 @@ This method must be called before using any other method in this module."
                      'supported))
     (error "[XCB] XKB extension version 1.0 is not supported by the server"))
    (t
-    ;; Save the major opcode of XKB.
+    ;; Save the major opcode of XKB and callback function.
     (let ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms)))
       (setq plist (plist-put plist 'opcode
                              (slot-value (xcb:get-extension-data obj 'xcb:xkb)
-                                         'major-opcode)))
+                                         'major-opcode))
+            plist (plist-put plist 'callback callback))
       (setf (slot-value obj 'extra-plist)
             (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))
     ;; Set per-client flags.
@@ -136,9 +139,11 @@ This method must be called before using any other method in this module."
   (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
          (device (plist-get plist 'device))
          (opcode (plist-get plist 'opcode))
-         (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify)))
+         (callback (plist-get plist 'callback))
+         (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify))
+         updated)
     (xcb:unmarshal obj1 data)
-    (with-slots (deviceID requestMajor requestMinor changed) obj1
+    (with-slots (deviceID oldDeviceID requestMajor requestMinor changed) obj1
       (if (= 0 (logand changed xcb:xkb:NKNDetail:DeviceID))
           ;; Device is not changed; ensure it's a keycode change from
           ;; this device.
@@ -151,30 +156,45 @@ This method must be called before using any other method in this module."
                      (= requestMajor opcode)
                      (= requestMinor
                         (eieio-oref-default 'xcb:xkb:GetKbdByName '~opcode)))
+            (setq updated t)
             ;; (xcb:keysyms:-update-keytypes obj deviceID)
             (xcb:keysyms:-update-keycodes obj deviceID)
             (xcb:keysyms:-update-modkeys obj deviceID))
-        ;; Device changed; update the per-client flags and local data.
-        (xcb:keysyms:-set-per-client-flags obj deviceID)
-        (xcb:keysyms:-update-keytypes obj deviceID)
-        (xcb:keysyms:-update-keycodes obj deviceID)
-        (xcb:keysyms:-update-modkeys obj deviceID)))))
+        (when (or (= oldDeviceID device)
+                  ;; 0 is a special value for servers not supporting
+                  ;; the X Input Extension.
+                  (= oldDeviceID 0))
+          ;; Device changed; update the per-client flags and local data.
+          (setq updated t)
+          (xcb:keysyms:-set-per-client-flags obj deviceID)
+          (xcb:keysyms:-update-keytypes obj deviceID)
+          (xcb:keysyms:-update-keycodes obj deviceID)
+          (xcb:keysyms:-update-modkeys obj deviceID))))
+    (when (and callback updated)
+      (funcall callback))))
 
 (cl-defmethod xcb:keysyms:-on-MapNotify ((obj xcb:connection) data)
   "Handle 'MapNotify' event."
   (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
          (device (plist-get plist 'device))
-         (obj1 (make-instance 'xcb:xkb:MapNotify)))
+         (callback (plist-get plist 'callback))
+         (obj1 (make-instance 'xcb:xkb:MapNotify))
+         updated)
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID changed firstType nTypes firstKeySym nKeySyms) obj1
       ;; Ensure this event is for the current device.
       (when (= deviceID device)
         (when (/= 0 (logand changed xcb:xkb:MapPart:KeyTypes))
+          (setq updated t)
           (xcb:keysyms:-update-keytypes obj deviceID firstType nTypes))
         (when (/= 0 (logand changed xcb:xkb:MapPart:KeySyms))
+          (setq updated t)
           (xcb:keysyms:-update-keycodes obj deviceID firstKeySym nKeySyms))
         (when (/= 0 (logand changed xcb:xkb:MapPart:ModifierMap))
-          (xcb:keysyms:-update-modkeys obj deviceID))))))
+          (setq updated t)
+          (xcb:keysyms:-update-modkeys obj deviceID))))
+    (when (and callback updated)
+      (funcall callback))))
 
 (cl-defmethod xcb:keysyms:-update-keytypes ((obj xcb:connection) device
                                             &optional first-keytype count)
