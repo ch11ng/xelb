@@ -34,6 +34,7 @@
 
 ;; References:
 ;; + X protocol (http://www.x.org/releases/X11R7.7/doc/xproto/x11protocol.txt)
+;; + XKB protocol (https://www.x.org/releases/X11R7.7/doc/kbproto/xkbproto.txt)
 ;; + xcb/util-keysyms (git://anongit.freedesktop.org/xcb/util-keysyms)
 
 ;;; Code:
@@ -53,13 +54,6 @@
 (defvar xcb:keysyms:lock-mask xcb:ModMask:Lock "LOCK key mask.")
 (defvar xcb:keysyms:shift-lock-mask 0 "SHIFT-LOCK key mask.")
 (defvar xcb:keysyms:num-lock-mask 0 "NUM-LOCK key mask.")
-;; Internal state / local data.
-(defvar xcb:keysyms:-opcode nil)
-(defvar xcb:keysyms:-device nil)
-(defvar xcb:keysyms:-keytypes nil)
-(defvar xcb:keysyms:-keycodes nil)
-(defvar xcb:keysyms:-min-keycode nil)
-(defvar xcb:keysyms:-max-keycode nil)
 
 (cl-defmethod xcb:keysyms:init ((obj xcb:connection))
   "Initialize keysyms module.
@@ -67,7 +61,7 @@
 This method must be called before using any other method in this module."
   (cond
    ;; Avoid duplicated initializations.
-   (xcb:keysyms:-opcode)
+   ((plist-get (plist-get (slot-value obj 'extra-plist) 'keysyms) 'opcode))
    ((= 0 (slot-value (xcb:get-extension-data obj 'xcb:xkb)
                      'present))
     (error "[XCB] XKB extension is not supported by the server"))
@@ -79,8 +73,12 @@ This method must be called before using any other method in this module."
     (error "[XCB] XKB extension version 1.0 is not supported by the server"))
    (t
     ;; Save the major opcode of XKB.
-    (setq xcb:keysyms:-opcode
-          (slot-value (xcb:get-extension-data obj 'xcb:xkb) 'major-opcode))
+    (let ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms)))
+      (setq plist (plist-put plist 'opcode
+                             (slot-value (xcb:get-extension-data obj 'xcb:xkb)
+                                         'major-opcode)))
+      (setf (slot-value obj 'extra-plist)
+            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))
     ;; Set per-client flags.
     (xcb:keysyms:-set-per-client-flags obj xcb:xkb:ID:UseCoreKbd)
     ;; Update data.
@@ -135,19 +133,22 @@ This method must be called before using any other method in this module."
 
 (cl-defmethod xcb:keysyms:-on-NewKeyboardNotify ((obj xcb:connection) data)
   "Handle 'NewKeyboardNotify' event."
-  (let ((obj1 (make-instance 'xcb:xkb:NewKeyboardNotify)))
+  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+         (device (plist-get plist 'device))
+         (opcode (plist-get plist 'opcode))
+         (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify)))
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID requestMajor requestMinor changed) obj1
       (if (= 0 (logand changed xcb:xkb:NKNDetail:DeviceID))
           ;; Device is not changed; ensure it's a keycode change from
           ;; this device.
           (when (and (/= 0 (logand changed xcb:xkb:NKNDetail:Keycodes))
-                     (= deviceID xcb:keysyms:-device)
+                     (= deviceID device)
                      ;; Also, according to the specification this can
                      ;; only happen when a GetKbdByName request issued.
                      ;; The two checks below avoid false positive caused
                      ;; by requests such as SetMap (e.g. XCape).
-                     (= requestMajor xcb:keysyms:-opcode)
+                     (= requestMajor opcode)
                      (= requestMinor
                         (eieio-oref-default 'xcb:xkb:GetKbdByName '~opcode)))
             ;; (xcb:keysyms:-update-keytypes obj deviceID)
@@ -161,11 +162,13 @@ This method must be called before using any other method in this module."
 
 (cl-defmethod xcb:keysyms:-on-MapNotify ((obj xcb:connection) data)
   "Handle 'MapNotify' event."
-  (let ((obj1 (make-instance 'xcb:xkb:MapNotify)))
+  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+         (device (plist-get plist 'device))
+         (obj1 (make-instance 'xcb:xkb:MapNotify)))
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID changed firstType nTypes firstKeySym nKeySyms) obj1
       ;; Ensure this event is for the current device.
-      (when (= deviceID xcb:keysyms:-device)
+      (when (= deviceID device)
         (when (/= 0 (logand changed xcb:xkb:MapPart:KeyTypes))
           (xcb:keysyms:-update-keytypes obj deviceID firstType nTypes))
         (when (/= 0 (logand changed xcb:xkb:MapPart:KeySyms))
@@ -178,7 +181,8 @@ This method must be called before using any other method in this module."
   "Update key types.
 
 FIRST-KEYTYPE and count specify the range of key types to update."
-  (let (full partial)
+  (let ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+        full partial keytypes)
     (if (and first-keytype count)
         (setq full 0
               partial xcb:xkb:MapPart:KeyTypes)
@@ -209,20 +213,26 @@ FIRST-KEYTYPE and count specify the range of key types to update."
                            :nVModMapKeys 0))
       (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeyTypes)))
       (when (/= 0 full)
-        (setq xcb:keysyms:-device deviceID
-              xcb:keysyms:-keytypes (make-vector totalTypes nil)))
-      (setq xcb:keysyms:-keytypes
-            (vconcat (substring xcb:keysyms:-keytypes 0 firstType)
-                     types-rtrn
-                     (substring xcb:keysyms:-keytypes (min (+ firstType nTypes)
-                                                           totalTypes)))))))
+        (setq plist (plist-put plist 'device deviceID)
+              keytypes (make-vector totalTypes nil)))
+      (setq keytypes (vconcat (substring keytypes 0 firstType)
+                              types-rtrn
+                              (substring keytypes (min (+ firstType nTypes)
+                                                       totalTypes)))
+            plist (plist-put plist 'keytypes keytypes))
+      (setf (slot-value obj 'extra-plist)
+            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))))
 
 (cl-defmethod xcb:keysyms:-update-keycodes ((obj xcb:connection) device
                                             &optional first-keycode count)
   "Update keycode-keysym mapping.
 
 FIRST-KEYCODE and COUNT specify the keycode range to update."
-  (let (full partial)
+  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+         (keycodes (plist-get plist 'keycodes))
+         (min-keycode (plist-get plist 'min-keycode))
+         (max-keycode (plist-get plist 'max-keycode))
+         full partial)
     (if (and first-keycode count)
         (setq full 0
               partial xcb:xkb:MapPart:KeySyms)
@@ -255,23 +265,22 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
       (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeySyms)))
       (when (or (/= 0 full)
                 ;; Unlikely?
-                (/= xcb:keysyms:-min-keycode minKeyCode)
-                (/= xcb:keysyms:-max-keycode maxKeyCode))
-        (setq xcb:keysyms:-min-keycode minKeyCode
-              xcb:keysyms:-max-keycode maxKeyCode
-              xcb:keysyms:-keycodes (make-vector (- xcb:keysyms:-max-keycode
-                                                    xcb:keysyms:-min-keycode
-                                                    -1)
-                                                 nil)))
-      (setq xcb:keysyms:-keycodes
-            (vconcat
-             (substring xcb:keysyms:-keycodes 0 (- firstKeySym
-                                                   xcb:keysyms:-min-keycode))
-             syms-rtrn
-             (substring xcb:keysyms:-keycodes
-                        (- (min (+ firstKeySym nKeySyms)
-                                xcb:keysyms:-max-keycode)
-                           xcb:keysyms:-min-keycode)))))))
+                (/= min-keycode minKeyCode)
+                (/= max-keycode maxKeyCode))
+        (setq keycodes (make-vector (- maxKeyCode minKeyCode -1) nil)
+              min-keycode minKeyCode
+              max-keycode maxKeyCode
+              plist (plist-put plist 'min-keycode min-keycode)
+              plist (plist-put plist 'max-keycode max-keycode)))
+      (setq keycodes (vconcat
+                      (substring keycodes 0 (- firstKeySym min-keycode))
+                      syms-rtrn
+                      (substring keycodes
+                                 (- (min (+ firstKeySym nKeySyms) max-keycode)
+                                    min-keycode)))
+            plist (plist-put plist 'keycodes keycodes))
+      (setf (slot-value obj 'extra-plist)
+            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))))
 
 (cl-defmethod xcb:keysyms:-update-modkeys ((obj xcb:connection) _device)
   "Update modifier keys."
@@ -333,21 +342,25 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
     (setq xcb:keysyms:alt-mask (logand xcb:keysyms:alt-mask
                                        (lognot xcb:keysyms:meta-mask)))))
 
-(cl-defmethod xcb:keysyms:keycode->keysym ((_obj xcb:connection) keycode
+(cl-defmethod xcb:keysyms:keycode->keysym ((obj xcb:connection) keycode
                                            modifiers)
   "Convert keycode to (keysym . mod-mask).
 
 Return (0 . 0) when conversion fails."
-  (let ((preserve 0)
-        group group-info group-number index keytype)
+  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+         (keytypes (plist-get plist 'keytypes))
+         (keycodes (plist-get plist 'keycodes))
+         (min-keycode (plist-get plist 'min-keycode))
+         (max-keycode (plist-get plist 'max-keycode))
+         (preserve 0)
+         group group-info group-number index keytype)
     ;; Reference: `XkbTranslateKeyCode' in 'XKBBind.c'.
     (catch 'return
       ;; Check keycode range.
-      (unless (<= xcb:keysyms:-min-keycode keycode xcb:keysyms:-max-keycode)
+      (unless (<= min-keycode keycode max-keycode)
         (throw 'return '(0 . 0)))
       ;; Retrieve KeySymMap and group info.
-      (setq keycode (aref xcb:keysyms:-keycodes
-                          (- keycode xcb:keysyms:-min-keycode))
+      (setq keycode (aref keycodes (- keycode min-keycode))
             group-info (slot-value keycode 'groupInfo)
             group-number (logand group-info #xF)) ; See <XKBstr.h>.
       ;; Check group number.
@@ -369,8 +382,7 @@ Return (0 . 0) when conversion fails."
       ;; Calculate the index of keysym.
       (setq index (* group (slot-value keycode 'width)))
       ;; Get key type.
-      (setq keytype (aref xcb:keysyms:-keytypes
-                          (elt (slot-value keycode 'kt-index) group)))
+      (setq keytype (aref keytypes (elt (slot-value keycode 'kt-index) group)))
       ;; Find the shift level and preserved modifiers.
       (with-slots (mods-mask hasPreserve map (preserve* preserve)) keytype
         (catch 'break
@@ -389,12 +401,16 @@ Return (0 . 0) when conversion fails."
         (cons (elt (slot-value keycode 'syms) index)
               (logand mods-mask (lognot preserve)))))))
 
-(cl-defmethod xcb:keysyms:keysym->keycode ((_obj xcb:connection) keysym)
+(cl-defmethod xcb:keysyms:keysym->keycode ((obj xcb:connection) keysym)
   "Convert keysym to (the first matching) keycode.
 
 Return 0 if conversion fails."
-  (let ((index 0)
-        (continue t))
+  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
+         (keycodes (plist-get plist 'keycodes))
+         (min-keycode (plist-get plist 'min-keycode))
+         (max-keycode (plist-get plist 'max-keycode))
+         (index 0)
+         (continue t))
     ;; Traverse all keycodes, column by column.
     ;; Reference: `XKeysymToKeycode' in 'XKBBind.c'.
     (catch 'break
@@ -402,12 +418,12 @@ Return 0 if conversion fails."
         (throw 'break 0))
       (while continue
         (setq continue nil)
-        (dotimes (i (- xcb:keysyms:-max-keycode xcb:keysyms:-min-keycode -1))
-          (with-slots (nSyms syms) (aref xcb:keysyms:-keycodes i)
+        (dotimes (i (- max-keycode min-keycode -1))
+          (with-slots (nSyms syms) (aref keycodes i)
             (when (< index nSyms)
               (setq continue t)
               (when (= keysym (elt syms index))
-                (throw 'break (+ i xcb:keysyms:-min-keycode))))))
+                (throw 'break (+ i min-keycode))))))
         (cl-incf index))
       0)))
 
