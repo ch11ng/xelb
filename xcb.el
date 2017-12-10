@@ -101,6 +101,17 @@
    (data :initarg :data :initform "" :type string))
   :documentation "X connection authentication info.")
 
+(cl-defmethod xcb:-get-extra-plist ((conn xcb:connection) module prop)
+  "Get the value of PROP from the extra plist for module MODULE."
+  (plist-get (plist-get (slot-value conn 'extra-plist) module) prop))
+
+(cl-defmethod xcb:-set-extra-plist ((conn xcb:connection) module prop val)
+  "Set the value of PROP in the extra plist for module MODULE to VAL."
+  (with-slots (extra-plist) conn
+    (setf extra-plist
+          (plist-put extra-plist module
+                     (plist-put (plist-get extra-plist module) prop val)))))
+
 (defun xcb:connect (&optional display _screen)
   "Connect to X server with display DISPLAY."
   (declare (advertised-calling-convention (&optional display) "25.1"))

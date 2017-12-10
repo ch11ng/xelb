@@ -44,6 +44,13 @@
 (require 'xcb)
 (require 'xcb-xkb)
 
+(defclass xcb:keysyms:-device ()
+  ((keytypes :initform nil)
+   (keycodes :initform nil)
+   (min-keycode :initform 0)
+   (max-keycode :initform 0))
+  :documentation "Device (keyboard) properties.")
+
 ;; These variables are shared by all connections.
 (defvar xcb:keysyms:meta-mask 0 "META key mask.")
 (defvar xcb:keysyms:control-mask xcb:ModMask:Control "CONTROL key mask.")
@@ -55,6 +62,12 @@
 (defvar xcb:keysyms:shift-lock-mask 0 "SHIFT-LOCK key mask.")
 (defvar xcb:keysyms:num-lock-mask 0 "NUM-LOCK key mask.")
 
+(cl-defmethod xcb:keysyms:-get-current-device ((conn xcb:connection))
+  "Return the device currently used."
+  (or (xcb:-get-extra-plist conn 'keysyms
+                            (xcb:-get-extra-plist conn 'keysyms 'device-id))
+      (make-instance 'xcb:keysyms:-device)))
+
 (cl-defmethod xcb:keysyms:init ((obj xcb:connection) &optional callback)
   "Initialize keysyms module.
 
@@ -63,7 +76,7 @@ CALLBACK specifies a function to call every time the keyboard is updated.
 This method must be called before using any other method in this module."
   (cond
    ;; Avoid duplicated initializations.
-   ((plist-get (plist-get (slot-value obj 'extra-plist) 'keysyms) 'opcode))
+   ((xcb:-get-extra-plist obj 'keysyms 'opcode))
    ((= 0 (slot-value (xcb:get-extension-data obj 'xcb:xkb)
                      'present))
     (error "[XCB] XKB extension is not supported by the server"))
@@ -75,18 +88,17 @@ This method must be called before using any other method in this module."
     (error "[XCB] XKB extension version 1.0 is not supported by the server"))
    (t
     ;; Save the major opcode of XKB and callback function.
-    (let ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms)))
-      (setq plist (plist-put plist 'opcode
-                             (slot-value (xcb:get-extension-data obj 'xcb:xkb)
-                                         'major-opcode))
-            plist (plist-put plist 'callback callback))
-      (setf (slot-value obj 'extra-plist)
-            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))
+    (xcb:-set-extra-plist obj 'keysyms 'opcode
+                          (slot-value (xcb:get-extension-data obj 'xcb:xkb)
+                                      'major-opcode))
+    (xcb:-set-extra-plist obj 'keysyms 'callback callback)
     ;; Set per-client flags.
     (xcb:keysyms:-set-per-client-flags obj xcb:xkb:ID:UseCoreKbd)
     ;; Update data.
     (xcb:keysyms:-update-keytypes obj xcb:xkb:ID:UseCoreKbd)
-    (xcb:keysyms:-update-keycodes obj xcb:xkb:ID:UseCoreKbd)
+    (xcb:-set-extra-plist obj 'keysyms 'device-id
+                          (xcb:keysyms:-update-keycodes obj
+                                                        xcb:xkb:ID:UseCoreKbd))
     (xcb:keysyms:-update-modkeys obj xcb:xkb:ID:UseCoreKbd)
     ;; Attach event listeners.
     (xcb:+event obj 'xcb:xkb:NewKeyboardNotify
@@ -115,7 +127,8 @@ This method must be called before using any other method in this module."
                          :newKeyboardDetails new-keyboard)))
     (xcb:flush obj))))
 
-(cl-defmethod xcb:keysyms:-set-per-client-flags ((obj xcb:connection) device)
+(cl-defmethod xcb:keysyms:-set-per-client-flags ((obj xcb:connection)
+                                                 device-id)
   "Set per-client flags."
   (let ((per-client-flags (logior
                            ;; Instead of compatibility state.
@@ -127,7 +140,7 @@ This method must be called before using any other method in this module."
     ;; The reply is not used.
     (xcb:+request-unchecked+reply obj
         (make-instance 'xcb:xkb:PerClientFlags
-                       :deviceSpec device
+                       :deviceSpec device-id
                        :change per-client-flags
                        :value per-client-flags
                        :ctrlsToChange 0
@@ -136,19 +149,15 @@ This method must be called before using any other method in this module."
 
 (cl-defmethod xcb:keysyms:-on-NewKeyboardNotify ((obj xcb:connection) data)
   "Handle 'NewKeyboardNotify' event."
-  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (device (plist-get plist 'device))
-         (opcode (plist-get plist 'opcode))
-         (callback (plist-get plist 'callback))
-         (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify))
-         updated)
+  (let ((device-id (xcb:-get-extra-plist obj 'keysyms 'device-id))
+        (opcode (xcb:-get-extra-plist obj 'keysyms 'opcode))
+        (callback (xcb:-get-extra-plist obj 'keysyms 'callback))
+        (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify))
+        updated)
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID oldDeviceID requestMajor requestMinor changed) obj1
       (if (= 0 (logand changed xcb:xkb:NKNDetail:DeviceID))
-          ;; Device is not changed; ensure it's a keycode change from
-          ;; this device.
           (when (and (/= 0 (logand changed xcb:xkb:NKNDetail:Keycodes))
-                     (= deviceID device)
                      ;; Also, according to the specification this can
                      ;; only happen when a GetKbdByName request issued.
                      ;; The two checks below avoid false positive caused
@@ -156,53 +165,56 @@ This method must be called before using any other method in this module."
                      (= requestMajor opcode)
                      (= requestMinor
                         (eieio-oref-default 'xcb:xkb:GetKbdByName '~opcode)))
-            (setq updated t)
             ;; (xcb:keysyms:-update-keytypes obj deviceID)
             (xcb:keysyms:-update-keycodes obj deviceID)
-            (xcb:keysyms:-update-modkeys obj deviceID))
-        (when (or (= oldDeviceID device)
+            (when (= deviceID device-id)
+              (setq updated t)
+              (xcb:keysyms:-update-modkeys obj deviceID)))
+        (xcb:keysyms:-set-per-client-flags obj deviceID)
+        (xcb:keysyms:-update-keytypes obj deviceID)
+        (xcb:keysyms:-update-keycodes obj deviceID)
+        (when (or (= oldDeviceID device-id)
                   ;; 0 is a special value for servers not supporting
                   ;; the X Input Extension.
                   (= oldDeviceID 0))
           ;; Device changed; update the per-client flags and local data.
           (setq updated t)
-          (xcb:keysyms:-set-per-client-flags obj deviceID)
-          (xcb:keysyms:-update-keytypes obj deviceID)
-          (xcb:keysyms:-update-keycodes obj deviceID)
-          (xcb:keysyms:-update-modkeys obj deviceID))))
+          (xcb:keysyms:-update-modkeys obj deviceID)
+          (xcb:-set-extra-plist obj 'keysyms 'device-id deviceID))))
     (when (and callback updated)
-      (funcall callback))))
+      (with-demoted-errors "[XELB ERROR] %S"
+        (funcall callback)))))
 
 (cl-defmethod xcb:keysyms:-on-MapNotify ((obj xcb:connection) data)
   "Handle 'MapNotify' event."
-  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (device (plist-get plist 'device))
-         (callback (plist-get plist 'callback))
-         (obj1 (make-instance 'xcb:xkb:MapNotify))
-         updated)
+  (let ((device-id (xcb:-get-extra-plist obj 'keysyms 'device-id))
+        (callback (xcb:-get-extra-plist obj 'keysyms 'callback))
+        (obj1 (make-instance 'xcb:xkb:MapNotify))
+        updated)
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID changed firstType nTypes firstKeySym nKeySyms) obj1
       ;; Ensure this event is for the current device.
-      (when (= deviceID device)
-        (when (/= 0 (logand changed xcb:xkb:MapPart:KeyTypes))
-          (setq updated t)
-          (xcb:keysyms:-update-keytypes obj deviceID firstType nTypes))
-        (when (/= 0 (logand changed xcb:xkb:MapPart:KeySyms))
-          (setq updated t)
-          (xcb:keysyms:-update-keycodes obj deviceID firstKeySym nKeySyms))
-        (when (/= 0 (logand changed xcb:xkb:MapPart:ModifierMap))
-          (setq updated t)
-          (xcb:keysyms:-update-modkeys obj deviceID))))
-    (when (and callback updated)
-      (funcall callback))))
+      (when (/= 0 (logand changed xcb:xkb:MapPart:KeyTypes))
+        (setq updated t)
+        (xcb:keysyms:-update-keytypes obj deviceID firstType nTypes))
+      (when (/= 0 (logand changed xcb:xkb:MapPart:KeySyms))
+        (setq updated t)
+        (xcb:keysyms:-update-keycodes obj deviceID firstKeySym nKeySyms))
+      (when (/= 0 (logand changed xcb:xkb:MapPart:ModifierMap))
+        (setq updated t)
+        (xcb:keysyms:-update-modkeys obj deviceID))
+      (when (and updated
+                 callback
+                 (= deviceID device-id))
+        (with-demoted-errors "[XELB ERROR] %S"
+          (funcall callback))))))
 
-(cl-defmethod xcb:keysyms:-update-keytypes ((obj xcb:connection) device
+(cl-defmethod xcb:keysyms:-update-keytypes ((obj xcb:connection) device-id
                                             &optional first-keytype count)
   "Update key types.
 
 FIRST-KEYTYPE and count specify the range of key types to update."
-  (let ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-        full partial keytypes)
+  (let (device full partial)
     (if (and first-keytype count)
         (setq full 0
               partial xcb:xkb:MapPart:KeyTypes)
@@ -213,7 +225,7 @@ FIRST-KEYTYPE and count specify the range of key types to update."
     (with-slots (deviceID present firstType nTypes totalTypes types-rtrn)
         (xcb:+request-unchecked+reply obj
             (make-instance 'xcb:xkb:GetMap
-                           :deviceSpec device
+                           :deviceSpec device-id
                            :full full
                            :partial partial
                            :firstType first-keytype
@@ -232,27 +244,24 @@ FIRST-KEYTYPE and count specify the range of key types to update."
                            :firstVModMapKey 0
                            :nVModMapKeys 0))
       (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeyTypes)))
-      (when (/= 0 full)
-        (setq plist (plist-put plist 'device deviceID)
-              keytypes (make-vector totalTypes nil)))
-      (setq keytypes (vconcat (substring keytypes 0 firstType)
-                              types-rtrn
-                              (substring keytypes (min (+ firstType nTypes)
-                                                       totalTypes)))
-            plist (plist-put plist 'keytypes keytypes))
-      (setf (slot-value obj 'extra-plist)
-            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))))
+      (setq device (or (xcb:-get-extra-plist obj 'keysyms deviceID)
+                       (make-instance 'xcb:keysyms:-device)))
+      (with-slots (keytypes) device
+        (when (/= 0 full)
+          (setf keytypes (make-vector totalTypes nil)))
+        (setf keytypes (vconcat (substring keytypes 0 firstType)
+                                types-rtrn
+                                (substring keytypes (min (+ firstType nTypes)
+                                                         totalTypes)))))
+      (xcb:-set-extra-plist obj 'keysyms deviceID device)
+      deviceID)))
 
-(cl-defmethod xcb:keysyms:-update-keycodes ((obj xcb:connection) device
+(cl-defmethod xcb:keysyms:-update-keycodes ((obj xcb:connection) device-id
                                             &optional first-keycode count)
   "Update keycode-keysym mapping.
 
 FIRST-KEYCODE and COUNT specify the keycode range to update."
-  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (keycodes (plist-get plist 'keycodes))
-         (min-keycode (plist-get plist 'min-keycode))
-         (max-keycode (plist-get plist 'max-keycode))
-         full partial)
+  (let (device full partial)
     (if (and first-keycode count)
         (setq full 0
               partial xcb:xkb:MapPart:KeySyms)
@@ -264,7 +273,7 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
                           firstKeySym nKeySyms syms-rtrn)
         (xcb:+request-unchecked+reply obj
             (make-instance 'xcb:xkb:GetMap
-                           :deviceSpec device
+                           :deviceSpec device-id
                            :full full
                            :partial partial
                            :firstType 0
@@ -283,26 +292,27 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
                            :firstVModMapKey 0
                            :nVModMapKeys 0))
       (cl-assert (/= 0 (logand present xcb:xkb:MapPart:KeySyms)))
-      (when (or (/= 0 full)
-                ;; Unlikely?
-                (/= min-keycode minKeyCode)
-                (/= max-keycode maxKeyCode))
-        (setq keycodes (make-vector (- maxKeyCode minKeyCode -1) nil)
-              min-keycode minKeyCode
-              max-keycode maxKeyCode
-              plist (plist-put plist 'min-keycode min-keycode)
-              plist (plist-put plist 'max-keycode max-keycode)))
-      (setq keycodes (vconcat
-                      (substring keycodes 0 (- firstKeySym min-keycode))
-                      syms-rtrn
-                      (substring keycodes
-                                 (- (min (+ firstKeySym nKeySyms) max-keycode)
-                                    min-keycode)))
-            plist (plist-put plist 'keycodes keycodes))
-      (setf (slot-value obj 'extra-plist)
-            (plist-put (slot-value obj 'extra-plist) 'keysyms plist)))))
+      (setq device (or (xcb:-get-extra-plist obj 'keysyms deviceID)
+                       (make-instance 'xcb:keysyms:-device)))
+      (with-slots (keycodes min-keycode max-keycode) device
+        (when (or (/= 0 full)
+                  ;; Unlikely?
+                  (/= min-keycode minKeyCode)
+                  (/= max-keycode maxKeyCode))
+          (setf keycodes (make-vector (- maxKeyCode minKeyCode -1) nil)
+                min-keycode minKeyCode
+                max-keycode maxKeyCode))
+        (setf keycodes
+              (vconcat
+               (substring keycodes 0 (- firstKeySym min-keycode))
+               syms-rtrn
+               (substring keycodes
+                          (- (min (+ firstKeySym nKeySyms) max-keycode)
+                             min-keycode)))))
+      (xcb:-set-extra-plist obj 'keysyms deviceID device)
+      deviceID)))
 
-(cl-defmethod xcb:keysyms:-update-modkeys ((obj xcb:connection) _device)
+(cl-defmethod xcb:keysyms:-update-modkeys ((obj xcb:connection) _device-id)
   "Update modifier keys."
   ;; Reference: 'x_find_modifier_meanings' in 'xterm.c'.
   (with-slots (keycodes-per-modifier keycodes)
@@ -367,85 +377,81 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
   "Convert keycode to (keysym . mod-mask).
 
 Return (0 . 0) when conversion fails."
-  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (keytypes (plist-get plist 'keytypes))
-         (keycodes (plist-get plist 'keycodes))
-         (min-keycode (plist-get plist 'min-keycode))
-         (max-keycode (plist-get plist 'max-keycode))
-         (preserve 0)
-         group group-info group-number index keytype)
-    ;; Reference: `XkbTranslateKeyCode' in 'XKBBind.c'.
-    (catch 'return
-      ;; Check keycode range.
-      (unless (<= min-keycode keycode max-keycode)
-        (throw 'return '(0 . 0)))
-      ;; Retrieve KeySymMap and group info.
-      (setq keycode (aref keycodes (- keycode min-keycode))
-            group-info (slot-value keycode 'groupInfo)
-            group-number (logand group-info #xF)) ; See <XKBstr.h>.
-      ;; Check group number.
-      (when (= group-number 0)
-        (throw 'return '(0 . 0)))
-      (setq group (logand (lsh modifiers -13) #b11)) ;The 13, 14 bits.
-      ;; Wrap group.
-      (when (>= group group-number)
-        (pcase (logand group-info #xC0) ;See <XKBstr.h>.
-          (`xcb:xkb:GroupsWrap:RedirectIntoRange
-           (setq group (logand #xFF (lsh group-info -4))) ;See <XKBstr.h>.
-           ;; Check if i's also out of range.
-           (when (>= group group-number)
-             (setq group 0)))
-          (`xcb:xkb:GroupsWrap:ClampIntoRange
-           (setq group (1- group-number)))
-          (_
-           (setq group (% group group-number)))))
-      ;; Calculate the index of keysym.
-      (setq index (* group (slot-value keycode 'width)))
-      ;; Get key type.
-      (setq keytype (aref keytypes (elt (slot-value keycode 'kt-index) group)))
-      ;; Find the shift level and preserved modifiers.
-      (with-slots (mods-mask hasPreserve map (preserve* preserve)) keytype
-        (catch 'break
-          (dolist (entry map)
-            (with-slots (active (mods-mask* mods-mask) level) entry
-              (when (and (= 1 active)
-                         (= (logand modifiers mods-mask) mods-mask*))
-                (cl-incf index level)
-                (when (= 1 hasPreserve)
-                  (setq preserve (slot-value (elt preserve*
-                                                  (cl-position entry map))
-                                             'mask)))
-                (throw 'break nil)))))
-        ;; FIXME: Use of preserved modifiers (e.g. capitalize the keysym
-        ;;        when LOCK is preserved)?
-        (cons (elt (slot-value keycode 'syms) index)
-              (logand mods-mask (lognot preserve)))))))
+  (let ((preserve 0)
+        group group-info group-number index keytype)
+    (with-slots (keytypes keycodes min-keycode max-keycode)
+        (xcb:keysyms:-get-current-device obj)
+      ;; Reference: `XkbTranslateKeyCode' in 'XKBBind.c'.
+      (catch 'return
+        ;; Check keycode range.
+        (unless (<= min-keycode keycode max-keycode)
+          (throw 'return '(0 . 0)))
+        ;; Retrieve KeySymMap and group info.
+        (setq keycode (aref keycodes (- keycode min-keycode))
+              group-info (slot-value keycode 'groupInfo)
+              group-number (logand group-info #xF)) ; See <XKBstr.h>.
+        ;; Check group number.
+        (when (= group-number 0)
+          (throw 'return '(0 . 0)))
+        (setq group (logand (lsh modifiers -13) #b11)) ;The 13, 14 bits.
+        ;; Wrap group.
+        (when (>= group group-number)
+          (pcase (logand group-info #xC0) ;See <XKBstr.h>.
+            (`xcb:xkb:GroupsWrap:RedirectIntoRange
+             (setq group (logand #xFF (lsh group-info -4))) ;See <XKBstr.h>.
+             ;; Check if i's also out of range.
+             (when (>= group group-number)
+               (setq group 0)))
+            (`xcb:xkb:GroupsWrap:ClampIntoRange
+             (setq group (1- group-number)))
+            (_
+             (setq group (% group group-number)))))
+        ;; Calculate the index of keysym.
+        (setq index (* group (slot-value keycode 'width)))
+        ;; Get key type.
+        (setq keytype (aref keytypes
+                            (elt (slot-value keycode 'kt-index) group)))
+        ;; Find the shift level and preserved modifiers.
+        (with-slots (mods-mask hasPreserve map (preserve* preserve)) keytype
+          (catch 'break
+            (dolist (entry map)
+              (with-slots (active (mods-mask* mods-mask) level) entry
+                (when (and (= 1 active)
+                           (= (logand modifiers mods-mask) mods-mask*))
+                  (cl-incf index level)
+                  (when (= 1 hasPreserve)
+                    (setq preserve (slot-value (elt preserve*
+                                                    (cl-position entry map))
+                                               'mask)))
+                  (throw 'break nil)))))
+          ;; FIXME: Use of preserved modifiers (e.g. capitalize the keysym
+          ;;        when LOCK is preserved)?
+          (cons (elt (slot-value keycode 'syms) index)
+                (logand mods-mask (lognot preserve))))))))
 
 (cl-defmethod xcb:keysyms:keysym->keycode ((obj xcb:connection) keysym)
   "Convert keysym to (the first matching) keycode.
 
 Return 0 if conversion fails."
-  (let* ((plist (plist-get (slot-value obj 'extra-plist) 'keysyms))
-         (keycodes (plist-get plist 'keycodes))
-         (min-keycode (plist-get plist 'min-keycode))
-         (max-keycode (plist-get plist 'max-keycode))
-         (index 0)
-         (continue t))
-    ;; Traverse all keycodes, column by column.
-    ;; Reference: `XKeysymToKeycode' in 'XKBBind.c'.
-    (catch 'break
-      (when (= 0 keysym)
-        (throw 'break 0))
-      (while continue
-        (setq continue nil)
-        (dotimes (i (- max-keycode min-keycode -1))
-          (with-slots (nSyms syms) (aref keycodes i)
-            (when (< index nSyms)
-              (setq continue t)
-              (when (= keysym (elt syms index))
-                (throw 'break (+ i min-keycode))))))
-        (cl-incf index))
-      0)))
+  (let ((index 0)
+        (continue t))
+    (with-slots (keycodes min-keycode max-keycode)
+        (xcb:keysyms:-get-current-device obj)
+      ;; Traverse all keycodes, column by column.
+      ;; Reference: `XKeysymToKeycode' in 'XKBBind.c'.
+      (catch 'break
+        (when (= 0 keysym)
+          (throw 'break 0))
+        (while continue
+          (setq continue nil)
+          (dotimes (i (- max-keycode min-keycode -1))
+            (with-slots (nSyms syms) (aref keycodes i)
+              (when (< index nSyms)
+                (setq continue t)
+                (when (= keysym (elt syms index))
+                  (throw 'break (+ i min-keycode))))))
+          (cl-incf index))
+        0))))
 
 ;; This list is largely base on 'lispy_function_keys' in 'keyboard.c'.
 (defconst xcb:keysyms:-function-keys
