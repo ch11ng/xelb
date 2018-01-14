@@ -650,12 +650,30 @@ Return (0 . 0) when conversion fails."
               modifiers (mapcar (lambda (i)
                                   (pcase i
                                     ((and x (pred integerp)) x)
-                                    (`meta xcb:keysyms:meta-mask)
-                                    (`control xcb:keysyms:control-mask)
-                                    (`shift xcb:keysyms:shift-mask)
-                                    (`hyper xcb:keysyms:hyper-mask)
-                                    (`super xcb:keysyms:super-mask)
-                                    (`alt xcb:keysyms:alt-mask)
+                                    (`meta
+                                     (when (= 0 xcb:keysyms:meta-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:meta-mask)
+                                    (`control
+                                     (when (= 0 xcb:keysyms:control-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:control-mask)
+                                    (`shift
+                                     (when (= 0 xcb:keysyms:shift-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:shift-mask)
+                                    (`hyper
+                                     (when (= 0 xcb:keysyms:hyper-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:hyper-mask)
+                                    (`super
+                                     (when (= 0 xcb:keysyms:super-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:super-mask)
+                                    (`alt
+                                     (when (= 0 xcb:keysyms:alt-mask)
+                                       (setq keysym 0))
+                                     xcb:keysyms:alt-mask)
                                     (_
                                      ;; Include but not limit to: down.
                                      0)))
