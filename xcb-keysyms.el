@@ -604,6 +604,10 @@ Return (0 . 0) when conversion fails."
                                              xcb:keysyms:-iso-function-keys))
                    ;; ISO function keys.
                    (logior keysym #xfe00))
+                  ((and (symbolp event)
+                        (= 1 (length (symbol-name event))))
+                   ;; Symbol representations of ASCII characters.
+                   (aref (symbol-name event) 0))
                   (t
                    ;; Finally try system-specific keysyms.
                    (car (rassq event system-key-alist)))))))
