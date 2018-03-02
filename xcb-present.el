@@ -29,7 +29,7 @@
 (defconst xcb:present:-extension-xname "Present")
 (defconst xcb:present:-extension-name "Present")
 (defconst xcb:present:-major-version 1)
-(defconst xcb:present:-minor-version 0)
+(defconst xcb:present:-minor-version 2)
 
 (require 'xcb-xproto)
 
@@ -54,6 +54,7 @@
 (defconst xcb:present:Option:Async 1)
 (defconst xcb:present:Option:Copy 2)
 (defconst xcb:present:Option:UST 4)
+(defconst xcb:present:Option:Suboptimal 8)
 
 (defconst xcb:present:Capability:None 0)
 (defconst xcb:present:Capability:Async 1)
@@ -66,6 +67,7 @@
 (defconst xcb:present:CompleteMode:Copy 0)
 (defconst xcb:present:CompleteMode:Flip 1)
 (defconst xcb:present:CompleteMode:Skip 2)
+(defconst xcb:present:CompleteMode:SuboptimalCopy 3)
 
 (defclass xcb:present:Notify
   (xcb:-struct)

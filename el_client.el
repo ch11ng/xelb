@@ -87,7 +87,7 @@
                                        (replace-regexp-in-string "^xproto:" ""
                                                                  type-name))))
             type
-          (error "Undefined type :%s" type-name))
+          (error "Undefined type: %s" type-name))
       (if (setq type (or (intern-soft (concat xelb-prefix type-name))
                          (intern-soft (concat "xcb:" type-name))))
           ;; Defined by the core protocol or this extension.
@@ -101,7 +101,7 @@
             ;; Defined by an imported extension.
             type
           ;; Not defined.
-          (error "Undefined type :%s" type-name))))))
+          (error "Undefined type: %s" type-name))))))
 
 (defsubst xelb-escape-name (name)
   "Replace underscores in NAME with dashes."
@@ -537,7 +537,7 @@ The `combine-adjacent' attribute is simply ignored."
 (defun xelb-parse-fd (node)
   "Parse <fd>."
   (let ((name (intern (xelb-node-attr-escape node 'name))))
-    `((,name :type xcb:-fd))))
+    `((,name :type xcb:fd))))
 
 (defun xelb-parse-list (node)
   "Parse <list>."

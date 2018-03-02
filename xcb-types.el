@@ -414,7 +414,7 @@
 ;; <pad> with align attribute
 (cl-deftype xcb:-pad-align () t)
 ;; <fd>
-(xcb:deftypealias 'xcb:-fd 'xcb:-i4)
+(xcb:deftypealias 'xcb:fd 'xcb:-i4)
 ;; <list>
 (cl-deftype xcb:-list () t)
 ;; <switch>

@@ -29,7 +29,7 @@
 (defconst xcb:randr:-extension-xname "RANDR")
 (defconst xcb:randr:-extension-name "RandR")
 (defconst xcb:randr:-major-version 1)
-(defconst xcb:randr:-minor-version 5)
+(defconst xcb:randr:-minor-version 6)
 
 (require 'xcb-xproto)
 
@@ -42,6 +42,8 @@
 (xcb:deftypealias 'xcb:randr:OUTPUT 'xcb:-u4)
 
 (xcb:deftypealias 'xcb:randr:PROVIDER 'xcb:-u4)
+
+(xcb:deftypealias 'xcb:randr:LEASE 'xcb:-u4)
 
 (defclass xcb:randr:BadOutput
   (xcb:-error)
@@ -129,6 +131,7 @@
 (defconst xcb:randr:NotifyMask:ProviderChange 16)
 (defconst xcb:randr:NotifyMask:ProviderProperty 32)
 (defconst xcb:randr:NotifyMask:ResourceChange 64)
+(defconst xcb:randr:NotifyMask:Lease 128)
 
 (defclass xcb:randr:SelectInput
   (xcb:-request)
@@ -954,6 +957,7 @@
 (defconst xcb:randr:Notify:ProviderChange 3)
 (defconst xcb:randr:Notify:ProviderProperty 4)
 (defconst xcb:randr:Notify:ResourceChange 5)
+(defconst xcb:randr:Notify:Lease 6)
 
 (defclass xcb:randr:CrtcChange
   (xcb:-struct)
@@ -1011,23 +1015,6 @@
    (window :initarg :window :type xcb:WINDOW)
    (pad~0 :initform 20 :type xcb:-pad)))
 
-(defclass xcb:randr:NotifyData
-  (xcb:-union)
-  ((~size :initform 28)
-   (cc :initarg :cc :type xcb:randr:CrtcChange)
-   (oc :initarg :oc :type xcb:randr:OutputChange)
-   (op :initarg :op :type xcb:randr:OutputProperty)
-   (pc :initarg :pc :type xcb:randr:ProviderChange)
-   (pp :initarg :pp :type xcb:randr:ProviderProperty)
-   (rc :initarg :rc :type xcb:randr:ResourceChange)))
-
-(defclass xcb:randr:Notify
-  (xcb:-event)
-  ((~code :initform 1)
-   (subCode :initarg :subCode :type xcb:CARD8)
-   (~sequence :type xcb:CARD16)
-   (u :initarg :u :type xcb:randr:NotifyData)))
-
 (defclass xcb:randr:MonitorInfo
   (xcb:-struct)
   ((name :initarg :name :type xcb:ATOM)
@@ -1077,6 +1064,64 @@
   ((~opcode :initform 44 :type xcb:-u1)
    (window :initarg :window :type xcb:WINDOW)
    (name :initarg :name :type xcb:ATOM)))
+
+(defclass xcb:randr:CreateLease
+  (xcb:-request)
+  ((~opcode :initform 45 :type xcb:-u1)
+   (window :initarg :window :type xcb:WINDOW)
+   (lid :initarg :lid :type xcb:randr:LEASE)
+   (num-crtcs :initarg :num-crtcs :type xcb:CARD16)
+   (num-outputs :initarg :num-outputs :type xcb:CARD16)
+   (crtcs :initarg :crtcs :type xcb:-ignore)
+   (crtcs~ :initform
+	   '(name crtcs type xcb:randr:CRTC size
+		  (xcb:-fieldref 'num-crtcs))
+	   :type xcb:-list)
+   (pad~0 :initform 4 :type xcb:-pad-align)
+   (outputs :initarg :outputs :type xcb:-ignore)
+   (outputs~ :initform
+	     '(name outputs type xcb:randr:OUTPUT size
+		    (xcb:-fieldref 'num-outputs))
+	     :type xcb:-list)))
+(defclass xcb:randr:CreateLease~reply
+  (xcb:-reply)
+  ((nfd :initarg :nfd :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (length :type xcb:CARD32)
+   (master-fd :type xcb:fd)
+   (pad~0 :initform 24 :type xcb:-pad)))
+
+(defclass xcb:randr:FreeLease
+  (xcb:-request)
+  ((~opcode :initform 46 :type xcb:-u1)
+   (lid :initarg :lid :type xcb:randr:LEASE)
+   (terminate :initarg :terminate :type xcb:BYTE)))
+
+(defclass xcb:randr:LeaseNotify
+  (xcb:-struct)
+  ((timestamp :initarg :timestamp :type xcb:TIMESTAMP)
+   (window :initarg :window :type xcb:WINDOW)
+   (lease :initarg :lease :type xcb:randr:LEASE)
+   (created :initarg :created :type xcb:CARD8)
+   (pad~0 :initform 15 :type xcb:-pad)))
+
+(defclass xcb:randr:NotifyData
+  (xcb:-union)
+  ((~size :initform 28)
+   (cc :initarg :cc :type xcb:randr:CrtcChange)
+   (oc :initarg :oc :type xcb:randr:OutputChange)
+   (op :initarg :op :type xcb:randr:OutputProperty)
+   (pc :initarg :pc :type xcb:randr:ProviderChange)
+   (pp :initarg :pp :type xcb:randr:ProviderProperty)
+   (rc :initarg :rc :type xcb:randr:ResourceChange)
+   (lc :initarg :lc :type xcb:randr:LeaseNotify)))
+
+(defclass xcb:randr:Notify
+  (xcb:-event)
+  ((~code :initform 1)
+   (subCode :initarg :subCode :type xcb:CARD8)
+   (~sequence :type xcb:CARD16)
+   (u :initarg :u :type xcb:randr:NotifyData)))
 
 (defconst xcb:randr:error-number-class-alist
   '((0 . xcb:randr:BadOutput)

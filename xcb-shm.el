@@ -136,7 +136,7 @@
   (xcb:-request)
   ((~opcode :initform 6 :type xcb:-u1)
    (shmseg :initarg :shmseg :type xcb:shm:SEG)
-   (shm-fd :type xcb:-fd)
+   (shm-fd :type xcb:fd)
    (read-only :initarg :read-only :type xcb:BOOL)
    (pad~0 :initform 3 :type xcb:-pad)))
 
@@ -152,7 +152,7 @@
   ((nfd :initarg :nfd :type xcb:CARD8)
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
-   (shm-fd :type xcb:-fd)
+   (shm-fd :type xcb:fd)
    (pad~0 :initform 24 :type xcb:-pad)))
 
 (defconst xcb:shm:error-number-class-alist
