@@ -247,7 +247,8 @@ FIRST-KEYTYPE and count specify the range of key types to update."
       (setq device (or (xcb:-get-extra-plist obj 'keysyms deviceID)
                        (make-instance 'xcb:keysyms:-device)))
       (with-slots (keytypes) device
-        (when (/= 0 full)
+        (when (or (/= 0 full)
+                  (not keytypes))
           (setf keytypes (make-vector totalTypes nil)))
         (setf keytypes (vconcat (substring keytypes 0 firstType)
                                 types-rtrn
