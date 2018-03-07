@@ -49,7 +49,7 @@
   (defconst xcb:icccm:-atoms
     '(UTF8_STRING COMPOUND_TEXT TEXT C_STRING MANAGER
                   WM_PROTOCOLS WM_TAKE_FOCUS WM_DELETE_WINDOW
-                  WM_STATE WM_CHANGE_STATE)
+                  WM_STATE WM_CHANGE_STATE WM_S0)
     "Atoms involved in ICCCM.")
 
   (dolist (atom xcb:icccm:-atoms)
@@ -60,11 +60,14 @@
 
 This method must be called before using any other method in this module."
   (when (or force (not xcb:Atom:WM_PROTOCOLS))
-    (xcb:icccm:intern-atoms obj xcb:icccm:-atoms force)))
+    (let ((atoms xcb:icccm:-atoms))
+      (dotimes (i (1- (x-display-screens)))
+        (push (intern (format "WM_S%d" (1+ i))) atoms))
+      (xcb:icccm:intern-atoms obj atoms force))))
 
 (cl-defmethod xcb:icccm:intern-atoms ((obj xcb:connection) atoms
                                       &optional force)
-  "Intern the X atoms listed in the list AOTMS.
+  "Intern the X atoms listed in the list ATOMS.
 
 The value of these atoms will be available in `xcb:Atom' namespace."
   (dolist (atom atoms)
