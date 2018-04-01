@@ -157,14 +157,7 @@ This method must be called before using any other method in this module."
     (xcb:unmarshal obj1 data)
     (with-slots (deviceID oldDeviceID requestMajor requestMinor changed) obj1
       (if (= 0 (logand changed xcb:xkb:NKNDetail:DeviceID))
-          (when (and (/= 0 (logand changed xcb:xkb:NKNDetail:Keycodes))
-                     ;; Also, according to the specification this can
-                     ;; only happen when a GetKbdByName request issued.
-                     ;; The two checks below avoid false positive caused
-                     ;; by requests such as SetMap (e.g. XCape).
-                     (= requestMajor opcode)
-                     (= requestMinor
-                        (eieio-oref-default 'xcb:xkb:GetKbdByName '~opcode)))
+          (when (/= 0 (logand changed xcb:xkb:NKNDetail:Keycodes))
             ;; (xcb:keysyms:-update-keytypes obj deviceID)
             (xcb:keysyms:-update-keycodes obj deviceID)
             (when (= deviceID device-id)
@@ -400,7 +393,7 @@ Return (0 . 0) when conversion fails."
           (pcase (logand group-info #xC0) ;See <XKBstr.h>.
             (`xcb:xkb:GroupsWrap:RedirectIntoRange
              (setq group (logand #xFF (lsh group-info -4))) ;See <XKBstr.h>.
-             ;; Check if i's also out of range.
+             ;; Check if it's also out of range.
              (when (>= group group-number)
                (setq group 0)))
             (`xcb:xkb:GroupsWrap:ClampIntoRange
