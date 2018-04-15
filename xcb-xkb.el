@@ -105,9 +105,6 @@
 
 (defconst xcb:xkb:Control:GroupsWrap 134217728)
 (defconst xcb:xkb:Control:InternalMods 268435456)
-(defconst xcb:xkb:Control:IgnoreLockMods 536870912)
-(defconst xcb:xkb:Control:PerKeyRepeat 1073741824)
-(defconst xcb:xkb:Control:ControlsEnabled 2147483648)
 
 (defconst xcb:xkb:AXOption:SKPressFB 1)
 (defconst xcb:xkb:AXOption:SKAcceptFB 2)

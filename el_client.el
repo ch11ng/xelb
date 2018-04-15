@@ -351,7 +351,13 @@ an `xelb-auto-padding' attribute."
                         (if expression
                             (setq value (xelb-parse-expression expression))
                           (setq value (1+ value)))
-                        `(defconst ,name ,value))))
+			;; Omit the rare enums that do not fit in a fixnum in
+			;; 32-bit Emacs, so that the resulting .el and .elc
+			;; files are portable to 32-bit Emacs.  Admittedly
+			;; this is a kludge.
+			(unless (and ((integerp value)
+				      (not (<= -536870912 value 536870911))))
+			  `(defconst ,name ,value)))))
                   items))))
 
 (defun xelb-parse-typedef (node)

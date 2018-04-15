@@ -155,8 +155,8 @@
                       (logand (lsh value -16) #xFF)
                       (logand (lsh value -8) #xFF)
                       (logand value #xFF))
-            (let* ((msdw (min #xFFFFFFFF (truncate value #x100000000)))
-                   (lsdw (min #xFFFFFFFF
+            (let* ((msdw (min 4294967295. (truncate value 4294967296.)))
+                   (lsdw (min 4294967295.
                               (truncate (- value (* msdw 4294967296.0))))))
               (vector (logand (lsh msdw -24) #xFF) (logand (lsh msdw -16) #xFF)
                       (logand (lsh msdw -8) #xFF) (logand msdw #xFF)
@@ -173,8 +173,8 @@
                       (logand (lsh value -40) #xFF)
                       (logand (lsh value -48) #xFF)
                       (logand (lsh value -56) #xFF))
-            (let* ((msdw (min #xFFFFFFFF (truncate value #x100000000)))
-                   (lsdw (min #xFFFFFFFF
+            (let* ((msdw (min 4294967295. (truncate value 4294967296.)))
+                   (lsdw (min 4294967295.
                               (truncate (- value (* msdw 4294967296.0))))))
               (vector (logand lsdw #xFF) (logand (lsh lsdw -8) #xFF)
                       (logand (lsh lsdw -16) #xFF) (logand (lsh lsdw -24) #xFF)
@@ -207,11 +207,11 @@
           (vector 0 0 0 0
                   (logand (lsh value -24) #xFF) (logand (lsh value -16) #xFF)
                   (logand (lsh value -8) #xFF) (logand value #xFF))
-        (let* ((msw (min #xFFFF (truncate value #x1000000000000)))
+        (let* ((msw (min #xFFFF (truncate value 281474976710656.)))
                (w1 (min #xFFFF
                         (truncate (setq value
                                         (- value (* msw 281474976710656.0)))
-                                  #x100000000)))
+                                  4294967296.)))
                (w2 (min #xFFFF
                         (truncate (setq value (- value (* w1 4294967296.0)))
                                   #x10000)))
@@ -226,11 +226,11 @@
           (vector (logand value #xFF) (logand (lsh value -8) #xFF)
                   (logand (lsh value -16) #xFF) (logand (lsh value -24) #xFF)
                   0 0 0 0)
-        (let* ((msw (min #xFFFF (truncate value #x1000000000000)))
+        (let* ((msw (min #xFFFF (truncate value 281474976710656.)))
                (w1 (min #xFFFF
                         (truncate (setq value
                                         (- value (* msw 281474976710656.0)))
-                                  #x100000000)))
+                                  4294967296.)))
                (w2 (min #xFFFF
                         (truncate (setq value (- value (* w1 4294967296.0)))
                                   #x10000)))
@@ -244,13 +244,13 @@
   "4 bytes signed integer => byte array (MSB first)."
   (xcb:-pack-u4 (if (>= value 0)
                     value
-                  (+ value #x100000000)))) ;treated as float for 32-bit
+                  (+ value 4294967296.)))) ;treated as float for 32-bit
 
 (defsubst xcb:-pack-i4-lsb (value)
   "4 bytes signed integer => byte array (LSB first)."
   (xcb:-pack-u4-lsb (if (>= value 0)
                         value
-                      (+ value #x100000000)))) ;treated as float for 32-bit
+                      (+ value 4294967296.)))) ;treated as float for 32-bit
 
 (defsubst xcb:-unpack-u1 (data offset)
   "Byte array => 1 byte unsigned integer."
@@ -361,16 +361,16 @@
 (defsubst xcb:-unpack-i4 (data offset)
   "Byte array => 4 bytes signed integer (MSB first)."
   (let ((value (xcb:-unpack-u4 data offset)))
-    (if (< value #x80000000)            ;treated as float for 32-bit
+    (if (< value 2147483648.)           ;treated as float for 32-bit
         value
-      (- value #x100000000))))          ;treated as float for 32-bit
+      (- value 4294967296.))))          ;treated as float for 32-bit
 
 (defsubst xcb:-unpack-i4-lsb (data offset)
   "Byte array => 4 bytes signed integer (LSB first)."
   (let ((value (xcb:-unpack-u4-lsb data offset)))
-    (if (< value #x80000000)            ;treated as float for 32-bit
+    (if (< value 2147483648.)           ;treated as float for 32-bit
         value
-      (- value #x100000000))))          ;treated as float for 32-bit
+      (- value 4294967296.))))          ;treated as float for 32-bit
 
 (defmacro xcb:-fieldref (field)
   "Evaluate a <fieldref> field."

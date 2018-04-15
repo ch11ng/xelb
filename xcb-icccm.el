@@ -119,7 +119,7 @@ A valid timestamp (rather than `xcb:Time:CurrentTime') must be supplied.")
 (defclass xcb:icccm:-GetProperty (xcb:GetProperty)
   ((delete :initform 0)
    (long-offset :initform 0)
-   (long-length :initform 1000000000))  ;as long as possible
+   (long-length :initform 1000000000.))  ;as long as possible
   :documentation "Get an ICCCM property (request part).")
 
 (defclass xcb:icccm:-GetProperty~reply (xcb:GetProperty~reply)

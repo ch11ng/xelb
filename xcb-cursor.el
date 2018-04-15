@@ -230,7 +230,7 @@
 
 (defconst xcb:cursor:-file-chunk-image-header 36
   "Header value of image-type chunk in Xcursor file.")
-(defconst xcb:cursor:-file-chunk-image-type #xFFFD0002
+(defconst xcb:cursor:-file-chunk-image-type 4294770690.
   "Type of image-type chunk in Xcursor file.")
 (defconst xcb:cursor:-file-chunk-image-version 1
   "Version of image-type chunk in Xcursor file.")

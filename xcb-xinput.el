@@ -1862,8 +1862,6 @@
 (defconst xcb:xinput:GrabType:FocusIn 3)
 (defconst xcb:xinput:GrabType:TouchBegin 4)
 
-(defconst xcb:xinput:ModifierMask:Any 2147483648)
-
 (defclass xcb:xinput:GrabModifierInfo
   (xcb:-struct)
   ((modifiers :initarg :modifiers :type xcb:CARD32)
