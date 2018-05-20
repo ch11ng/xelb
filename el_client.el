@@ -355,8 +355,8 @@ an `xelb-auto-padding' attribute."
 			;; 32-bit Emacs, so that the resulting .el and .elc
 			;; files are portable to 32-bit Emacs.  Admittedly
 			;; this is a kludge.
-			(unless (and ((integerp value)
-				      (not (<= -536870912 value 536870911))))
+			(unless (and (integerp value)
+				     (not (<= -536870912 value 536870911)))
 			  `(defconst ,name ,value)))))
                   items))))
 

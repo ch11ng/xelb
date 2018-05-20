@@ -139,8 +139,7 @@
 (defclass xcb:screensaver:Suspend
   (xcb:-request)
   ((~opcode :initform 5 :type xcb:-u1)
-   (suspend :initarg :suspend :type xcb:BOOL)
-   (pad~0 :initform 3 :type xcb:-pad)))
+   (suspend :initarg :suspend :type xcb:CARD32)))
 
 (defclass xcb:screensaver:Notify
   (xcb:-event)

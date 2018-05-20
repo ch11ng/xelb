@@ -151,7 +151,6 @@ This method must be called before using any other method in this module."
 (cl-defmethod xcb:keysyms:-on-NewKeyboardNotify ((obj xcb:connection) data)
   "Handle 'NewKeyboardNotify' event."
   (let ((device-id (xcb:-get-extra-plist obj 'keysyms 'device-id))
-        (opcode (xcb:-get-extra-plist obj 'keysyms 'opcode))
         (callback (xcb:-get-extra-plist obj 'keysyms 'callback))
         (obj1 (make-instance 'xcb:xkb:NewKeyboardNotify))
         device updated)
