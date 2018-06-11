@@ -364,7 +364,10 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                   (setq event-length (funcall (if xcb:lsb
                                                   #'xcb:-unpack-u4-lsb
                                                 #'xcb:-unpack-u4)
-                                              cache 4))
+                                              cache 4)
+                        ;; event-length indicates additional words to the
+                        ;; first 32 bytes.
+                        event-length (+ 32 (* 4 event-length)))
                   (when (< (length cache) event-length)
                     ;; Too short.
                     (throw 'break nil))
@@ -380,14 +383,16 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                   (setq listener
                         (lax-plist-get (slot-value connection 'event-plist)
                                        (vector (aref cache 1))))))
+               ;; Conventional events are 32 bytes in size.
+               (unless event-length
+                 (setq event-length 32))
                (when listener
                  (with-slots (event-queue) connection
                    (setf event-queue (nconc event-queue
                                             `([,listener
-                                               ,(substring cache 0 32)
+                                               ,(substring cache 0
+                                                           event-length)
                                                ,synthetic])))))
-               (unless event-length
-                 (setq event-length 32))
                (xcb:-log "Event received: %s" (substring cache 0 event-length))
                (setq cache (substring cache event-length)))))))
       (setf (slot-value connection 'lock) nil))
@@ -654,7 +659,7 @@ Otherwise no error will ever be reported."
                     (setq error (make-instance
                                  (xcb:-error-number->class obj (car i))))
                     (xcb:unmarshal error (cdr i))
-                    i)
+                    error)
                   error-data))
     (cl-remf (slot-value obj 'reply-plist) sequence)
     (cl-remf (slot-value obj 'error-plist) sequence)
@@ -777,10 +782,11 @@ Or if it's an XKB event, return (XKB-EVENT-CODE [XKB-CODE])."
       ;; Generic event.
       (setq alist (symbol-value
                    (intern-soft (concat prefix "xge-number-class-alist")))
-            result (plist-get (slot-value obj 'extension-opcode-plist) class))
+            result (plist-get (slot-value obj 'extension-opcode-plist)
+                              (intern-soft (substring prefix 0 -1))))
       ;; Ensure the extension has been initialized.
       (when result
-        (setq result `(35 . [,result ,(cdr (rassq class alist))]))))
+        (setq result `(35 . [,result ,(car (rassq class alist))]))))
      ((string= prefix "xcb:xkb:")
       ;; XKB event.
       (eval-and-compile (require 'xcb-xkb))
