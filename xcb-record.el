@@ -76,11 +76,11 @@
   (xcb:-struct)
   ((client-resource :initarg :client-resource :type xcb:record:ClientSpec)
    (num-ranges :initarg :num-ranges :type xcb:CARD32)
-   (ranges :initarg :ranges :type xcb:-ignore)
    (ranges~ :initform
 	    '(name ranges type xcb:record:Range size
 		   (xcb:-fieldref 'num-ranges))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (ranges :initarg :ranges :type xcb:-ignore)))
 
 (defclass xcb:record:BadContext
   (xcb:-error)
@@ -108,16 +108,16 @@
    (pad~0 :initform 3 :type xcb:-pad)
    (num-client-specs :initarg :num-client-specs :type xcb:CARD32)
    (num-ranges :initarg :num-ranges :type xcb:CARD32)
-   (client-specs :initarg :client-specs :type xcb:-ignore)
    (client-specs~ :initform
 		  '(name client-specs type xcb:record:ClientSpec size
 			 (xcb:-fieldref 'num-client-specs))
 		  :type xcb:-list)
-   (ranges :initarg :ranges :type xcb:-ignore)
+   (client-specs :initarg :client-specs :type xcb:-ignore)
    (ranges~ :initform
 	    '(name ranges type xcb:record:Range size
 		   (xcb:-fieldref 'num-ranges))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (ranges :initarg :ranges :type xcb:-ignore)))
 
 (defclass xcb:record:RegisterClients
   (xcb:-request)
@@ -127,27 +127,27 @@
    (pad~0 :initform 3 :type xcb:-pad)
    (num-client-specs :initarg :num-client-specs :type xcb:CARD32)
    (num-ranges :initarg :num-ranges :type xcb:CARD32)
-   (client-specs :initarg :client-specs :type xcb:-ignore)
    (client-specs~ :initform
 		  '(name client-specs type xcb:record:ClientSpec size
 			 (xcb:-fieldref 'num-client-specs))
 		  :type xcb:-list)
-   (ranges :initarg :ranges :type xcb:-ignore)
+   (client-specs :initarg :client-specs :type xcb:-ignore)
    (ranges~ :initform
 	    '(name ranges type xcb:record:Range size
 		   (xcb:-fieldref 'num-ranges))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (ranges :initarg :ranges :type xcb:-ignore)))
 
 (defclass xcb:record:UnregisterClients
   (xcb:-request)
   ((~opcode :initform 3 :type xcb:-u1)
    (context :initarg :context :type xcb:record:CONTEXT)
    (num-client-specs :initarg :num-client-specs :type xcb:CARD32)
-   (client-specs :initarg :client-specs :type xcb:-ignore)
    (client-specs~ :initform
 		  '(name client-specs type xcb:record:ClientSpec size
 			 (xcb:-fieldref 'num-client-specs))
-		  :type xcb:-list)))
+		  :type xcb:-list)
+   (client-specs :initarg :client-specs :type xcb:-ignore)))
 
 (defclass xcb:record:GetContext
   (xcb:-request)
@@ -162,11 +162,11 @@
    (pad~0 :initform 3 :type xcb:-pad)
    (num-intercepted-clients :initarg :num-intercepted-clients :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
-   (intercepted-clients :initarg :intercepted-clients :type xcb:-ignore)
    (intercepted-clients~ :initform
 			 '(name intercepted-clients type xcb:record:ClientInfo size
 				(xcb:-fieldref 'num-intercepted-clients))
-			 :type xcb:-list)))
+			 :type xcb:-list)
+   (intercepted-clients :initarg :intercepted-clients :type xcb:-ignore)))
 
 (defclass xcb:record:EnableContext
   (xcb:-request)
@@ -184,13 +184,13 @@
    (server-time :initarg :server-time :type xcb:CARD32)
    (rec-sequence-num :initarg :rec-sequence-num :type xcb:CARD32)
    (pad~1 :initform 8 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:record:DisableContext
   (xcb:-request)

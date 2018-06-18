@@ -52,6 +52,14 @@
 (require 'cl-generic)
 (require 'eieio)
 
+(eval-when-compile
+  (defvar xcb:debug-on nil "Non-nil to turn on debug."))
+
+(defmacro xcb:-log (format-string &rest args)
+  "Print debug info."
+  (when xcb:debug-on
+    `(message (concat "[XELB LOG] " ,format-string) ,@args)))
+
 ;;;; Fix backward compatibility issues with Emacs < 25
 
 (eval-and-compile
@@ -442,7 +450,16 @@
 
 Consider let-bind it rather than change its global value."))
 
-(defclass xcb:-struct ()
+(defclass xcb:--struct ()
+  nil)
+
+(cl-defmethod slot-unbound ((object xcb:--struct) class slot-name fn)
+  (xcb:-log "unbount-slot: %s" (list (eieio-class-name class)
+                                     (eieio-object-name object)
+			             slot-name fn))
+  nil)
+
+(defclass xcb:-struct (xcb:--struct)
   ((~lsb :initarg :~lsb
          :initform (symbol-value 'xcb:lsb) ;see `eieio-default-eval-maybe'
          :type xcb:-ignore))
@@ -560,17 +577,19 @@ The optional argument CTX is for <paramref>."
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
         (result 0)
         slot-name tmp type)
-    (dolist (slot slots)
-      (setq type (cl--slot-descriptor-type slot))
-      (unless (eq type 'xcb:-ignore)
-        (setq slot-name (eieio-slot-descriptor-name slot)
-              tmp (xcb:-unmarshal-field obj type byte-array 0
-                                        (when (slot-boundp obj slot-name)
-                                          (eieio-oref-default obj slot-name))
-                                        ctx total-length))
-        (setf (slot-value obj slot-name) (car tmp))
-        (setq byte-array (substring byte-array (cadr tmp)))
-        (setq result (+ result (cadr tmp)))))
+    (catch 'break
+      (dolist (slot slots)
+        (setq type (cl--slot-descriptor-type slot))
+        (unless (eq type 'xcb:-ignore)
+          (setq slot-name (eieio-slot-descriptor-name slot)
+                tmp (xcb:-unmarshal-field obj type byte-array 0
+                                          (eieio-oref-default obj slot-name)
+                                          ctx total-length))
+          (setf (slot-value obj slot-name) (car tmp))
+          (setq byte-array (substring byte-array (cadr tmp)))
+          (setq result (+ result (cadr tmp)))
+          (when (eq type 'xcb:-switch) ;xcb:-switch always finishes a struct
+            (throw 'break 'nil)))))
     result))
 
 (cl-defmethod xcb:-unmarshal-field ((obj xcb:-struct) type data offset
@@ -772,12 +791,12 @@ This result is converted from the first bounded slot."
       (setq slot (pop slots))
       (setq type (cl--slot-descriptor-type slot)
             name (eieio-slot-descriptor-name slot))
-      (unless (or (not (slot-boundp obj name))
+      (unless (or (not (slot-value obj name))
                   (eq type 'xcb:-ignore)
                   ;; Dealing with `xcb:-list' type
                   (and (eq type 'xcb:-list)
-                       (not (slot-boundp obj (plist-get (slot-value obj name)
-                                                        'name)))))
+                       (not (slot-value obj (plist-get (slot-value obj name)
+                                                       'name)))))
         (setq tmp (xcb:-marshal-field obj (cl--slot-descriptor-type slot)
                                       (slot-value obj name)))
         (when (> (length tmp) (length result))
@@ -800,8 +819,7 @@ The optional argument CTX is for <paramref>."
       (unless (eq type 'xcb:-ignore)
         (setq slot-name (eieio-slot-descriptor-name slot)
               tmp (xcb:-unmarshal-field obj type byte-array 0
-                                        (when (slot-boundp obj slot-name)
-                                          (eieio-oref-default obj slot-name))
+                                        (eieio-oref-default obj slot-name)
                                         ctx total-length))
         (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))))
     (slot-value obj '~size)))

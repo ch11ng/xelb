@@ -66,11 +66,11 @@
    (length :type xcb:CARD32)
    (ids-len :initarg :ids-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (ids :initarg :ids :type xcb:-ignore)
    (ids~ :initform
 	 '(name ids type xcb:CARD32 size
 		(xcb:-fieldref 'ids-len))
-	 :type xcb:-list)))
+	 :type xcb:-list)
+   (ids :initarg :ids :type xcb:-ignore)))
 
 
 

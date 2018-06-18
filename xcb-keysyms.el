@@ -44,7 +44,7 @@
 (require 'xcb)
 (require 'xcb-xkb)
 
-(defclass xcb:keysyms:-device ()
+(defclass xcb:keysyms:-device (xcb:--struct)
   ((keytypes :initform nil)
    (keycodes :initform nil)
    (min-keycode :initform 0)

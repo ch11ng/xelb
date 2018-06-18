@@ -563,10 +563,10 @@ The `combine-adjacent' attribute is simply ignored."
          (name-alt (intern (concat (xelb-node-attr-escape node 'name) "~")))
          (type (xelb-node-type node))
          (size (xelb-parse-expression (xelb-node-subnode node))))
-    `((,name :initarg ,(intern (concat ":" (symbol-name name)))
-             :type xcb:-ignore)
-      (,name-alt :initform '(name ,name type ,type size ,size)
-                 :type xcb:-list))))
+    `((,name-alt :initform '(name ,name type ,type size ,size)
+                 :type xcb:-list)
+      (,name :initarg ,(intern (concat ":" (symbol-name name)))
+             :type xcb:-ignore))))
 
 ;; The car of result is the field declaration, and the cadr is the expression
 ;; to be evaluated.
@@ -621,10 +621,7 @@ The `combine-adjacent' attribute is simply ignored."
                              (setq fields (nconc fields tmp))
                              (setq name-list
                                    (nconc name-list (list (caar tmp)))))))
-                        (if (eq case-name 'case)
-                            (when (= 1 (length condition))
-                              ;; Flatten 1-element list.
-                              (setq condition (car condition)))
+                        (when (eq case-name 'bitcase)
                           (setq condition (if (= 1 (length condition))
                                               ;; Flatten 1-element list.
                                               (car condition)

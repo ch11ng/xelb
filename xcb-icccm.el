@@ -89,7 +89,7 @@ The value of these atoms will be available in `xcb:Atom' namespace."
    (event-mask :initform xcb:EventMask:NoEvent))
   :documentation "A fork of `xcb:SendEvent' to send ICCCM client messages.")
 
-(defclass xcb:icccm:--ClientMessage ()
+(defclass xcb:icccm:--ClientMessage (xcb:--struct)
   ((data :type xcb:-ignore))            ;shadowed slot
   :documentation "To shadow the data slot in `xcb:ClientMessage'.")
 ;;
@@ -357,7 +357,7 @@ whose fields are explicitly listed out."
 (defconst xcb:icccm:WM_SIZE_HINTS:PBaseSize 256)
 (defconst xcb:icccm:WM_SIZE_HINTS:PWinGravity 512)
 ;;
-(defclass xcb:icccm:-WM_SIZE_HINTS ()
+(defclass xcb:icccm:-WM_SIZE_HINTS (xcb:--struct)
   ((flags :initarg :flags :initform 0 :type xcb:-ignore)
    (x :initarg :x :initform 0 :type xcb:-ignore)
    (y :initarg :y :initform 0 :type xcb:-ignore)
@@ -409,7 +409,7 @@ whose fields are explicitly listed out."
 (defconst xcb:icccm:WM_HINTS:MessageHint 128)
 (defconst xcb:icccm:WM_HINTS:UrgencyHint 256)
 ;;
-(defclass xcb:icccm:-WM_HINTS ()
+(defclass xcb:icccm:-WM_HINTS (xcb:--struct)
   ((flags :initarg :flags :initform 0 :type xcb:-ignore)
    (input :initarg :input :initform 0 :type xcb:-ignore)
    (initial-state :initarg :initial-state :initform 0 :type xcb:-ignore)
@@ -509,7 +509,7 @@ whose fields are explicitly listed out."
 (defconst xcb:icccm:WM_STATE:NormalState 1)
 (defconst xcb:icccm:WM_STATE:IconicState 3)
 ;;
-(defclass xcb:icccm:-WM_STATE ()
+(defclass xcb:icccm:-WM_STATE (xcb:--struct)
   ((state :initarg :state :type xcb:-ignore)
    (icon :initarg :icon :type xcb:-ignore)))
 ;;
@@ -526,7 +526,7 @@ whose fields are explicitly listed out."
    (type :initform xcb:Atom:WM_STATE)))
 
 ;; WM_ICON_SIZE
-(defclass xcb:icccm:-WM_ICON_SIZE ()
+(defclass xcb:icccm:-WM_ICON_SIZE (xcb:--struct)
   ((min-width :initarg :min-width :type xcb:-ignore)
    (min-height :initarg :min-height :type xcb:-ignore)
    (max-width :initarg :max-width :type xcb:-ignore)

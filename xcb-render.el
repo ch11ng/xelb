@@ -185,21 +185,21 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (num-visuals :initarg :num-visuals :type xcb:CARD16)
    (pad~1 :initform 4 :type xcb:-pad)
-   (visuals :initarg :visuals :type xcb:-ignore)
    (visuals~ :initform
 	     '(name visuals type xcb:render:PICTVISUAL size
 		    (xcb:-fieldref 'num-visuals))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (visuals :initarg :visuals :type xcb:-ignore)))
 
 (defclass xcb:render:PICTSCREEN
   (xcb:-struct)
   ((num-depths :initarg :num-depths :type xcb:CARD32)
    (fallback :initarg :fallback :type xcb:render:PICTFORMAT)
-   (depths :initarg :depths :type xcb:-ignore)
    (depths~ :initform
 	    '(name depths type xcb:render:PICTDEPTH size
 		   (xcb:-fieldref 'num-depths))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (depths :initarg :depths :type xcb:-ignore)))
 
 (defclass xcb:render:INDEXVALUE
   (xcb:-struct)
@@ -276,21 +276,21 @@
    (num-visuals :initarg :num-visuals :type xcb:CARD32)
    (num-subpixel :initarg :num-subpixel :type xcb:CARD32)
    (pad~1 :initform 4 :type xcb:-pad)
-   (formats :initarg :formats :type xcb:-ignore)
    (formats~ :initform
 	     '(name formats type xcb:render:PICTFORMINFO size
 		    (xcb:-fieldref 'num-formats))
 	     :type xcb:-list)
-   (screens :initarg :screens :type xcb:-ignore)
+   (formats :initarg :formats :type xcb:-ignore)
    (screens~ :initform
 	     '(name screens type xcb:render:PICTSCREEN size
 		    (xcb:-fieldref 'num-screens))
 	     :type xcb:-list)
-   (subpixels :initarg :subpixels :type xcb:-ignore)
+   (screens :initarg :screens :type xcb:-ignore)
    (subpixels~ :initform
 	       '(name subpixels type xcb:CARD32 size
 		      (xcb:-fieldref 'num-subpixel))
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (subpixels :initarg :subpixels :type xcb:-ignore)))
 
 (defclass xcb:render:QueryPictIndexValues
   (xcb:-request)
@@ -303,11 +303,11 @@
    (length :type xcb:CARD32)
    (num-values :initarg :num-values :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (values :initarg :values :type xcb:-ignore)
    (values~ :initform
 	    '(name values type xcb:render:INDEXVALUE size
 		   (xcb:-fieldref 'num-values))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (values :initarg :values :type xcb:-ignore)))
 
 (defclass xcb:render:CreatePicture
   (xcb:-request)
@@ -391,10 +391,10 @@
    (picture :initarg :picture :type xcb:render:PICTURE)
    (clip-x-origin :initarg :clip-x-origin :type xcb:INT16)
    (clip-y-origin :initarg :clip-y-origin :type xcb:INT16)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defclass xcb:render:FreePicture
   (xcb:-request)
@@ -428,10 +428,10 @@
    (mask-format :initarg :mask-format :type xcb:render:PICTFORMAT)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (traps :initarg :traps :type xcb:-ignore)
    (traps~ :initform
 	   '(name traps type xcb:render:TRAPEZOID size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (traps :initarg :traps :type xcb:-ignore)))
 
 (defclass xcb:render:Triangles
   (xcb:-request)
@@ -443,10 +443,10 @@
    (mask-format :initarg :mask-format :type xcb:render:PICTFORMAT)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (triangles :initarg :triangles :type xcb:-ignore)
    (triangles~ :initform
 	       '(name triangles type xcb:render:TRIANGLE size nil)
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (triangles :initarg :triangles :type xcb:-ignore)))
 
 (defclass xcb:render:TriStrip
   (xcb:-request)
@@ -458,10 +458,10 @@
    (mask-format :initarg :mask-format :type xcb:render:PICTFORMAT)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (points :initarg :points :type xcb:-ignore)
    (points~ :initform
 	    '(name points type xcb:render:POINTFIX size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (points :initarg :points :type xcb:-ignore)))
 
 (defclass xcb:render:TriFan
   (xcb:-request)
@@ -473,10 +473,10 @@
    (mask-format :initarg :mask-format :type xcb:render:PICTFORMAT)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (points :initarg :points :type xcb:-ignore)
    (points~ :initform
 	    '(name points type xcb:render:POINTFIX size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (points :initarg :points :type xcb:-ignore)))
 
 (defclass xcb:render:CreateGlyphSet
   (xcb:-request)
@@ -500,29 +500,29 @@
   ((~opcode :initform 20 :type xcb:-u1)
    (glyphset :initarg :glyphset :type xcb:render:GLYPHSET)
    (glyphs-len :initarg :glyphs-len :type xcb:CARD32)
-   (glyphids :initarg :glyphids :type xcb:-ignore)
    (glyphids~ :initform
 	      '(name glyphids type xcb:CARD32 size
 		     (xcb:-fieldref 'glyphs-len))
 	      :type xcb:-list)
-   (glyphs :initarg :glyphs :type xcb:-ignore)
+   (glyphids :initarg :glyphids :type xcb:-ignore)
    (glyphs~ :initform
 	    '(name glyphs type xcb:render:GLYPHINFO size
 		   (xcb:-fieldref 'glyphs-len))
 	    :type xcb:-list)
-   (data :initarg :data :type xcb:-ignore)
+   (glyphs :initarg :glyphs :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:render:FreeGlyphs
   (xcb:-request)
   ((~opcode :initform 22 :type xcb:-u1)
    (glyphset :initarg :glyphset :type xcb:render:GLYPHSET)
-   (glyphs :initarg :glyphs :type xcb:-ignore)
    (glyphs~ :initform
 	    '(name glyphs type xcb:render:GLYPH size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (glyphs :initarg :glyphs :type xcb:-ignore)))
 
 (defclass xcb:render:CompositeGlyphs8
   (xcb:-request)
@@ -535,10 +535,10 @@
    (glyphset :initarg :glyphset :type xcb:render:GLYPHSET)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)
    (glyphcmds~ :initform
 	       '(name glyphcmds type xcb:BYTE size nil)
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)))
 
 (defclass xcb:render:CompositeGlyphs16
   (xcb:-request)
@@ -551,10 +551,10 @@
    (glyphset :initarg :glyphset :type xcb:render:GLYPHSET)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)
    (glyphcmds~ :initform
 	       '(name glyphcmds type xcb:BYTE size nil)
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)))
 
 (defclass xcb:render:CompositeGlyphs32
   (xcb:-request)
@@ -567,10 +567,10 @@
    (glyphset :initarg :glyphset :type xcb:render:GLYPHSET)
    (src-x :initarg :src-x :type xcb:INT16)
    (src-y :initarg :src-y :type xcb:INT16)
-   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)
    (glyphcmds~ :initform
 	       '(name glyphcmds type xcb:BYTE size nil)
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (glyphcmds :initarg :glyphcmds :type xcb:-ignore)))
 
 (defclass xcb:render:FillRectangles
   (xcb:-request)
@@ -579,10 +579,10 @@
    (pad~0 :initform 3 :type xcb:-pad)
    (dst :initarg :dst :type xcb:render:PICTURE)
    (color :initarg :color :type xcb:render:COLOR)
-   (rects :initarg :rects :type xcb:-ignore)
    (rects~ :initform
 	   '(name rects type xcb:RECTANGLE size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (rects :initarg :rects :type xcb:-ignore)))
 
 (defclass xcb:render:CreateCursor
   (xcb:-request)
@@ -622,16 +622,16 @@
    (num-aliases :initarg :num-aliases :type xcb:CARD32)
    (num-filters :initarg :num-filters :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
-   (aliases :initarg :aliases :type xcb:-ignore)
    (aliases~ :initform
 	     '(name aliases type xcb:CARD16 size
 		    (xcb:-fieldref 'num-aliases))
 	     :type xcb:-list)
-   (filters :initarg :filters :type xcb:-ignore)
+   (aliases :initarg :aliases :type xcb:-ignore)
    (filters~ :initform
 	     '(name filters type xcb:STR size
 		    (xcb:-fieldref 'num-filters))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (filters :initarg :filters :type xcb:-ignore)))
 
 (defclass xcb:render:SetPictureFilter
   (xcb:-request)
@@ -639,16 +639,16 @@
    (picture :initarg :picture :type xcb:render:PICTURE)
    (filter-len :initarg :filter-len :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
-   (filter :initarg :filter :type xcb:-ignore)
    (filter~ :initform
 	    '(name filter type xcb:char size
 		   (xcb:-fieldref 'filter-len))
 	    :type xcb:-list)
+   (filter :initarg :filter :type xcb:-ignore)
    (pad~1 :initform 4 :type xcb:-pad-align)
-   (values :initarg :values :type xcb:-ignore)
    (values~ :initform
 	    '(name values type xcb:render:FIXED size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (values :initarg :values :type xcb:-ignore)))
 
 (defclass xcb:render:ANIMCURSORELT
   (xcb:-struct)
@@ -659,10 +659,10 @@
   (xcb:-request)
   ((~opcode :initform 31 :type xcb:-u1)
    (cid :initarg :cid :type xcb:CURSOR)
-   (cursors :initarg :cursors :type xcb:-ignore)
    (cursors~ :initform
 	     '(name cursors type xcb:render:ANIMCURSORELT size nil)
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (cursors :initarg :cursors :type xcb:-ignore)))
 
 (defclass xcb:render:SPANFIX
   (xcb:-struct)
@@ -681,10 +681,10 @@
    (picture :initarg :picture :type xcb:render:PICTURE)
    (x-off :initarg :x-off :type xcb:INT16)
    (y-off :initarg :y-off :type xcb:INT16)
-   (traps :initarg :traps :type xcb:-ignore)
    (traps~ :initform
 	   '(name traps type xcb:render:TRAP size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (traps :initarg :traps :type xcb:-ignore)))
 
 (defclass xcb:render:CreateSolidFill
   (xcb:-request)
@@ -699,16 +699,16 @@
    (p1 :initarg :p1 :type xcb:render:POINTFIX)
    (p2 :initarg :p2 :type xcb:render:POINTFIX)
    (num-stops :initarg :num-stops :type xcb:CARD32)
-   (stops :initarg :stops :type xcb:-ignore)
    (stops~ :initform
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (colors :initarg :colors :type xcb:-ignore)
+   (stops :initarg :stops :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size
 		   (xcb:-fieldref 'num-stops))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (colors :initarg :colors :type xcb:-ignore)))
 
 (defclass xcb:render:CreateRadialGradient
   (xcb:-request)
@@ -719,16 +719,16 @@
    (inner-radius :initarg :inner-radius :type xcb:render:FIXED)
    (outer-radius :initarg :outer-radius :type xcb:render:FIXED)
    (num-stops :initarg :num-stops :type xcb:CARD32)
-   (stops :initarg :stops :type xcb:-ignore)
    (stops~ :initform
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (colors :initarg :colors :type xcb:-ignore)
+   (stops :initarg :stops :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size
 		   (xcb:-fieldref 'num-stops))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (colors :initarg :colors :type xcb:-ignore)))
 
 (defclass xcb:render:CreateConicalGradient
   (xcb:-request)
@@ -737,16 +737,16 @@
    (center :initarg :center :type xcb:render:POINTFIX)
    (angle :initarg :angle :type xcb:render:FIXED)
    (num-stops :initarg :num-stops :type xcb:CARD32)
-   (stops :initarg :stops :type xcb:-ignore)
    (stops~ :initform
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (colors :initarg :colors :type xcb:-ignore)
+   (stops :initarg :stops :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size
 		   (xcb:-fieldref 'num-stops))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (colors :initarg :colors :type xcb:-ignore)))
 
 (defconst xcb:render:error-number-class-alist
   '((0 . xcb:render:PictFormat)

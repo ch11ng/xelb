@@ -38,18 +38,18 @@
 (defclass xcb:xprint:PRINTER
   (xcb:-struct)
   ((nameLen :initarg :nameLen :type xcb:CARD32)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:xprint:STRING8 size
 		 (xcb:-fieldref 'nameLen))
 	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)
    (pad~0 :initform 4 :type xcb:-pad-align)
    (descLen :initarg :descLen :type xcb:CARD32)
-   (description :initarg :description :type xcb:-ignore)
    (description~ :initform
 		 '(name description type xcb:xprint:STRING8 size
 			(xcb:-fieldref 'descLen))
 		 :type xcb:-list)
+   (description :initarg :description :type xcb:-ignore)
    (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (xcb:deftypealias 'xcb:xprint:PCONTEXT 'xcb:-u4)
@@ -92,16 +92,16 @@
   ((~opcode :initform 1 :type xcb:-u1)
    (printerNameLen :initarg :printerNameLen :type xcb:CARD32)
    (localeLen :initarg :localeLen :type xcb:CARD32)
-   (printer-name :initarg :printer-name :type xcb:-ignore)
    (printer-name~ :initform
 		  '(name printer-name type xcb:xprint:STRING8 size
 			 (xcb:-fieldref 'printerNameLen))
 		  :type xcb:-list)
-   (locale :initarg :locale :type xcb:-ignore)
+   (printer-name :initarg :printer-name :type xcb:-ignore)
    (locale~ :initform
 	    '(name locale type xcb:xprint:STRING8 size
 		   (xcb:-fieldref 'localeLen))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (locale :initarg :locale :type xcb:-ignore)))
 (defclass xcb:xprint:PrintGetPrinterList~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -109,11 +109,11 @@
    (length :type xcb:CARD32)
    (listCount :initarg :listCount :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (printers :initarg :printers :type xcb:-ignore)
    (printers~ :initform
 	      '(name printers type xcb:xprint:PRINTER size
 		     (xcb:-fieldref 'listCount))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (printers :initarg :printers :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintRehashPrinterList
   (xcb:-request)
@@ -125,16 +125,16 @@
    (context-id :initarg :context-id :type xcb:CARD32)
    (printerNameLen :initarg :printerNameLen :type xcb:CARD32)
    (localeLen :initarg :localeLen :type xcb:CARD32)
-   (printerName :initarg :printerName :type xcb:-ignore)
    (printerName~ :initform
 		 '(name printerName type xcb:xprint:STRING8 size
 			(xcb:-fieldref 'printerNameLen))
 		 :type xcb:-list)
-   (locale :initarg :locale :type xcb:-ignore)
+   (printerName :initarg :printerName :type xcb:-ignore)
    (locale~ :initform
 	    '(name locale type xcb:xprint:STRING8 size
 		   (xcb:-fieldref 'localeLen))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (locale :initarg :locale :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintSetContext
   (xcb:-request)
@@ -193,21 +193,21 @@
    (len-data :initarg :len-data :type xcb:CARD32)
    (len-fmt :initarg :len-fmt :type xcb:CARD16)
    (len-options :initarg :len-options :type xcb:CARD16)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (xcb:-fieldref 'len-data))
 	  :type xcb:-list)
-   (doc-format :initarg :doc-format :type xcb:-ignore)
+   (data :initarg :data :type xcb:-ignore)
    (doc-format~ :initform
 		'(name doc-format type xcb:xprint:STRING8 size
 		       (xcb:-fieldref 'len-fmt))
 		:type xcb:-list)
-   (options :initarg :options :type xcb:-ignore)
+   (doc-format :initarg :doc-format :type xcb:-ignore)
    (options~ :initform
 	     '(name options type xcb:xprint:STRING8 size
 		    (xcb:-fieldref 'len-options))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (options :initarg :options :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintGetDocumentData
   (xcb:-request)
@@ -223,11 +223,11 @@
    (finished-flag :initarg :finished-flag :type xcb:CARD32)
    (dataLen :initarg :dataLen :type xcb:CARD32)
    (pad~1 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (xcb:-fieldref 'dataLen))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintStartPage
   (xcb:-request)
@@ -271,11 +271,11 @@
    (length :type xcb:CARD32)
    (stringLen :initarg :stringLen :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (attributes :initarg :attributes :type xcb:-ignore)
    (attributes~ :initform
 		'(name attributes type xcb:xprint:STRING8 size
 		       (xcb:-fieldref 'stringLen))
-		:type xcb:-list)))
+		:type xcb:-list)
+   (attributes :initarg :attributes :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintGetOneAttributes
   (xcb:-request)
@@ -284,11 +284,11 @@
    (nameLen :initarg :nameLen :type xcb:CARD32)
    (pool :initarg :pool :type xcb:CARD8)
    (pad~0 :initform 3 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:xprint:STRING8 size
 		 (xcb:-fieldref 'nameLen))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 (defclass xcb:xprint:PrintGetOneAttributes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -296,11 +296,11 @@
    (length :type xcb:CARD32)
    (valueLen :initarg :valueLen :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (value :initarg :value :type xcb:-ignore)
    (value~ :initform
 	   '(name value type xcb:xprint:STRING8 size
 		  (xcb:-fieldref 'valueLen))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (value :initarg :value :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintSetAttributes
   (xcb:-request)
@@ -310,10 +310,10 @@
    (pool :initarg :pool :type xcb:CARD8)
    (rule :initarg :rule :type xcb:CARD8)
    (pad~0 :initform 2 :type xcb:-pad)
-   (attributes :initarg :attributes :type xcb:-ignore)
    (attributes~ :initform
 		'(name attributes type xcb:xprint:STRING8 size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (attributes :initarg :attributes :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintGetPageDimensions
   (xcb:-request)
@@ -341,11 +341,11 @@
    (length :type xcb:CARD32)
    (listCount :initarg :listCount :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (roots :initarg :roots :type xcb:-ignore)
    (roots~ :initform
 	   '(name roots type xcb:WINDOW size
 		  (xcb:-fieldref 'listCount))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (roots :initarg :roots :type xcb:-ignore)))
 
 (defclass xcb:xprint:PrintSetImageResolution
   (xcb:-request)

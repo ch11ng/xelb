@@ -224,7 +224,7 @@ EWMH")
    (type :initform xcb:Atom:CARDINAL)))
 
 ;; _NET_DESKTOP_GEOMETRY
-(defclass xcb:ewmh:-_NET_DESKTOP_GEOMETRY ()
+(defclass xcb:ewmh:-_NET_DESKTOP_GEOMETRY (xcb:--struct)
   ((width :initarg :width :type xcb:-ignore)
    (height :initarg :height :type xcb:-ignore)))
 ;;
@@ -340,7 +340,7 @@ EWMH")
 (defconst xcb:ewmh:_NET_WM_BOTTOMRIGHT 2)
 (defconst xcb:ewmh:_NET_WM_BOTTOMLEFT 3)
 ;;
-(defclass xcb:ewmh:-_NET_DESKTOP_LAYOUT ()
+(defclass xcb:ewmh:-_NET_DESKTOP_LAYOUT (xcb:--struct)
   ((orientation :initarg :orientation :type xcb:-ignore)
    (columns :initarg :columns :type xcb:-ignore)
    (rows :initarg :rows :type xcb:-ignore)
@@ -517,7 +517,7 @@ EWMH")
    (type :initform xcb:Atom:ATOM)))
 
 ;; _NET_WM_STRUT
-(defclass xcb:ewmh:-_NET_WM_STRUT ()
+(defclass xcb:ewmh:-_NET_WM_STRUT (xcb:--struct)
   ((left :initarg :left :type xcb:-ignore)
    (right :initarg :right :type xcb:-ignore)
    (top :initarg :top :type xcb:-ignore)
@@ -536,7 +536,7 @@ EWMH")
    (type :initform xcb:Atom:CARDINAL)))
 
 ;; _NET_WM_STRUT_PARTIAL
-(defclass xcb:ewmh:-_NET_WM_STRUT_PARTIAL ()
+(defclass xcb:ewmh:-_NET_WM_STRUT_PARTIAL (xcb:--struct)
   ((left :initarg :left :type xcb:-ignore)
    (right :initarg :right :type xcb:-ignore)
    (top :initarg :top :type xcb:-ignore)
@@ -563,7 +563,7 @@ EWMH")
    (type :initform xcb:Atom:CARDINAL)))
 
 ;; _NET_WM_ICON_GEOMETRY
-(defclass xcb:ewmh:-_NET_WM_ICON_GEOMETRY ()
+(defclass xcb:ewmh:-_NET_WM_ICON_GEOMETRY (xcb:--struct)
   ((x :initarg :x :type xcb:-ignore)
    (y :initarg :y :type xcb:-ignore)
    (width :initarg :width :type xcb:-ignore)
@@ -636,7 +636,7 @@ EWMH")
    (type :initform xcb:Atom:CARDINAL)))
 
 ;; _NET_FRAME_EXTENTS
-(defclass xcb:ewmh:-_NET_FRAME_EXTENTS ()
+(defclass xcb:ewmh:-_NET_FRAME_EXTENTS (xcb:--struct)
   ((left :initarg :left :type xcb:-ignore)
    (right :initarg :right :type xcb:-ignore)
    (top :initarg :top :type xcb:-ignore)
@@ -696,7 +696,7 @@ EWMH")
    (high :initarg :high :type xcb:CARD32)))
 
 ;; _NET_WM_SYNC_REQUEST_COUNTER
-(defclass xcb:ewmh:-_NET_WM_SYNC_REQUEST_COUNTER ()
+(defclass xcb:ewmh:-_NET_WM_SYNC_REQUEST_COUNTER (xcb:--struct)
   ((low :initarg :low :type xcb:-ignore)
    (high :initarg :hight :type xcb:-ignore)))
 ;;
@@ -715,7 +715,7 @@ EWMH")
    (type :initform xcb:Atom:CARDINAL)))
 
 ;; _NET_WM_FULLSCREEN_MONITORS
-(defclass xcb:ewmh:-_NET_WM_FULLSCREEN_MONITORS ()
+(defclass xcb:ewmh:-_NET_WM_FULLSCREEN_MONITORS (xcb:--struct)
   ((top :initarg :top :type xcb:-ignore)
    (bottom :initarg :bottom :type xcb:-ignore)
    (left :initarg :left :type xcb:-ignore)

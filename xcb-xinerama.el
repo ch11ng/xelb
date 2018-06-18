@@ -110,11 +110,11 @@
    (length :type xcb:CARD32)
    (number :initarg :number :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (screen-info :initarg :screen-info :type xcb:-ignore)
    (screen-info~ :initform
 		 '(name screen-info type xcb:xinerama:ScreenInfo size
 			(xcb:-fieldref 'number))
-		 :type xcb:-list)))
+		 :type xcb:-list)
+   (screen-info :initarg :screen-info :type xcb:-ignore)))
 
 
 

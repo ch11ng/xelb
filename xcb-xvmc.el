@@ -73,11 +73,11 @@
    (length :type xcb:CARD32)
    (num :initarg :num :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (surfaces :initarg :surfaces :type xcb:-ignore)
    (surfaces~ :initform
 	      '(name surfaces type xcb:xvmc:SurfaceInfo size
 		     (xcb:-fieldref 'num))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (surfaces :initarg :surfaces :type xcb:-ignore)))
 
 (defclass xcb:xvmc:CreateContext
   (xcb:-request)
@@ -97,11 +97,11 @@
    (height-actual :initarg :height-actual :type xcb:CARD16)
    (flags-return :initarg :flags-return :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (priv-data :initarg :priv-data :type xcb:-ignore)
    (priv-data~ :initform
 	       '(name priv-data type xcb:CARD32 size
 		      (xcb:-fieldref 'length))
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (priv-data :initarg :priv-data :type xcb:-ignore)))
 
 (defclass xcb:xvmc:DestroyContext
   (xcb:-request)
@@ -119,11 +119,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (priv-data :initarg :priv-data :type xcb:-ignore)
    (priv-data~ :initform
 	       '(name priv-data type xcb:CARD32 size
 		      (xcb:-fieldref 'length))
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (priv-data :initarg :priv-data :type xcb:-ignore)))
 
 (defclass xcb:xvmc:DestroySurface
   (xcb:-request)
@@ -147,16 +147,16 @@
    (height-actual :initarg :height-actual :type xcb:CARD16)
    (num-palette-entries :initarg :num-palette-entries :type xcb:CARD16)
    (entry-bytes :initarg :entry-bytes :type xcb:CARD16)
-   (component-order :initarg :component-order :type xcb:-ignore)
    (component-order~ :initform
 		     '(name component-order type xcb:CARD8 size 4)
 		     :type xcb:-list)
+   (component-order :initarg :component-order :type xcb:-ignore)
    (pad~1 :initform 12 :type xcb:-pad)
-   (priv-data :initarg :priv-data :type xcb:-ignore)
    (priv-data~ :initform
 	       '(name priv-data type xcb:CARD32 size
 		      (xcb:-fieldref 'length))
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (priv-data :initarg :priv-data :type xcb:-ignore)))
 
 (defclass xcb:xvmc:DestroySubpicture
   (xcb:-request)
@@ -175,11 +175,11 @@
    (length :type xcb:CARD32)
    (num :initarg :num :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (types :initarg :types :type xcb:-ignore)
    (types~ :initform
 	   '(name types type xcb:xv:ImageFormatInfo size
 		  (xcb:-fieldref 'num))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (types :initarg :types :type xcb:-ignore)))
 
 
 

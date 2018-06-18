@@ -55,13 +55,13 @@
   (xcb:-struct)
   ((spec :initarg :spec :type xcb:res:ClientIdSpec)
    (length :initarg :length :type xcb:CARD32)
-   (value :initarg :value :type xcb:-ignore)
    (value~ :initform
 	   '(name value type xcb:CARD32 size
 		  (/
 		   (xcb:-fieldref 'length)
 		   4))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (value :initarg :value :type xcb:-ignore)))
 
 (defclass xcb:res:ResourceIdSpec
   (xcb:-struct)
@@ -79,11 +79,11 @@
   (xcb:-struct)
   ((size :initarg :size :type xcb:res:ResourceSizeSpec)
    (num-cross-references :initarg :num-cross-references :type xcb:CARD32)
-   (cross-references :initarg :cross-references :type xcb:-ignore)
    (cross-references~ :initform
 		      '(name cross-references type xcb:res:ResourceSizeSpec size
 			     (xcb:-fieldref 'num-cross-references))
-		      :type xcb:-list)))
+		      :type xcb:-list)
+   (cross-references :initarg :cross-references :type xcb:-ignore)))
 
 (defclass xcb:res:QueryVersion
   (xcb:-request)
@@ -108,11 +108,11 @@
    (length :type xcb:CARD32)
    (num-clients :initarg :num-clients :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (clients :initarg :clients :type xcb:-ignore)
    (clients~ :initform
 	     '(name clients type xcb:res:Client size
 		    (xcb:-fieldref 'num-clients))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (clients :initarg :clients :type xcb:-ignore)))
 
 (defclass xcb:res:QueryClientResources
   (xcb:-request)
@@ -125,11 +125,11 @@
    (length :type xcb:CARD32)
    (num-types :initarg :num-types :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (types :initarg :types :type xcb:-ignore)
    (types~ :initform
 	   '(name types type xcb:res:Type size
 		  (xcb:-fieldref 'num-types))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (types :initarg :types :type xcb:-ignore)))
 
 (defclass xcb:res:QueryClientPixmapBytes
   (xcb:-request)
@@ -147,11 +147,11 @@
   (xcb:-request)
   ((~opcode :initform 4 :type xcb:-u1)
    (num-specs :initarg :num-specs :type xcb:CARD32)
-   (specs :initarg :specs :type xcb:-ignore)
    (specs~ :initform
 	   '(name specs type xcb:res:ClientIdSpec size
 		  (xcb:-fieldref 'num-specs))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (specs :initarg :specs :type xcb:-ignore)))
 (defclass xcb:res:QueryClientIds~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -159,22 +159,22 @@
    (length :type xcb:CARD32)
    (num-ids :initarg :num-ids :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (ids :initarg :ids :type xcb:-ignore)
    (ids~ :initform
 	 '(name ids type xcb:res:ClientIdValue size
 		(xcb:-fieldref 'num-ids))
-	 :type xcb:-list)))
+	 :type xcb:-list)
+   (ids :initarg :ids :type xcb:-ignore)))
 
 (defclass xcb:res:QueryResourceBytes
   (xcb:-request)
   ((~opcode :initform 5 :type xcb:-u1)
    (client :initarg :client :type xcb:CARD32)
    (num-specs :initarg :num-specs :type xcb:CARD32)
-   (specs :initarg :specs :type xcb:-ignore)
    (specs~ :initform
 	   '(name specs type xcb:res:ResourceIdSpec size
 		  (xcb:-fieldref 'num-specs))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (specs :initarg :specs :type xcb:-ignore)))
 (defclass xcb:res:QueryResourceBytes~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -182,11 +182,11 @@
    (length :type xcb:CARD32)
    (num-sizes :initarg :num-sizes :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (sizes :initarg :sizes :type xcb:-ignore)
    (sizes~ :initform
 	   '(name sizes type xcb:res:ResourceSizeValue size
 		  (xcb:-fieldref 'num-sizes))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (sizes :initarg :sizes :type xcb:-ignore)))
 
 
 

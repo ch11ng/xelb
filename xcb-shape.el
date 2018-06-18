@@ -82,10 +82,10 @@
    (destination-window :initarg :destination-window :type xcb:WINDOW)
    (x-offset :initarg :x-offset :type xcb:INT16)
    (y-offset :initarg :y-offset :type xcb:INT16)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defclass xcb:shape:Mask
   (xcb:-request)
@@ -170,11 +170,11 @@
    (length :type xcb:CARD32)
    (rectangles-len :initarg :rectangles-len :type xcb:CARD32)
    (pad~0 :initform 20 :type xcb:-pad)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size
 		       (xcb:-fieldref 'rectangles-len))
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defconst xcb:shape:event-number-class-alist
   '((0 . xcb:shape:Notify))

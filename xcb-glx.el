@@ -158,10 +158,10 @@
   (xcb:-request)
   ((~opcode :initform 1 :type xcb:-u1)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:RenderLarge
   (xcb:-request)
@@ -170,11 +170,11 @@
    (request-num :initarg :request-num :type xcb:CARD16)
    (request-total :initarg :request-total :type xcb:CARD16)
    (data-len :initarg :data-len :type xcb:CARD32)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (xcb:-fieldref 'data-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:CreateContext
   (xcb:-request)
@@ -306,11 +306,11 @@
    (num-visuals :initarg :num-visuals :type xcb:CARD32)
    (num-properties :initarg :num-properties :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
-   (property-list :initarg :property-list :type xcb:-ignore)
    (property-list~ :initform
 		   '(name property-list type xcb:CARD32 size
 			  (xcb:-fieldref 'length))
-		   :type xcb:-list)))
+		   :type xcb:-list)
+   (property-list :initarg :property-list :type xcb:-ignore)))
 
 (defclass xcb:glx:DestroyGLXPixmap
   (xcb:-request)
@@ -322,37 +322,37 @@
   ((~opcode :initform 16 :type xcb:-u1)
    (vendor-code :initarg :vendor-code :type xcb:CARD32)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:VendorPrivateWithReply
   (xcb:-request)
   ((~opcode :initform 17 :type xcb:-u1)
    (vendor-code :initarg :vendor-code :type xcb:CARD32)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 (defclass xcb:glx:VendorPrivateWithReply~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (retval :initarg :retval :type xcb:CARD32)
-   (data1 :initarg :data1 :type xcb:-ignore)
    (data1~ :initform
 	   '(name data1 type xcb:BYTE size 24)
 	   :type xcb:-list)
-   (data2 :initarg :data2 :type xcb:-ignore)
+   (data1 :initarg :data1 :type xcb:-ignore)
    (data2~ :initform
 	   '(name data2 type xcb:BYTE size
 		  (*
 		   (xcb:-fieldref 'length)
 		   4))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (data2 :initarg :data2 :type xcb:-ignore)))
 
 (defclass xcb:glx:QueryExtensionsString
   (xcb:-request)
@@ -380,11 +380,11 @@
    (pad~1 :initform 4 :type xcb:-pad)
    (str-len :initarg :str-len :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:char size
 		   (xcb:-fieldref 'str-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 
 (defclass xcb:glx:ClientInfo
   (xcb:-request)
@@ -392,11 +392,11 @@
    (major-version :initarg :major-version :type xcb:CARD32)
    (minor-version :initarg :minor-version :type xcb:CARD32)
    (str-len :initarg :str-len :type xcb:CARD32)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:char size
 		   (xcb:-fieldref 'str-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 
 (defclass xcb:glx:GetFBConfigs
   (xcb:-request)
@@ -410,11 +410,11 @@
    (num-FB-configs :initarg :num-FB-configs :type xcb:CARD32)
    (num-properties :initarg :num-properties :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
-   (property-list :initarg :property-list :type xcb:-ignore)
    (property-list~ :initform
 		   '(name property-list type xcb:CARD32 size
 			  (xcb:-fieldref 'length))
-		   :type xcb:-list)))
+		   :type xcb:-list)
+   (property-list :initarg :property-list :type xcb:-ignore)))
 
 (defclass xcb:glx:CreatePixmap
   (xcb:-request)
@@ -424,13 +424,13 @@
    (pixmap :initarg :pixmap :type xcb:PIXMAP)
    (glx-pixmap :initarg :glx-pixmap :type xcb:glx:PIXMAP)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:DestroyPixmap
   (xcb:-request)
@@ -459,13 +459,13 @@
    (length :type xcb:CARD32)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:MakeContextCurrent
   (xcb:-request)
@@ -489,13 +489,13 @@
    (fbconfig :initarg :fbconfig :type xcb:glx:FBCONFIG)
    (pbuffer :initarg :pbuffer :type xcb:glx:PBUFFER)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:DestroyPbuffer
   (xcb:-request)
@@ -513,26 +513,26 @@
    (length :type xcb:CARD32)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:ChangeDrawableAttributes
   (xcb:-request)
   ((~opcode :initform 30 :type xcb:-u1)
    (drawable :initarg :drawable :type xcb:glx:DRAWABLE)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:CreateWindow
   (xcb:-request)
@@ -542,13 +542,13 @@
    (window :initarg :window :type xcb:WINDOW)
    (glx-window :initarg :glx-window :type xcb:glx:WINDOW)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:DeleteWindow
   (xcb:-request)
@@ -563,23 +563,23 @@
    (num-versions :initarg :num-versions :type xcb:CARD32)
    (gl-str-len :initarg :gl-str-len :type xcb:CARD32)
    (glx-str-len :initarg :glx-str-len :type xcb:CARD32)
-   (gl-versions :initarg :gl-versions :type xcb:-ignore)
    (gl-versions~ :initform
 		 '(name gl-versions type xcb:CARD32 size
 			(*
 			 (xcb:-fieldref 'num-versions)
 			 2))
 		 :type xcb:-list)
-   (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
+   (gl-versions :initarg :gl-versions :type xcb:-ignore)
    (gl-extension-string~ :initform
 			 '(name gl-extension-string type xcb:char size
 				(xcb:-fieldref 'gl-str-len))
 			 :type xcb:-list)
-   (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)
+   (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
    (glx-extension-string~ :initform
 			  '(name glx-extension-string type xcb:char size
 				 (xcb:-fieldref 'glx-str-len))
-			  :type xcb:-list)))
+			  :type xcb:-list)
+   (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)))
 
 (defclass xcb:glx:CreateContextAttribsARB
   (xcb:-request)
@@ -591,13 +591,13 @@
    (is-direct :initarg :is-direct :type xcb:BOOL)
    (pad~0 :initform 3 :type xcb:-pad)
    (num-attribs :initarg :num-attribs :type xcb:CARD32)
-   (attribs :initarg :attribs :type xcb:-ignore)
    (attribs~ :initform
 	     '(name attribs type xcb:CARD32 size
 		    (*
 		     (xcb:-fieldref 'num-attribs)
 		     2))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (attribs :initarg :attribs :type xcb:-ignore)))
 
 (defclass xcb:glx:SetClientInfo2ARB
   (xcb:-request)
@@ -607,23 +607,23 @@
    (num-versions :initarg :num-versions :type xcb:CARD32)
    (gl-str-len :initarg :gl-str-len :type xcb:CARD32)
    (glx-str-len :initarg :glx-str-len :type xcb:CARD32)
-   (gl-versions :initarg :gl-versions :type xcb:-ignore)
    (gl-versions~ :initform
 		 '(name gl-versions type xcb:CARD32 size
 			(*
 			 (xcb:-fieldref 'num-versions)
 			 3))
 		 :type xcb:-list)
-   (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
+   (gl-versions :initarg :gl-versions :type xcb:-ignore)
    (gl-extension-string~ :initform
 			 '(name gl-extension-string type xcb:char size
 				(xcb:-fieldref 'gl-str-len))
 			 :type xcb:-list)
-   (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)
+   (gl-extension-string :initarg :gl-extension-string :type xcb:-ignore)
    (glx-extension-string~ :initform
 			  '(name glx-extension-string type xcb:char size
 				 (xcb:-fieldref 'glx-str-len))
-			  :type xcb:-list)))
+			  :type xcb:-list)
+   (glx-extension-string :initarg :glx-extension-string :type xcb:-ignore)))
 
 (defclass xcb:glx:NewList
   (xcb:-request)
@@ -683,11 +683,11 @@
    (n :initarg :n :type xcb:CARD32)
    (new-mode :initarg :new-mode :type xcb:CARD32)
    (pad~1 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defconst xcb:glx:RM:GL_RENDER 7168)
 (defconst xcb:glx:RM:GL_FEEDBACK 7169)
@@ -735,13 +735,13 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetBooleanv
   (xcb:-request)
@@ -757,11 +757,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:BOOL)
    (pad~2 :initform 15 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BOOL size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetClipPlane
   (xcb:-request)
@@ -775,13 +775,13 @@
    (length :type xcb:CARD32)
    (pad~1 :initform 1 :type xcb:-pad)
    (pad~2 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT64 size
 		 (/
 		  (xcb:-fieldref 'length)
 		  2))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetDoublev
   (xcb:-request)
@@ -798,11 +798,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
    (pad~3 :initform 8 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT64 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetError
   (xcb:-request)
@@ -829,11 +829,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetIntegerv
   (xcb:-request)
@@ -849,11 +849,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetLightfv
   (xcb:-request)
@@ -870,11 +870,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetLightiv
   (xcb:-request)
@@ -891,11 +891,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMapdv
   (xcb:-request)
@@ -913,11 +913,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
    (pad~3 :initform 8 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT64 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMapfv
   (xcb:-request)
@@ -934,11 +934,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMapiv
   (xcb:-request)
@@ -955,11 +955,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMaterialfv
   (xcb:-request)
@@ -976,11 +976,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMaterialiv
   (xcb:-request)
@@ -997,11 +997,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetPixelMapfv
   (xcb:-request)
@@ -1017,11 +1017,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetPixelMapuiv
   (xcb:-request)
@@ -1037,11 +1037,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetPixelMapusv
   (xcb:-request)
@@ -1057,11 +1057,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD16)
    (pad~2 :initform 16 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD16 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetPolygonStipple
   (xcb:-request)
@@ -1074,13 +1074,13 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetString
   (xcb:-request)
@@ -1095,11 +1095,11 @@
    (pad~1 :initform 4 :type xcb:-pad)
    (n :initarg :n :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:char size
 		   (xcb:-fieldref 'n))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexEnvfv
   (xcb:-request)
@@ -1116,11 +1116,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexEnviv
   (xcb:-request)
@@ -1137,11 +1137,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexGendv
   (xcb:-request)
@@ -1159,11 +1159,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT64)
    (pad~3 :initform 8 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT64 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexGenfv
   (xcb:-request)
@@ -1180,11 +1180,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexGeniv
   (xcb:-request)
@@ -1201,11 +1201,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexImage
   (xcb:-request)
@@ -1226,13 +1226,13 @@
    (height :initarg :height :type xcb:INT32)
    (depth :initarg :depth :type xcb:INT32)
    (pad~2 :initform 4 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexParameterfv
   (xcb:-request)
@@ -1249,11 +1249,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexParameteriv
   (xcb:-request)
@@ -1270,11 +1270,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexLevelParameterfv
   (xcb:-request)
@@ -1292,11 +1292,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetTexLevelParameteriv
   (xcb:-request)
@@ -1314,11 +1314,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:IsEnabled
   (xcb:-request)
@@ -1354,11 +1354,11 @@
   ((~opcode :initform 143 :type xcb:-u1)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
    (n :initarg :n :type xcb:INT32)
-   (textures :initarg :textures :type xcb:-ignore)
    (textures~ :initform
 	      '(name textures type xcb:CARD32 size
 		     (xcb:-fieldref 'n))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (textures :initarg :textures :type xcb:-ignore)))
 (defclass xcb:glx:AreTexturesResident~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -1366,24 +1366,24 @@
    (length :type xcb:CARD32)
    (ret-val :initarg :ret-val :type xcb:glx:BOOL32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BOOL size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:DeleteTextures
   (xcb:-request)
   ((~opcode :initform 144 :type xcb:-u1)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
    (n :initarg :n :type xcb:INT32)
-   (textures :initarg :textures :type xcb:-ignore)
    (textures~ :initform
 	      '(name textures type xcb:CARD32 size
 		     (xcb:-fieldref 'n))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (textures :initarg :textures :type xcb:-ignore)))
 
 (defclass xcb:glx:GenTextures
   (xcb:-request)
@@ -1396,11 +1396,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD32 size
 		 (xcb:-fieldref 'length))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:IsTexture
   (xcb:-request)
@@ -1430,13 +1430,13 @@
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetColorTableParameterfv
   (xcb:-request)
@@ -1453,11 +1453,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetColorTableParameteriv
   (xcb:-request)
@@ -1474,11 +1474,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetConvolutionFilter
   (xcb:-request)
@@ -1497,13 +1497,13 @@
    (width :initarg :width :type xcb:INT32)
    (height :initarg :height :type xcb:INT32)
    (pad~2 :initform 8 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetConvolutionParameterfv
   (xcb:-request)
@@ -1520,11 +1520,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetConvolutionParameteriv
   (xcb:-request)
@@ -1541,11 +1541,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetSeparableFilter
   (xcb:-request)
@@ -1564,13 +1564,13 @@
    (row-w :initarg :row-w :type xcb:INT32)
    (col-h :initarg :col-h :type xcb:INT32)
    (pad~2 :initform 8 :type xcb:-pad)
-   (rows-and-cols :initarg :rows-and-cols :type xcb:-ignore)
    (rows-and-cols~ :initform
 		   '(name rows-and-cols type xcb:BYTE size
 			  (*
 			   (xcb:-fieldref 'length)
 			   4))
-		   :type xcb:-list)))
+		   :type xcb:-list)
+   (rows-and-cols :initarg :rows-and-cols :type xcb:-ignore)))
 
 (defclass xcb:glx:GetHistogram
   (xcb:-request)
@@ -1589,13 +1589,13 @@
    (pad~1 :initform 8 :type xcb:-pad)
    (width :initarg :width :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetHistogramParameterfv
   (xcb:-request)
@@ -1612,11 +1612,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetHistogramParameteriv
   (xcb:-request)
@@ -1633,11 +1633,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMinmax
   (xcb:-request)
@@ -1654,13 +1654,13 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMinmaxParameterfv
   (xcb:-request)
@@ -1677,11 +1677,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:glx:FLOAT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:glx:FLOAT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetMinmaxParameteriv
   (xcb:-request)
@@ -1698,11 +1698,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetCompressedTexImageARB
   (xcb:-request)
@@ -1718,24 +1718,24 @@
    (pad~1 :initform 8 :type xcb:-pad)
    (size :initarg :size :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:DeleteQueriesARB
   (xcb:-request)
   ((~opcode :initform 161 :type xcb:-u1)
    (context-tag :initarg :context-tag :type xcb:glx:CONTEXT_TAG)
    (n :initarg :n :type xcb:INT32)
-   (ids :initarg :ids :type xcb:-ignore)
    (ids~ :initform
 	 '(name ids type xcb:CARD32 size
 		(xcb:-fieldref 'n))
-	 :type xcb:-list)))
+	 :type xcb:-list)
+   (ids :initarg :ids :type xcb:-ignore)))
 
 (defclass xcb:glx:GenQueriesARB
   (xcb:-request)
@@ -1748,11 +1748,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~1 :initform 24 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD32 size
 		 (xcb:-fieldref 'length))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:IsQueryARB
   (xcb:-request)
@@ -1781,11 +1781,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetQueryObjectivARB
   (xcb:-request)
@@ -1802,11 +1802,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:INT32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:INT32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:glx:GetQueryObjectuivARB
   (xcb:-request)
@@ -1823,11 +1823,11 @@
    (n :initarg :n :type xcb:CARD32)
    (datum :initarg :datum :type xcb:CARD32)
    (pad~2 :initform 12 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD32 size
 		 (xcb:-fieldref 'n))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defconst xcb:glx:error-number-class-alist
   '((-1 . xcb:glx:Generic)

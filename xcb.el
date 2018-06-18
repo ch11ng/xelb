@@ -59,19 +59,11 @@
 (eval-when-compile (require 'cl-lib))
 (require 'xcb-xproto)
 
-(eval-when-compile
-  (defvar xcb:debug-on nil "Non-nil to turn on debug."))
-
-(defmacro xcb:-log (format-string &rest args)
-  "Print debug info."
-  (when xcb:debug-on
-    `(message (concat "[XELB LOG] " ,format-string) ,@args)))
-
 (defvar xcb:connection-timeout 3 "Connection timeout.")
 
 ;;;; X connection related
 
-(defclass xcb:connection ()
+(defclass xcb:connection (xcb:--struct)
   ((process :initarg :process :initform nil)
    (connected :initform nil)  ;non-nil indicates connected to X server
    (display :initarg :display :initform nil)
@@ -96,7 +88,7 @@
    (extra-plist :initform nil)) ;for storing extra data (e.g. by extensions)
   :documentation "X connection.")
 
-(defclass xcb:auth-info ()
+(defclass xcb:auth-info (xcb:--struct)
   ((name :initarg :name :initform "" :type string)
    (data :initarg :data :initform "" :type string))
   :documentation "X connection authentication info.")

@@ -68,11 +68,11 @@
   ((counter :initarg :counter :type xcb:sync:COUNTER)
    (resolution :initarg :resolution :type xcb:sync:INT64)
    (name-len :initarg :name-len :type xcb:CARD16)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
 	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)
    (pad~0 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:sync:TRIGGER
@@ -125,11 +125,11 @@
    (length :type xcb:CARD32)
    (counters-len :initarg :counters-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (counters :initarg :counters :type xcb:-ignore)
    (counters~ :initform
 	      '(name counters type xcb:sync:SYSTEMCOUNTER size
 		     (xcb:-fieldref 'counters-len))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (counters :initarg :counters :type xcb:-ignore)))
 
 (defclass xcb:sync:CreateCounter
   (xcb:-request)
@@ -156,10 +156,10 @@
 (defclass xcb:sync:Await
   (xcb:-request)
   ((~opcode :initform 7 :type xcb:-u1)
-   (wait-list :initarg :wait-list :type xcb:-ignore)
    (wait-list~ :initform
 	       '(name wait-list type xcb:sync:WAITCONDITION size nil)
-	       :type xcb:-list)))
+	       :type xcb:-list)
+   (wait-list :initarg :wait-list :type xcb:-ignore)))
 
 (defclass xcb:sync:ChangeCounter
   (xcb:-request)
@@ -293,10 +293,10 @@
 (defclass xcb:sync:AwaitFence
   (xcb:-request)
   ((~opcode :initform 19 :type xcb:-u1)
-   (fence-list :initarg :fence-list :type xcb:-ignore)
    (fence-list~ :initform
 		'(name fence-list type xcb:sync:FENCE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (fence-list :initarg :fence-list :type xcb:-ignore)))
 
 (defclass xcb:sync:CounterNotify
   (xcb:-event)

@@ -115,11 +115,11 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (visuals-len :initarg :visuals-len :type xcb:CARD16)
    (pad~1 :initform 4 :type xcb:-pad)
-   (visuals :initarg :visuals :type xcb:-ignore)
    (visuals~ :initform
 	     '(name visuals type xcb:VISUALTYPE size
 		    (xcb:-fieldref 'visuals-len))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (visuals :initarg :visuals :type xcb:-ignore)))
 
 (defconst xcb:EventMask:NoEvent 0)
 (defconst xcb:EventMask:KeyPress 1)
@@ -170,11 +170,11 @@
    (save-unders :initarg :save-unders :type xcb:BOOL)
    (root-depth :initarg :root-depth :type xcb:CARD8)
    (allowed-depths-len :initarg :allowed-depths-len :type xcb:CARD8)
-   (allowed-depths :initarg :allowed-depths :type xcb:-ignore)
    (allowed-depths~ :initform
 		    '(name allowed-depths type xcb:DEPTH size
 			   (xcb:-fieldref 'allowed-depths-len))
-		    :type xcb:-list)))
+		    :type xcb:-list)
+   (allowed-depths :initarg :allowed-depths :type xcb:-ignore)))
 
 (defclass xcb:SetupRequest
   (xcb:-struct)
@@ -185,17 +185,17 @@
    (authorization-protocol-name-len :initarg :authorization-protocol-name-len :type xcb:CARD16)
    (authorization-protocol-data-len :initarg :authorization-protocol-data-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (authorization-protocol-name :initarg :authorization-protocol-name :type xcb:-ignore)
    (authorization-protocol-name~ :initform
 				 '(name authorization-protocol-name type xcb:char size
 					(xcb:-fieldref 'authorization-protocol-name-len))
 				 :type xcb:-list)
+   (authorization-protocol-name :initarg :authorization-protocol-name :type xcb:-ignore)
    (pad~2 :initform 4 :type xcb:-pad-align)
-   (authorization-protocol-data :initarg :authorization-protocol-data :type xcb:-ignore)
    (authorization-protocol-data~ :initform
 				 '(name authorization-protocol-data type xcb:char size
 					(xcb:-fieldref 'authorization-protocol-data-len))
 				 :type xcb:-list)
+   (authorization-protocol-data :initarg :authorization-protocol-data :type xcb:-ignore)
    (pad~3 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:SetupFailed
@@ -205,24 +205,24 @@
    (protocol-major-version :initarg :protocol-major-version :type xcb:CARD16)
    (protocol-minor-version :initarg :protocol-minor-version :type xcb:CARD16)
    (length :initarg :length :type xcb:CARD16)
-   (reason :initarg :reason :type xcb:-ignore)
    (reason~ :initform
 	    '(name reason type xcb:char size
 		   (xcb:-fieldref 'reason-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (reason :initarg :reason :type xcb:-ignore)))
 
 (defclass xcb:SetupAuthenticate
   (xcb:-struct)
   ((status :initarg :status :type xcb:CARD8)
    (pad~0 :initform 5 :type xcb:-pad)
    (length :initarg :length :type xcb:CARD16)
-   (reason :initarg :reason :type xcb:-ignore)
    (reason~ :initform
 	    '(name reason type xcb:char size
 		   (*
 		    (xcb:-fieldref 'length)
 		    4))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (reason :initarg :reason :type xcb:-ignore)))
 
 (defconst xcb:ImageOrder:LSBFirst 0)
 (defconst xcb:ImageOrder:MSBFirst 1)
@@ -249,22 +249,22 @@
    (min-keycode :initarg :min-keycode :type xcb:KEYCODE)
    (max-keycode :initarg :max-keycode :type xcb:KEYCODE)
    (pad~1 :initform 4 :type xcb:-pad)
-   (vendor :initarg :vendor :type xcb:-ignore)
    (vendor~ :initform
 	    '(name vendor type xcb:char size
 		   (xcb:-fieldref 'vendor-len))
 	    :type xcb:-list)
+   (vendor :initarg :vendor :type xcb:-ignore)
    (pad~2 :initform 4 :type xcb:-pad-align)
-   (pixmap-formats :initarg :pixmap-formats :type xcb:-ignore)
    (pixmap-formats~ :initform
 		    '(name pixmap-formats type xcb:FORMAT size
 			   (xcb:-fieldref 'pixmap-formats-len))
 		    :type xcb:-list)
-   (roots :initarg :roots :type xcb:-ignore)
+   (pixmap-formats :initarg :pixmap-formats :type xcb:-ignore)
    (roots~ :initform
 	   '(name roots type xcb:SCREEN size
 		  (xcb:-fieldref 'roots-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (roots :initarg :roots :type xcb:-ignore)))
 
 (defconst xcb:ModMask:Shift 1)
 (defconst xcb:ModMask:Lock 2)
@@ -412,10 +412,10 @@
 (defclass xcb:KeymapNotify
   (xcb:-event)
   ((~code :initform 11)
-   (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 31)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (keys :initarg :keys :type xcb:-ignore)))
 
 (defclass xcb:Expose
   (xcb:-event)
@@ -738,18 +738,18 @@
 (defclass xcb:ClientMessageData
   (xcb:-union)
   ((~size :initform 20)
-   (data8 :initarg :data8 :type xcb:-ignore)
    (data8~ :initform
 	   '(name data8 type xcb:CARD8 size 20)
 	   :type xcb:-list)
-   (data16 :initarg :data16 :type xcb:-ignore)
+   (data8 :initarg :data8 :type xcb:-ignore)
    (data16~ :initform
 	    '(name data16 type xcb:CARD16 size 10)
 	    :type xcb:-list)
-   (data32 :initarg :data32 :type xcb:-ignore)
+   (data16 :initarg :data16 :type xcb:-ignore)
    (data32~ :initform
 	    '(name data32 type xcb:CARD32 size 5)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (data32 :initarg :data32 :type xcb:-ignore)))
 
 (defclass xcb:ClientMessage
   (xcb:-event)
@@ -1148,11 +1148,11 @@
    (parent :initarg :parent :type xcb:WINDOW)
    (children-len :initarg :children-len :type xcb:CARD16)
    (pad~1 :initform 14 :type xcb:-pad)
-   (children :initarg :children :type xcb:-ignore)
    (children~ :initform
 	      '(name children type xcb:WINDOW size
 		     (xcb:-fieldref 'children-len))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (children :initarg :children :type xcb:-ignore)))
 
 (defclass xcb:InternAtom
   (xcb:-request)
@@ -1160,11 +1160,11 @@
    (only-if-exists :initarg :only-if-exists :type xcb:BOOL)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 (defclass xcb:InternAtom~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -1184,11 +1184,11 @@
    (length :type xcb:CARD32)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 
 (defconst xcb:PropMode:Replace 0)
 (defconst xcb:PropMode:Prepend 1)
@@ -1204,7 +1204,6 @@
    (format :initarg :format :type xcb:CARD8)
    (pad~0 :initform 3 :type xcb:-pad)
    (data-len :initarg :data-len :type xcb:CARD32)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:void size
 		 (/
@@ -1212,7 +1211,8 @@
 		   (xcb:-fieldref 'data-len)
 		   (xcb:-fieldref 'format))
 		  8))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:DeleteProperty
   (xcb:-request)
@@ -1241,7 +1241,6 @@
    (bytes-after :initarg :bytes-after :type xcb:CARD32)
    (value-len :initarg :value-len :type xcb:CARD32)
    (pad~0 :initform 12 :type xcb:-pad)
-   (value :initarg :value :type xcb:-ignore)
    (value~ :initform
 	   '(name value type xcb:void size
 		  (*
@@ -1249,7 +1248,8 @@
 		   (/
 		    (xcb:-fieldref 'format)
 		    8)))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (value :initarg :value :type xcb:-ignore)))
 
 (defclass xcb:ListProperties
   (xcb:-request)
@@ -1263,11 +1263,11 @@
    (length :type xcb:CARD32)
    (atoms-len :initarg :atoms-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (atoms :initarg :atoms :type xcb:-ignore)
    (atoms~ :initform
 	   '(name atoms type xcb:ATOM size
 		  (xcb:-fieldref 'atoms-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (atoms :initarg :atoms :type xcb:-ignore)))
 
 (defclass xcb:SetSelectionOwner
   (xcb:-request)
@@ -1308,10 +1308,10 @@
    (propagate :initarg :propagate :type xcb:BOOL)
    (destination :initarg :destination :type xcb:WINDOW)
    (event-mask :initarg :event-mask :type xcb:CARD32)
-   (event :initarg :event :type xcb:-ignore)
    (event~ :initform
 	   '(name event type xcb:char size 32)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (event :initarg :event :type xcb:-ignore)))
 
 (defconst xcb:GrabMode:Sync 0)
 (defconst xcb:GrabMode:Async 1)
@@ -1489,11 +1489,11 @@
    (length :type xcb:CARD32)
    (events-len :initarg :events-len :type xcb:CARD32)
    (pad~1 :initform 20 :type xcb:-pad)
-   (events :initarg :events :type xcb:-ignore)
    (events~ :initform
 	    '(name events type xcb:TIMECOORD size
 		   (xcb:-fieldref 'events-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (events :initarg :events :type xcb:-ignore)))
 
 (defclass xcb:TranslateCoordinates
   (xcb:-request)
@@ -1555,10 +1555,10 @@
   ((pad~0 :initform 1 :type xcb:-pad)
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
-   (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 32)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (keys :initarg :keys :type xcb:-ignore)))
 
 (defclass xcb:OpenFont
   (xcb:-request)
@@ -1567,11 +1567,11 @@
    (fid :initarg :fid :type xcb:FONT)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 
 (defclass xcb:CloseFont
   (xcb:-request)
@@ -1621,26 +1621,26 @@
    (font-ascent :initarg :font-ascent :type xcb:INT16)
    (font-descent :initarg :font-descent :type xcb:INT16)
    (char-infos-len :initarg :char-infos-len :type xcb:CARD32)
-   (properties :initarg :properties :type xcb:-ignore)
    (properties~ :initform
 		'(name properties type xcb:FONTPROP size
 		       (xcb:-fieldref 'properties-len))
 		:type xcb:-list)
-   (char-infos :initarg :char-infos :type xcb:-ignore)
+   (properties :initarg :properties :type xcb:-ignore)
    (char-infos~ :initform
 		'(name char-infos type xcb:CHARINFO size
 		       (xcb:-fieldref 'char-infos-len))
-		:type xcb:-list)))
+		:type xcb:-list)
+   (char-infos :initarg :char-infos :type xcb:-ignore)))
 
 (defclass xcb:QueryTextExtents
   (xcb:-request)
   ((~opcode :initform 48 :type xcb:-u1)
    (odd-length :type xcb:BOOL)
    (font :initarg :font :type xcb:FONTABLE)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:CHAR2B size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 (cl-defmethod xcb:marshal
   ((obj xcb:QueryTextExtents))
   nil
@@ -1667,11 +1667,11 @@
 (defclass xcb:STR
   (xcb:-struct)
   ((name-len :initarg :name-len :type xcb:CARD8)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 
 (defclass xcb:ListFonts
   (xcb:-request)
@@ -1679,11 +1679,11 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (max-names :initarg :max-names :type xcb:CARD16)
    (pattern-len :initarg :pattern-len :type xcb:CARD16)
-   (pattern :initarg :pattern :type xcb:-ignore)
    (pattern~ :initform
 	     '(name pattern type xcb:char size
 		    (xcb:-fieldref 'pattern-len))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (pattern :initarg :pattern :type xcb:-ignore)))
 (defclass xcb:ListFonts~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -1691,11 +1691,11 @@
    (length :type xcb:CARD32)
    (names-len :initarg :names-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (names :initarg :names :type xcb:-ignore)
    (names~ :initform
 	   '(name names type xcb:STR size
 		  (xcb:-fieldref 'names-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (names :initarg :names :type xcb:-ignore)))
 
 (defclass xcb:ListFontsWithInfo
   (xcb:-request)
@@ -1703,11 +1703,11 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (max-names :initarg :max-names :type xcb:CARD16)
    (pattern-len :initarg :pattern-len :type xcb:CARD16)
-   (pattern :initarg :pattern :type xcb:-ignore)
    (pattern~ :initform
 	     '(name pattern type xcb:char size
 		    (xcb:-fieldref 'pattern-len))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (pattern :initarg :pattern :type xcb:-ignore)))
 (defclass xcb:ListFontsWithInfo~reply
   (xcb:-reply)
   ((name-len :initarg :name-len :type xcb:CARD8)
@@ -1728,16 +1728,16 @@
    (font-ascent :initarg :font-ascent :type xcb:INT16)
    (font-descent :initarg :font-descent :type xcb:INT16)
    (replies-hint :initarg :replies-hint :type xcb:CARD32)
-   (properties :initarg :properties :type xcb:-ignore)
    (properties~ :initform
 		'(name properties type xcb:FONTPROP size
 		       (xcb:-fieldref 'properties-len))
 		:type xcb:-list)
-   (name :initarg :name :type xcb:-ignore)
+   (properties :initarg :properties :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 
 (defclass xcb:SetFontPath
   (xcb:-request)
@@ -1745,11 +1745,11 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (font-qty :initarg :font-qty :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (font :initarg :font :type xcb:-ignore)
    (font~ :initform
 	  '(name font type xcb:STR size
 		 (xcb:-fieldref 'font-qty))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (font :initarg :font :type xcb:-ignore)))
 
 (defclass xcb:GetFontPath
   (xcb:-request)
@@ -1761,11 +1761,11 @@
    (length :type xcb:CARD32)
    (path-len :initarg :path-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (path :initarg :path :type xcb:-ignore)
    (path~ :initform
 	  '(name path type xcb:STR size
 		 (xcb:-fieldref 'path-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (path :initarg :path :type xcb:-ignore)))
 
 (defclass xcb:CreatePixmap
   (xcb:-request)
@@ -1982,11 +1982,11 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (dash-offset :initarg :dash-offset :type xcb:CARD16)
    (dashes-len :initarg :dashes-len :type xcb:CARD16)
-   (dashes :initarg :dashes :type xcb:-ignore)
    (dashes~ :initform
 	    '(name dashes type xcb:CARD8 size
 		   (xcb:-fieldref 'dashes-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (dashes :initarg :dashes :type xcb:-ignore)))
 
 (defconst xcb:ClipOrdering:Unsorted 0)
 (defconst xcb:ClipOrdering:YSorted 1)
@@ -2000,10 +2000,10 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (clip-x-origin :initarg :clip-x-origin :type xcb:INT16)
    (clip-y-origin :initarg :clip-y-origin :type xcb:INT16)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defclass xcb:FreeGC
   (xcb:-request)
@@ -2059,10 +2059,10 @@
    (coordinate-mode :initarg :coordinate-mode :type xcb:BYTE)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (points :initarg :points :type xcb:-ignore)
    (points~ :initform
 	    '(name points type xcb:POINT size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (points :initarg :points :type xcb:-ignore)))
 
 (defclass xcb:PolyLine
   (xcb:-request)
@@ -2070,10 +2070,10 @@
    (coordinate-mode :initarg :coordinate-mode :type xcb:BYTE)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (points :initarg :points :type xcb:-ignore)
    (points~ :initform
 	    '(name points type xcb:POINT size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (points :initarg :points :type xcb:-ignore)))
 
 (defclass xcb:SEGMENT
   (xcb:-struct)
@@ -2088,10 +2088,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (segments :initarg :segments :type xcb:-ignore)
    (segments~ :initform
 	      '(name segments type xcb:SEGMENT size nil)
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (segments :initarg :segments :type xcb:-ignore)))
 
 (defclass xcb:PolyRectangle
   (xcb:-request)
@@ -2099,10 +2099,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defclass xcb:PolyArc
   (xcb:-request)
@@ -2110,10 +2110,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (arcs :initarg :arcs :type xcb:-ignore)
    (arcs~ :initform
 	  '(name arcs type xcb:ARC size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (arcs :initarg :arcs :type xcb:-ignore)))
 
 (defconst xcb:PolyShape:Complex 0)
 (defconst xcb:PolyShape:Nonconvex 1)
@@ -2128,10 +2128,10 @@
    (shape :initarg :shape :type xcb:CARD8)
    (coordinate-mode :initarg :coordinate-mode :type xcb:CARD8)
    (pad~1 :initform 2 :type xcb:-pad)
-   (points :initarg :points :type xcb:-ignore)
    (points~ :initform
 	    '(name points type xcb:POINT size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (points :initarg :points :type xcb:-ignore)))
 
 (defclass xcb:PolyFillRectangle
   (xcb:-request)
@@ -2139,10 +2139,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (rectangles :initarg :rectangles :type xcb:-ignore)
    (rectangles~ :initform
 		'(name rectangles type xcb:RECTANGLE size nil)
-		:type xcb:-list)))
+		:type xcb:-list)
+   (rectangles :initarg :rectangles :type xcb:-ignore)))
 
 (defclass xcb:PolyFillArc
   (xcb:-request)
@@ -2150,10 +2150,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (gc :initarg :gc :type xcb:GCONTEXT)
-   (arcs :initarg :arcs :type xcb:-ignore)
    (arcs~ :initform
 	  '(name arcs type xcb:ARC size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (arcs :initarg :arcs :type xcb:-ignore)))
 
 (defconst xcb:ImageFormat:XYBitmap 0)
 (defconst xcb:ImageFormat:XYPixmap 1)
@@ -2172,10 +2172,10 @@
    (left-pad :initarg :left-pad :type xcb:CARD8)
    (depth :initarg :depth :type xcb:CARD8)
    (pad~0 :initform 2 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:GetImage
   (xcb:-request)
@@ -2194,13 +2194,13 @@
    (length :type xcb:CARD32)
    (visual :initarg :visual :type xcb:VISUALID)
    (pad~0 :initform 20 :type xcb:-pad)
-   (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size
 		 (*
 		  (xcb:-fieldref 'length)
 		  4))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (data :initarg :data :type xcb:-ignore)))
 
 (defclass xcb:PolyText8
   (xcb:-request)
@@ -2210,10 +2210,10 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
-   (items :initarg :items :type xcb:-ignore)
    (items~ :initform
 	   '(name items type xcb:BYTE size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (items :initarg :items :type xcb:-ignore)))
 
 (defclass xcb:PolyText16
   (xcb:-request)
@@ -2223,10 +2223,10 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
-   (items :initarg :items :type xcb:-ignore)
    (items~ :initform
 	   '(name items type xcb:BYTE size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (items :initarg :items :type xcb:-ignore)))
 
 (defclass xcb:ImageText8
   (xcb:-request)
@@ -2236,11 +2236,11 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:char size
 		   (xcb:-fieldref 'string-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 
 (defclass xcb:ImageText16
   (xcb:-request)
@@ -2250,11 +2250,11 @@
    (gc :initarg :gc :type xcb:GCONTEXT)
    (x :initarg :x :type xcb:INT16)
    (y :initarg :y :type xcb:INT16)
-   (string :initarg :string :type xcb:-ignore)
    (string~ :initform
 	    '(name string type xcb:CHAR2B size
 		   (xcb:-fieldref 'string-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (string :initarg :string :type xcb:-ignore)))
 
 (defconst xcb:ColormapAlloc:None 0)
 (defconst xcb:ColormapAlloc:All 1)
@@ -2304,11 +2304,11 @@
    (length :type xcb:CARD32)
    (cmaps-len :initarg :cmaps-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (cmaps :initarg :cmaps :type xcb:-ignore)
    (cmaps~ :initform
 	   '(name cmaps type xcb:COLORMAP size
 		  (xcb:-fieldref 'cmaps-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (cmaps :initarg :cmaps :type xcb:-ignore)))
 
 (defclass xcb:AllocColor
   (xcb:-request)
@@ -2337,11 +2337,11 @@
    (cmap :initarg :cmap :type xcb:COLORMAP)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 (defclass xcb:AllocNamedColor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -2370,16 +2370,16 @@
    (pixels-len :initarg :pixels-len :type xcb:CARD16)
    (masks-len :initarg :masks-len :type xcb:CARD16)
    (pad~1 :initform 20 :type xcb:-pad)
-   (pixels :initarg :pixels :type xcb:-ignore)
    (pixels~ :initform
 	    '(name pixels type xcb:CARD32 size
 		   (xcb:-fieldref 'pixels-len))
 	    :type xcb:-list)
-   (masks :initarg :masks :type xcb:-ignore)
+   (pixels :initarg :pixels :type xcb:-ignore)
    (masks~ :initform
 	   '(name masks type xcb:CARD32 size
 		  (xcb:-fieldref 'masks-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (masks :initarg :masks :type xcb:-ignore)))
 
 (defclass xcb:AllocColorPlanes
   (xcb:-request)
@@ -2401,11 +2401,11 @@
    (green-mask :initarg :green-mask :type xcb:CARD32)
    (blue-mask :initarg :blue-mask :type xcb:CARD32)
    (pad~2 :initform 8 :type xcb:-pad)
-   (pixels :initarg :pixels :type xcb:-ignore)
    (pixels~ :initform
 	    '(name pixels type xcb:CARD32 size
 		   (xcb:-fieldref 'pixels-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (pixels :initarg :pixels :type xcb:-ignore)))
 
 (defclass xcb:FreeColors
   (xcb:-request)
@@ -2413,10 +2413,10 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (cmap :initarg :cmap :type xcb:COLORMAP)
    (plane-mask :initarg :plane-mask :type xcb:CARD32)
-   (pixels :initarg :pixels :type xcb:-ignore)
    (pixels~ :initform
 	    '(name pixels type xcb:CARD32 size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (pixels :initarg :pixels :type xcb:-ignore)))
 
 (defconst xcb:ColorFlag:Red 1)
 (defconst xcb:ColorFlag:Green 2)
@@ -2436,10 +2436,10 @@
   ((~opcode :initform 89 :type xcb:-u1)
    (pad~0 :initform 1 :type xcb:-pad)
    (cmap :initarg :cmap :type xcb:COLORMAP)
-   (items :initarg :items :type xcb:-ignore)
    (items~ :initform
 	   '(name items type xcb:COLORITEM size nil)
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (items :initarg :items :type xcb:-ignore)))
 
 (defclass xcb:StoreNamedColor
   (xcb:-request)
@@ -2449,11 +2449,11 @@
    (pixel :initarg :pixel :type xcb:CARD32)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 
 (defclass xcb:RGB
   (xcb:-struct)
@@ -2467,10 +2467,10 @@
   ((~opcode :initform 91 :type xcb:-u1)
    (pad~0 :initform 1 :type xcb:-pad)
    (cmap :initarg :cmap :type xcb:COLORMAP)
-   (pixels :initarg :pixels :type xcb:-ignore)
    (pixels~ :initform
 	    '(name pixels type xcb:CARD32 size nil)
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (pixels :initarg :pixels :type xcb:-ignore)))
 (defclass xcb:QueryColors~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -2478,11 +2478,11 @@
    (length :type xcb:CARD32)
    (colors-len :initarg :colors-len :type xcb:CARD16)
    (pad~1 :initform 22 :type xcb:-pad)
-   (colors :initarg :colors :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:RGB size
 		   (xcb:-fieldref 'colors-len))
-	    :type xcb:-list)))
+	    :type xcb:-list)
+   (colors :initarg :colors :type xcb:-ignore)))
 
 (defclass xcb:LookupColor
   (xcb:-request)
@@ -2491,11 +2491,11 @@
    (cmap :initarg :cmap :type xcb:COLORMAP)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 (defclass xcb:LookupColor~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -2587,11 +2587,11 @@
    (pad~0 :initform 1 :type xcb:-pad)
    (name-len :initarg :name-len :type xcb:CARD16)
    (pad~1 :initform 2 :type xcb:-pad)
-   (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
 		 (xcb:-fieldref 'name-len))
-	  :type xcb:-list)))
+	  :type xcb:-list)
+   (name :initarg :name :type xcb:-ignore)))
 (defclass xcb:QueryExtension~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -2611,11 +2611,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
-   (names :initarg :names :type xcb:-ignore)
    (names~ :initform
 	   '(name names type xcb:STR size
 		  (xcb:-fieldref 'names-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (names :initarg :names :type xcb:-ignore)))
 
 (defclass xcb:ChangeKeyboardMapping
   (xcb:-request)
@@ -2624,13 +2624,13 @@
    (first-keycode :initarg :first-keycode :type xcb:KEYCODE)
    (keysyms-per-keycode :initarg :keysyms-per-keycode :type xcb:CARD8)
    (pad~0 :initform 2 :type xcb:-pad)
-   (keysyms :initarg :keysyms :type xcb:-ignore)
    (keysyms~ :initform
 	     '(name keysyms type xcb:KEYSYM size
 		    (*
 		     (xcb:-fieldref 'keycode-count)
 		     (xcb:-fieldref 'keysyms-per-keycode)))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (keysyms :initarg :keysyms :type xcb:-ignore)))
 
 (defclass xcb:GetKeyboardMapping
   (xcb:-request)
@@ -2644,11 +2644,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
-   (keysyms :initarg :keysyms :type xcb:-ignore)
    (keysyms~ :initform
 	     '(name keysyms type xcb:KEYSYM size
 		    (xcb:-fieldref 'length))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (keysyms :initarg :keysyms :type xcb:-ignore)))
 
 (defconst xcb:KB:KeyClickPercent 1)
 (defconst xcb:KB:BellPercent 2)
@@ -2707,10 +2707,10 @@
    (bell-pitch :initarg :bell-pitch :type xcb:CARD16)
    (bell-duration :initarg :bell-duration :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
-   (auto-repeats :initarg :auto-repeats :type xcb:-ignore)
    (auto-repeats~ :initform
 		  '(name auto-repeats type xcb:CARD8 size 32)
-		  :type xcb:-list)))
+		  :type xcb:-list)
+   (auto-repeats :initarg :auto-repeats :type xcb:-ignore)))
 
 (defclass xcb:Bell
   (xcb:-request)
@@ -2787,22 +2787,22 @@
    (family :initarg :family :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)
    (address-len :initarg :address-len :type xcb:CARD16)
-   (address :initarg :address :type xcb:-ignore)
    (address~ :initform
 	     '(name address type xcb:BYTE size
 		    (xcb:-fieldref 'address-len))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (address :initarg :address :type xcb:-ignore)))
 
 (defclass xcb:HOST
   (xcb:-struct)
   ((family :initarg :family :type xcb:CARD8)
    (pad~0 :initform 1 :type xcb:-pad)
    (address-len :initarg :address-len :type xcb:CARD16)
-   (address :initarg :address :type xcb:-ignore)
    (address~ :initform
 	     '(name address type xcb:BYTE size
 		    (xcb:-fieldref 'address-len))
 	     :type xcb:-list)
+   (address :initarg :address :type xcb:-ignore)
    (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (defclass xcb:ListHosts
@@ -2815,11 +2815,11 @@
    (length :type xcb:CARD32)
    (hosts-len :initarg :hosts-len :type xcb:CARD16)
    (pad~0 :initform 22 :type xcb:-pad)
-   (hosts :initarg :hosts :type xcb:-ignore)
    (hosts~ :initform
 	   '(name hosts type xcb:HOST size
 		  (xcb:-fieldref 'hosts-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (hosts :initarg :hosts :type xcb:-ignore)))
 
 (defconst xcb:AccessControl:Disable 0)
 (defconst xcb:AccessControl:Enable 1)
@@ -2853,11 +2853,11 @@
    (window :initarg :window :type xcb:WINDOW)
    (atoms-len :initarg :atoms-len :type xcb:CARD16)
    (delta :initarg :delta :type xcb:INT16)
-   (atoms :initarg :atoms :type xcb:-ignore)
    (atoms~ :initform
 	   '(name atoms type xcb:ATOM size
 		  (xcb:-fieldref 'atoms-len))
-	   :type xcb:-list)))
+	   :type xcb:-list)
+   (atoms :initarg :atoms :type xcb:-ignore)))
 
 (defconst xcb:ScreenSaver:Reset 0)
 (defconst xcb:ScreenSaver:Active 1)
@@ -2875,11 +2875,11 @@
   (xcb:-request)
   ((~opcode :initform 116 :type xcb:-u1)
    (map-len :initarg :map-len :type xcb:CARD8)
-   (map :initarg :map :type xcb:-ignore)
    (map~ :initform
 	 '(name map type xcb:CARD8 size
 		(xcb:-fieldref 'map-len))
-	 :type xcb:-list)))
+	 :type xcb:-list)
+   (map :initarg :map :type xcb:-ignore)))
 (defclass xcb:SetPointerMapping~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:BYTE)
@@ -2895,11 +2895,11 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
-   (map :initarg :map :type xcb:-ignore)
    (map~ :initform
 	 '(name map type xcb:CARD8 size
 		(xcb:-fieldref 'map-len))
-	 :type xcb:-list)))
+	 :type xcb:-list)
+   (map :initarg :map :type xcb:-ignore)))
 
 (defconst xcb:MapIndex:Shift 0)
 (defconst xcb:MapIndex:Lock 1)
@@ -2914,13 +2914,13 @@
   (xcb:-request)
   ((~opcode :initform 118 :type xcb:-u1)
    (keycodes-per-modifier :initarg :keycodes-per-modifier :type xcb:CARD8)
-   (keycodes :initarg :keycodes :type xcb:-ignore)
    (keycodes~ :initform
 	      '(name keycodes type xcb:KEYCODE size
 		     (*
 		      (xcb:-fieldref 'keycodes-per-modifier)
 		      8))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (keycodes :initarg :keycodes :type xcb:-ignore)))
 (defclass xcb:SetModifierMapping~reply
   (xcb:-reply)
   ((status :initarg :status :type xcb:BYTE)
@@ -2936,13 +2936,13 @@
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
    (pad~0 :initform 24 :type xcb:-pad)
-   (keycodes :initarg :keycodes :type xcb:-ignore)
    (keycodes~ :initform
 	      '(name keycodes type xcb:KEYCODE size
 		     (*
 		      (xcb:-fieldref 'keycodes-per-modifier)
 		      8))
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (keycodes :initarg :keycodes :type xcb:-ignore)))
 
 (defclass xcb:NoOperation
   (xcb:-request)

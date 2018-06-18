@@ -128,16 +128,16 @@
    (num-window-modifiers :initarg :num-window-modifiers :type xcb:CARD32)
    (num-screen-modifiers :initarg :num-screen-modifiers :type xcb:CARD32)
    (pad~2 :initform 16 :type xcb:-pad)
-   (window-modifiers :initarg :window-modifiers :type xcb:-ignore)
    (window-modifiers~ :initform
 		      '(name window-modifiers type xcb:CARD64 size
 			     (xcb:-fieldref 'num-window-modifiers))
 		      :type xcb:-list)
-   (screen-modifiers :initarg :screen-modifiers :type xcb:-ignore)
+   (window-modifiers :initarg :window-modifiers :type xcb:-ignore)
    (screen-modifiers~ :initform
 		      '(name screen-modifiers type xcb:CARD64 size
 			     (xcb:-fieldref 'num-screen-modifiers))
-		      :type xcb:-list)))
+		      :type xcb:-list)
+   (screen-modifiers :initarg :screen-modifiers :type xcb:-ignore)))
 
 (defclass xcb:dri3:PixmapFromBuffers
   (xcb:-request)
@@ -161,11 +161,11 @@
    (bpp :initarg :bpp :type xcb:CARD8)
    (pad~2 :initform 2 :type xcb:-pad)
    (modifier :initarg :modifier :type xcb:CARD64)
-   (buffers :initarg :buffers :type xcb:-ignore)
    (buffers~ :initform
 	     '(name buffers type xcb:fd size
 		    (xcb:-fieldref 'num-buffers))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (buffers :initarg :buffers :type xcb:-ignore)))
 
 (defclass xcb:dri3:BuffersFromPixmap
   (xcb:-request)
@@ -184,21 +184,21 @@
    (depth :initarg :depth :type xcb:CARD8)
    (bpp :initarg :bpp :type xcb:CARD8)
    (pad~2 :initform 6 :type xcb:-pad)
-   (strides :initarg :strides :type xcb:-ignore)
    (strides~ :initform
 	     '(name strides type xcb:CARD32 size
 		    (xcb:-fieldref 'nfd))
 	     :type xcb:-list)
-   (offsets :initarg :offsets :type xcb:-ignore)
+   (strides :initarg :strides :type xcb:-ignore)
    (offsets~ :initform
 	     '(name offsets type xcb:CARD32 size
 		    (xcb:-fieldref 'nfd))
 	     :type xcb:-list)
-   (buffers :initarg :buffers :type xcb:-ignore)
+   (offsets :initarg :offsets :type xcb:-ignore)
    (buffers~ :initform
 	     '(name buffers type xcb:fd size
 		    (xcb:-fieldref 'nfd))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (buffers :initarg :buffers :type xcb:-ignore)))
 
 
 

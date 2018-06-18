@@ -106,10 +106,10 @@
    (target-msc :initarg :target-msc :type xcb:CARD64)
    (divisor :initarg :divisor :type xcb:CARD64)
    (remainder :initarg :remainder :type xcb:CARD64)
-   (notifies :initarg :notifies :type xcb:-ignore)
    (notifies~ :initform
 	      '(name notifies type xcb:present:Notify size nil)
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (notifies :initarg :notifies :type xcb:-ignore)))
 
 (defclass xcb:present:NotifyMSC
   (xcb:-request)
@@ -215,10 +215,10 @@
    (target-msc :initarg :target-msc :type xcb:CARD64)
    (divisor :initarg :divisor :type xcb:CARD64)
    (remainder :initarg :remainder :type xcb:CARD64)
-   (notifies :initarg :notifies :type xcb:-ignore)
    (notifies~ :initform
 	      '(name notifies type xcb:present:Notify size nil)
-	      :type xcb:-list)))
+	      :type xcb:-list)
+   (notifies :initarg :notifies :type xcb:-ignore)))
 
 (defconst xcb:present:event-number-class-alist
   '((0 . xcb:present:Generic))

@@ -91,12 +91,11 @@
    (driver-name-length :initarg :driver-name-length :type xcb:CARD32)
    (device-name-length :initarg :device-name-length :type xcb:CARD32)
    (pad~1 :initform 16 :type xcb:-pad)
-   (driver-name :initarg :driver-name :type xcb:-ignore)
    (driver-name~ :initform
 		 '(name driver-name type xcb:char size
 			(xcb:-fieldref 'driver-name-length))
 		 :type xcb:-list)
-   (alignment-pad :initarg :alignment-pad :type xcb:-ignore)
+   (driver-name :initarg :driver-name :type xcb:-ignore)
    (alignment-pad~ :initform
 		   '(name alignment-pad type xcb:void size
 			  (-
@@ -107,11 +106,12 @@
 			    (lognot 3))
 			   (xcb:-fieldref 'driver-name-length)))
 		   :type xcb:-list)
-   (device-name :initarg :device-name :type xcb:-ignore)
+   (alignment-pad :initarg :alignment-pad :type xcb:-ignore)
    (device-name~ :initform
 		 '(name device-name type xcb:char size
 			(xcb:-fieldref 'device-name-length))
-		 :type xcb:-list)))
+		 :type xcb:-list)
+   (device-name :initarg :device-name :type xcb:-ignore)))
 
 (defclass xcb:dri2:Authenticate
   (xcb:-request)
@@ -140,10 +140,10 @@
   ((~opcode :initform 5 :type xcb:-u1)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (count :initarg :count :type xcb:CARD32)
-   (attachments :initarg :attachments :type xcb:-ignore)
    (attachments~ :initform
 		 '(name attachments type xcb:CARD32 size nil)
-		 :type xcb:-list)))
+		 :type xcb:-list)
+   (attachments :initarg :attachments :type xcb:-ignore)))
 (defclass xcb:dri2:GetBuffers~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -153,11 +153,11 @@
    (height :initarg :height :type xcb:CARD32)
    (count :initarg :count :type xcb:CARD32)
    (pad~1 :initform 12 :type xcb:-pad)
-   (buffers :initarg :buffers :type xcb:-ignore)
    (buffers~ :initform
 	     '(name buffers type xcb:dri2:DRI2Buffer size
 		    (xcb:-fieldref 'count))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (buffers :initarg :buffers :type xcb:-ignore)))
 
 (defclass xcb:dri2:CopyRegion
   (xcb:-request)
@@ -177,10 +177,10 @@
   ((~opcode :initform 7 :type xcb:-u1)
    (drawable :initarg :drawable :type xcb:DRAWABLE)
    (count :initarg :count :type xcb:CARD32)
-   (attachments :initarg :attachments :type xcb:-ignore)
    (attachments~ :initform
 		 '(name attachments type xcb:dri2:AttachFormat size nil)
-		 :type xcb:-list)))
+		 :type xcb:-list)
+   (attachments :initarg :attachments :type xcb:-ignore)))
 (defclass xcb:dri2:GetBuffersWithFormat~reply
   (xcb:-reply)
   ((pad~0 :initform 1 :type xcb:-pad)
@@ -190,11 +190,11 @@
    (height :initarg :height :type xcb:CARD32)
    (count :initarg :count :type xcb:CARD32)
    (pad~1 :initform 12 :type xcb:-pad)
-   (buffers :initarg :buffers :type xcb:-ignore)
    (buffers~ :initform
 	     '(name buffers type xcb:dri2:DRI2Buffer size
 		    (xcb:-fieldref 'count))
-	     :type xcb:-list)))
+	     :type xcb:-list)
+   (buffers :initarg :buffers :type xcb:-ignore)))
 
 (defclass xcb:dri2:SwapBuffers
   (xcb:-request)
