@@ -167,7 +167,6 @@
 		'(name clip-rects type xcb:xf86dri:DrmClipRect size
 		       (xcb:-fieldref 'num-clip-rects))
 		:type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (back-clip-rects :initarg :back-clip-rects :type xcb:-ignore)
    (back-clip-rects~ :initform
 		     '(name back-clip-rects type xcb:xf86dri:DrmClipRect size

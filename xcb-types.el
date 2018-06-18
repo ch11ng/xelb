@@ -492,10 +492,14 @@ The optional POS argument indicates current byte index of the field (used by
        (setq value (eval value `((obj . ,obj)))))
      (make-vector value 0))
     (`xcb:-pad-align
-     (unless (integerp value)
-       (setq value (eval value `((obj . ,obj)))))
      ;; The length slot in xcb:-request is left out
      (let ((len (if (object-of-class-p obj 'xcb:-request) (+ pos 2) pos)))
+       (when (vectorp value)
+         ;; Alignment with offset.
+         (setq len (- len (aref value 1))
+               value (aref value 0)))
+       (unless (integerp value)
+         (setq value (eval value `((obj . ,obj)))))
        (make-vector (% (- value (% len value)) value) 0)))
     (`xcb:-list
      (let* ((list-name (plist-get value 'name))
@@ -546,10 +550,13 @@ The optional POS argument indicates current byte index of the field (used by
      (xcb:marshal value))
     (x (error "[XCB] Unsupported type for marshalling: %s" x))))
 
-(cl-defmethod xcb:unmarshal ((obj xcb:-struct) byte-array &optional ctx)
+(cl-defmethod xcb:unmarshal ((obj xcb:-struct) byte-array &optional ctx
+                             total-length)
   "Fill in fields of struct OBJ according to its byte-array representation.
 
 The optional argument CTX is for <paramref>."
+  (unless total-length
+    (setq total-length (length byte-array)))
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
         (result 0)
         slot-name tmp type)
@@ -560,14 +567,14 @@ The optional argument CTX is for <paramref>."
               tmp (xcb:-unmarshal-field obj type byte-array 0
                                         (when (slot-boundp obj slot-name)
                                           (eieio-oref-default obj slot-name))
-                                        ctx))
+                                        ctx total-length))
         (setf (slot-value obj slot-name) (car tmp))
         (setq byte-array (substring byte-array (cadr tmp)))
         (setq result (+ result (cadr tmp)))))
     result))
 
 (cl-defmethod xcb:-unmarshal-field ((obj xcb:-struct) type data offset
-                                    initform &optional ctx)
+                                    initform &optional ctx total-length)
   "Return the value of a field in struct OBJ of type TYPE, byte-array
 representation DATA, and default value INITFORM.
 
@@ -606,12 +613,17 @@ and the second the consumed length."
          (setq initform (cadr initform)))
        (setq initform (eval initform `((obj . ,obj) (ctx . ,ctx)))))
      (list initform initform))
-    (`xcb:-pad-align                 ;assume the whole data is aligned
-     (unless (integerp initform)
-       (when (eq 'quote (car initform))
-         (setq initform (cadr initform)))
-       (setq initform (eval initform `((obj . ,obj) (ctx . ,ctx)))))
-     (list initform (% (- (length data) offset) initform)))
+    (`xcb:-pad-align
+     (let ((len (- total-length (- (length data) offset))))
+       (if (vectorp initform)
+           ;; Alignment with offset.
+           (setq len (- len (aref initform 1))
+                 initform (aref initform 0))
+         (unless (integerp initform)
+           (when (eq 'quote (car initform))
+             (setq initform (cadr initform)))
+           (setq initform (eval initform `((obj . ,obj) (ctx . ,ctx))))))
+       (list initform (% (- initform (% len initform)) initform))))
     (`xcb:-list
      (when (eq 'quote (car initform))   ;unquote the form
        (setq initform (cadr initform)))
@@ -637,7 +649,8 @@ and the second the consumed length."
           (let ((count 0)
                 result tmp)
             (dotimes (_ list-size)
-              (setq tmp (xcb:-unmarshal-field obj x data (+ offset count) nil))
+              (setq tmp (xcb:-unmarshal-field obj x data (+ offset count) nil
+                                              nil total-length))
               (setq result (nconc result (list (car tmp))))
               (setq count (+ count (cadr tmp))))
             (setf (slot-value obj list-name) result)
@@ -672,14 +685,16 @@ and the second the consumed length."
                    (throw 'break nil))))
              (unless (eq slot-type 'xcb:-ignore)
                (setq tmp (xcb:-unmarshal-field obj slot-type data offset
-                                               (eieio-oref-default obj name)))
+                                               (eieio-oref-default obj name)
+                                               nil total-length))
                (setf (slot-value obj name) (car tmp))
                (setq count (+ count (cadr tmp)))
                (setq data (substring data (cadr tmp)))))))
        (list initform count)))
     ((and x (guard (child-of-class-p x 'xcb:-struct)))
      (let* ((struct-obj (make-instance x))
-            (tmp (xcb:unmarshal struct-obj (substring data offset) obj)))
+            (tmp (xcb:unmarshal struct-obj (substring data offset) obj
+                                total-length)))
        (list struct-obj tmp)))
     (x (error "[XCB] Unsupported type for unmarshalling: %s" x))))
 
@@ -771,10 +786,13 @@ This result is converted from the first bounded slot."
       (setq result (vconcat result (make-vector (- size (length result)) 0))))
     result))
 ;;
-(cl-defmethod xcb:unmarshal ((obj xcb:-union) byte-array &optional ctx)
+(cl-defmethod xcb:unmarshal ((obj xcb:-union) byte-array &optional ctx
+                             total-length)
   "Fill in every field in union OBJ, according to BYTE-ARRAY.
 
 The optional argument CTX is for <paramref>."
+  (unless total-length
+    (setq total-length (length byte-array)))
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
         slot-name tmp type)
     (dolist (slot slots)
@@ -784,7 +802,7 @@ The optional argument CTX is for <paramref>."
               tmp (xcb:-unmarshal-field obj type byte-array 0
                                         (when (slot-boundp obj slot-name)
                                           (eieio-oref-default obj slot-name))
-                                        ctx))
+                                        ctx total-length))
         (setf (slot-value obj (eieio-slot-descriptor-name slot)) (car tmp))))
     (slot-value obj '~size)))
 

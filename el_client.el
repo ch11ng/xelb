@@ -513,12 +513,13 @@ The `combine-adjacent' attribute is simply ignored."
   "Parse a structure content node NODE."
   (pcase (xelb-node-name node)
     (`pad (xelb-parse-pad node))
+    (`required_start_align (xelb-parse-required_start_align node))
     (`field (xelb-parse-field node))
     (`fd (xelb-parse-fd node))
     (`list (xelb-parse-list node))
     (`exprfield (xelb-parse-exprfield node))
     (`switch (xelb-parse-switch node))
-    ((or `comment `doc `required_start_align)) ;simply ignored
+    ((or `comment `doc))                ;simply ignored
     (x (error "Unsupported structure content: <%s>" x))))
 
 ;; The car of the result shall be renamed to prevent duplication of slot names
@@ -533,6 +534,17 @@ The `combine-adjacent' attribute is simply ignored."
           `((,(xelb-generate-pad-name)
              :initform ,(string-to-number align) :type xcb:-pad-align))
         (error "Invalid <pad> field")))))
+
+(defun xelb-parse-required_start_align (node)
+  "Parse <required_start_align>."
+  (let ((align (xelb-node-attr node 'align))
+        (offset (xelb-node-attr node 'offset)))
+    `((,(xelb-generate-pad-name)
+       :initform ,(if offset
+                      (vector (string-to-number align)
+                              (string-to-number offset))
+                    (string-to-number align))
+       :type xcb:-pad-align))))
 
 (defun xelb-parse-field (node)
   "Parse <field>."
@@ -554,13 +566,7 @@ The `combine-adjacent' attribute is simply ignored."
     `((,name :initarg ,(intern (concat ":" (symbol-name name)))
              :type xcb:-ignore)
       (,name-alt :initform '(name ,name type ,type size ,size)
-                 :type xcb:-list)
-      ;; Auto padding after variable-length list
-      ;; FIXME: according to the definition of `XCB_TYPE_PAD' in xcb.h, it does
-      ;;        not always padding to 4 bytes.
-      ,@(when (and (xelb-node-attr node 'xelb-auto-padding)
-                   (not (integerp size)))
-          `((,(xelb-generate-pad-name) :initform 4 :type xcb:-pad-align))))))
+                 :type xcb:-list))))
 
 ;; The car of result is the field declaration, and the cadr is the expression
 ;; to be evaluated.
@@ -606,7 +612,6 @@ The `combine-adjacent' attribute is simply ignored."
                       (when (or (eq case-name 'bitcase) (eq case-name 'case))
                         (dolist (j (xelb-node-subnodes i t))
                           (pcase (xelb-node-name j)
-                            (`required_start_align)
                             (`enumref
                              (setq condition
                                    (nconc condition

@@ -281,13 +281,11 @@
 	     '(name formats type xcb:render:PICTFORMINFO size
 		    (xcb:-fieldref 'num-formats))
 	     :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (screens :initarg :screens :type xcb:-ignore)
    (screens~ :initform
 	     '(name screens type xcb:render:PICTSCREEN size
 		    (xcb:-fieldref 'num-screens))
 	     :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (subpixels :initarg :subpixels :type xcb:-ignore)
    (subpixels~ :initform
 	       '(name subpixels type xcb:CARD32 size
@@ -507,13 +505,11 @@
 	      '(name glyphids type xcb:CARD32 size
 		     (xcb:-fieldref 'glyphs-len))
 	      :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (glyphs :initarg :glyphs :type xcb:-ignore)
    (glyphs~ :initform
 	    '(name glyphs type xcb:render:GLYPHINFO size
 		   (xcb:-fieldref 'glyphs-len))
 	    :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:BYTE size nil)
@@ -631,7 +627,6 @@
 	     '(name aliases type xcb:CARD16 size
 		    (xcb:-fieldref 'num-aliases))
 	     :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (filters :initarg :filters :type xcb:-ignore)
    (filters~ :initform
 	     '(name filters type xcb:STR size
@@ -709,7 +704,6 @@
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (colors :initarg :colors :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size
@@ -730,7 +724,6 @@
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (colors :initarg :colors :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size
@@ -749,7 +742,6 @@
 	   '(name stops type xcb:render:FIXED size
 		  (xcb:-fieldref 'num-stops))
 	   :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (colors :initarg :colors :type xcb:-ignore)
    (colors~ :initform
 	    '(name colors type xcb:render:COLOR size

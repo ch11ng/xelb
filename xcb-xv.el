@@ -128,13 +128,11 @@
 	     '(name pitches type xcb:CARD32 size
 		    (xcb:-fieldref 'num-planes))
 	     :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (offsets :initarg :offsets :type xcb:-ignore)
    (offsets~ :initform
 	     '(name offsets type xcb:CARD32 size
 		    (xcb:-fieldref 'num-planes))
 	     :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (data :initarg :data :type xcb:-ignore)
    (data~ :initform
 	  '(name data type xcb:CARD8 size
@@ -457,7 +455,6 @@
 	     '(name pitches type xcb:CARD32 size
 		    (xcb:-fieldref 'num-planes))
 	     :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (offsets :initarg :offsets :type xcb:-ignore)
    (offsets~ :initform
 	     '(name offsets type xcb:CARD32 size

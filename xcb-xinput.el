@@ -137,13 +137,16 @@
 	   cases
 	   ((0 min-keycode max-keycode num-keys pad~0)
 	    (1 num-buttons)
-	    (2 axes-len mode motion-size axes)))
+	    (2 pad~1 axes-len mode motion-size axes)))
 	 :type xcb:-switch)
    (min-keycode :initarg :min-keycode :type xcb:xinput:KeyCode)
    (max-keycode :initarg :max-keycode :type xcb:xinput:KeyCode)
    (num-keys :initarg :num-keys :type xcb:CARD16)
    (pad~0 :initform 2 :type xcb:-pad)
    (num-buttons :initarg :num-buttons :type xcb:CARD16)
+   (pad~1 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (axes-len :initarg :axes-len :type xcb:CARD8)
    (mode :initarg :mode :type xcb:CARD8)
    (motion-size :initarg :motion-size :type xcb:CARD32)
@@ -177,7 +180,6 @@
 	     '(name devices type xcb:xinput:DeviceInfo size
 		    (xcb:-fieldref 'devices-len))
 	     :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (infos :initarg :infos :type xcb:-ignore)
    (infos~ :initform
 	   '(name infos type xcb:xinput:InputInfo size
@@ -193,13 +195,12 @@
 			       i))))
 			  (slot-value obj 'devices))))
 	   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (names :initarg :names :type xcb:-ignore)
    (names~ :initform
 	   '(name names type xcb:STR size
 		  (xcb:-fieldref 'devices-len))
 	   :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)))
+   (pad~1 :initform 4 :type xcb:-pad-align)))
 
 (xcb:deftypealias 'xcb:xinput:EventTypeBase 'xcb:CARD8)
 
@@ -276,7 +277,6 @@
 		  '(name this-classes type xcb:xinput:EventClass size
 			 (xcb:-fieldref 'num-this-classes))
 		  :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (all-classes :initarg :all-classes :type xcb:-ignore)
    (all-classes~ :initform
 		 '(name all-classes type xcb:xinput:EventClass size
@@ -933,22 +933,28 @@
 	 '(expression
 	   (xcb:-fieldref 'class-id)
 	   cases
-	   ((0 num-keys pad~0 keys)
-	    (1 num-buttons pad~1 buttons)
-	    (2 num-valuators mode valuators)))
+	   ((0 pad~0 num-keys pad~1 keys)
+	    (1 num-buttons pad~2 buttons)
+	    (2 pad~3 num-valuators mode valuators)))
 	 :type xcb:-switch)
+   (pad~0 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (num-keys :initarg :num-keys :type xcb:CARD8)
-   (pad~0 :initform 1 :type xcb:-pad)
+   (pad~1 :initform 1 :type xcb:-pad)
    (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD8 size 32)
 	  :type xcb:-list)
    (num-buttons :initarg :num-buttons :type xcb:CARD8)
-   (pad~1 :initform 1 :type xcb:-pad)
+   (pad~2 :initform 1 :type xcb:-pad)
    (buttons :initarg :buttons :type xcb:-ignore)
    (buttons~ :initform
 	     '(name buttons type xcb:CARD8 size 32)
 	     :type xcb:-list)
+   (pad~3 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (num-valuators :initarg :num-valuators :type xcb:CARD8)
    (mode :initarg :mode :type xcb:CARD8)
    (valuators :initarg :valuators :type xcb:-ignore)
@@ -1019,13 +1025,11 @@
 		       '(name resolution-values type xcb:CARD32 size
 			      (xcb:-fieldref 'num-valuators))
 		       :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (resolution-min :initarg :resolution-min :type xcb:-ignore)
    (resolution-min~ :initform
 		    '(name resolution-min type xcb:CARD32 size
 			   (xcb:-fieldref 'num-valuators))
 		    :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (resolution-max :initarg :resolution-max :type xcb:-ignore)
    (resolution-max~ :initform
 		    '(name resolution-max type xcb:CARD32 size
@@ -1081,8 +1085,8 @@
 	   cases
 	   ((1 num-valuators resolution-values resolution-min resolution-max)
 	    (2 min-x max-x min-y max-y flip-x flip-y rotation button-threshold)
-	    (3 status iscore pad~2)
-	    (4 enable pad~3)
+	    (3 status iscore pad~0)
+	    (4 enable pad~1)
 	    (5 offset-x offset-y width height screen following)))
 	 :type xcb:-switch)
    (num-valuators :initarg :num-valuators :type xcb:CARD32)
@@ -1091,13 +1095,11 @@
 		       '(name resolution-values type xcb:CARD32 size
 			      (xcb:-fieldref 'num-valuators))
 		       :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (resolution-min :initarg :resolution-min :type xcb:-ignore)
    (resolution-min~ :initform
 		    '(name resolution-min type xcb:CARD32 size
 			   (xcb:-fieldref 'num-valuators))
 		    :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (resolution-max :initarg :resolution-max :type xcb:-ignore)
    (resolution-max~ :initform
 		    '(name resolution-max type xcb:CARD32 size
@@ -1113,9 +1115,9 @@
    (button-threshold :initarg :button-threshold :type xcb:CARD32)
    (status :initarg :status :type xcb:CARD8)
    (iscore :initarg :iscore :type xcb:CARD8)
-   (pad~2 :initform 2 :type xcb:-pad)
+   (pad~0 :initform 2 :type xcb:-pad)
    (enable :initarg :enable :type xcb:CARD8)
-   (pad~3 :initform 3 :type xcb:-pad)
+   (pad~1 :initform 3 :type xcb:-pad)
    (offset-x :initarg :offset-x :type xcb:CARD32)
    (offset-y :initarg :offset-y :type xcb:CARD32)
    (width :initarg :width :type xcb:CARD32)
@@ -1633,7 +1635,6 @@
 		    31)
 		   32))
 	   :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (labels :initarg :labels :type xcb:-ignore)
    (labels~ :initform
 	    '(name labels type xcb:ATOM size
@@ -1694,18 +1695,24 @@
 	 '(expression
 	   (xcb:-fieldref 'type)
 	   cases
-	   ((0 num-keys keys)
-	    (1 num-buttons state labels)
-	    (2 number label min max value resolution mode pad~1)
-	    (3 number* scroll-type pad~2 flags increment)
+	   ((0 pad~0 num-keys keys)
+	    (1 pad~1 num-buttons state labels)
+	    (2 pad~2 number label min max value resolution mode pad~3)
+	    (3 pad~4 number* scroll-type pad~5 flags increment)
 	    (8 mode* num-touches)))
 	 :type xcb:-switch)
+   (pad~0 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (num-keys :initarg :num-keys :type xcb:CARD16)
    (keys :initarg :keys :type xcb:-ignore)
    (keys~ :initform
 	  '(name keys type xcb:CARD32 size
 		 (xcb:-fieldref 'num-keys))
 	  :type xcb:-list)
+   (pad~1 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (num-buttons :initarg :num-buttons :type xcb:CARD16)
    (state :initarg :state :type xcb:-ignore)
    (state~ :initform
@@ -1716,12 +1723,14 @@
 		    31)
 		   32))
 	   :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (labels :initarg :labels :type xcb:-ignore)
    (labels~ :initform
 	    '(name labels type xcb:ATOM size
 		   (xcb:-fieldref 'num-buttons))
 	    :type xcb:-list)
+   (pad~2 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (number :initarg :number :type xcb:CARD16)
    (label :initarg :label :type xcb:ATOM)
    (min :initarg :min :type xcb:xinput:FP3232)
@@ -1729,10 +1738,13 @@
    (value :initarg :value :type xcb:xinput:FP3232)
    (resolution :initarg :resolution :type xcb:CARD32)
    (mode :initarg :mode :type xcb:CARD8)
-   (pad~1 :initform 3 :type xcb:-pad)
+   (pad~3 :initform 3 :type xcb:-pad)
+   (pad~4 :initform
+	  [4 2]
+	  :type xcb:-pad-align)
    (number* :initarg :number* :type xcb:CARD16)
    (scroll-type :initarg :scroll-type :type xcb:CARD16)
-   (pad~2 :initform 2 :type xcb:-pad)
+   (pad~5 :initform 2 :type xcb:-pad)
    (flags :initarg :flags :type xcb:CARD32)
    (increment :initarg :increment :type xcb:xinput:FP3232)
    (mode* :initarg :mode* :type xcb:CARD8)
@@ -1888,7 +1900,6 @@
 	  '(name mask type xcb:CARD32 size
 		 (xcb:-fieldref 'mask-len))
 	  :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (modifiers :initarg :modifiers :type xcb:-ignore)
    (modifiers~ :initform
 	       '(name modifiers type xcb:CARD32 size
@@ -2279,13 +2290,11 @@
 		 '(name button-mask type xcb:CARD32 size
 			(xcb:-fieldref 'buttons-len))
 		 :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (valuator-mask :initarg :valuator-mask :type xcb:-ignore)
    (valuator-mask~ :initform
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2333,13 +2342,11 @@
 		 '(name button-mask type xcb:CARD32 size
 			(xcb:-fieldref 'buttons-len))
 		 :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (valuator-mask :initarg :valuator-mask :type xcb:-ignore)
    (valuator-mask~ :initform
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2478,7 +2485,6 @@
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2494,7 +2500,6 @@
 				    i))))
 			       (slot-value obj 'valuator-mask))))
 		:type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
@@ -2530,7 +2535,6 @@
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2546,7 +2550,6 @@
 				    i))))
 			       (slot-value obj 'valuator-mask))))
 		:type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
@@ -2599,13 +2602,11 @@
 		 '(name button-mask type xcb:CARD32 size
 			(xcb:-fieldref 'buttons-len))
 		 :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (valuator-mask :initarg :valuator-mask :type xcb:-ignore)
    (valuator-mask~ :initform
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2661,7 +2662,6 @@
 		   '(name valuator-mask type xcb:CARD32 size
 			  (xcb:-fieldref 'valuators-len))
 		   :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (axisvalues :initarg :axisvalues :type xcb:-ignore)
    (axisvalues~ :initform
 		'(name axisvalues type xcb:xinput:FP3232 size
@@ -2677,7 +2677,6 @@
 				    i))))
 			       (slot-value obj 'valuator-mask))))
 		:type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (axisvalues-raw :initarg :axisvalues-raw :type xcb:-ignore)
    (axisvalues-raw~ :initform
 		    '(name axisvalues-raw type xcb:xinput:FP3232 size
@@ -2745,7 +2744,6 @@
 	    '(name events type xcb:xinput:EventForSend size
 		   (xcb:-fieldref 'num-events))
 	    :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (classes :initarg :classes :type xcb:-ignore)
    (classes~ :initform
 	     '(name classes type xcb:xinput:EventClass size

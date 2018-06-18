@@ -161,19 +161,16 @@
 	   '(name hsync type xcb:xf86vidmode:SYNCRANGE size
 		  (xcb:-fieldref 'num-hsync))
 	   :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (vsync :initarg :vsync :type xcb:-ignore)
    (vsync~ :initform
 	   '(name vsync type xcb:xf86vidmode:SYNCRANGE size
 		  (xcb:-fieldref 'num-vsync))
 	   :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (vendor :initarg :vendor :type xcb:-ignore)
    (vendor~ :initform
 	    '(name vendor type xcb:char size
 		   (xcb:-fieldref 'vendor-length))
 	    :type xcb:-list)
-   (pad~4 :initform 4 :type xcb:-pad-align)
    (alignment-pad :initarg :alignment-pad :type xcb:-ignore)
    (alignment-pad~ :initform
 		   '(name alignment-pad type xcb:void size
@@ -185,7 +182,6 @@
 			    (lognot 3))
 			   (xcb:-fieldref 'vendor-length)))
 		   :type xcb:-list)
-   (pad~5 :initform 4 :type xcb:-pad-align)
    (model :initarg :model :type xcb:-ignore)
    (model~ :initform
 	   '(name model type xcb:char size
@@ -431,7 +427,6 @@
 		  1)
 		 (lognot 1)))
 	 :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (green :initarg :green :type xcb:-ignore)
    (green~ :initform
 	   '(name green type xcb:CARD16 size
@@ -441,7 +436,6 @@
 		    1)
 		   (lognot 1)))
 	   :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (blue :initarg :blue :type xcb:-ignore)
    (blue~ :initform
 	  '(name blue type xcb:CARD16 size
@@ -466,7 +460,6 @@
 		  1)
 		 (lognot 1)))
 	 :type xcb:-list)
-   (pad~0 :initform 4 :type xcb:-pad-align)
    (green :initarg :green :type xcb:-ignore)
    (green~ :initform
 	   '(name green type xcb:CARD16 size
@@ -476,7 +469,6 @@
 		    1)
 		   (lognot 1)))
 	   :type xcb:-list)
-   (pad~1 :initform 4 :type xcb:-pad-align)
    (blue :initarg :blue :type xcb:-ignore)
    (blue~ :initform
 	  '(name blue type xcb:CARD16 size

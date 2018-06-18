@@ -260,7 +260,6 @@
 		    '(name pixmap-formats type xcb:FORMAT size
 			   (xcb:-fieldref 'pixmap-formats-len))
 		    :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (roots :initarg :roots :type xcb:-ignore)
    (roots~ :initform
 	   '(name roots type xcb:SCREEN size
@@ -1627,7 +1626,6 @@
 		'(name properties type xcb:FONTPROP size
 		       (xcb:-fieldref 'properties-len))
 		:type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (char-infos :initarg :char-infos :type xcb:-ignore)
    (char-infos~ :initform
 		'(name char-infos type xcb:CHARINFO size
@@ -1735,7 +1733,6 @@
 		'(name properties type xcb:FONTPROP size
 		       (xcb:-fieldref 'properties-len))
 		:type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (name :initarg :name :type xcb:-ignore)
    (name~ :initform
 	  '(name name type xcb:char size
@@ -2378,7 +2375,6 @@
 	    '(name pixels type xcb:CARD32 size
 		   (xcb:-fieldref 'pixels-len))
 	    :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (masks :initarg :masks :type xcb:-ignore)
    (masks~ :initform
 	   '(name masks type xcb:CARD32 size

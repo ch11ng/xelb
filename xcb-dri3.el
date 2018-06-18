@@ -121,18 +121,18 @@
    (pad~0 :initform 2 :type xcb:-pad)))
 (defclass xcb:dri3:GetSupportedModifiers~reply
   (xcb:-reply)
-  ((pad~0 :initform 1 :type xcb:-pad)
+  ((pad~0 :initform 8 :type xcb:-pad-align)
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
+   (pad~1 :initform 1 :type xcb:-pad)
    (num-window-modifiers :initarg :num-window-modifiers :type xcb:CARD32)
    (num-screen-modifiers :initarg :num-screen-modifiers :type xcb:CARD32)
-   (pad~1 :initform 16 :type xcb:-pad)
+   (pad~2 :initform 16 :type xcb:-pad)
    (window-modifiers :initarg :window-modifiers :type xcb:-ignore)
    (window-modifiers~ :initform
 		      '(name window-modifiers type xcb:CARD64 size
 			     (xcb:-fieldref 'num-window-modifiers))
 		      :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (screen-modifiers :initarg :screen-modifiers :type xcb:-ignore)
    (screen-modifiers~ :initform
 		      '(name screen-modifiers type xcb:CARD64 size
@@ -142,10 +142,11 @@
 (defclass xcb:dri3:PixmapFromBuffers
   (xcb:-request)
   ((~opcode :initform 7 :type xcb:-u1)
+   (pad~0 :initform 8 :type xcb:-pad-align)
    (pixmap :initarg :pixmap :type xcb:PIXMAP)
    (window :initarg :window :type xcb:WINDOW)
    (num-buffers :initarg :num-buffers :type xcb:CARD8)
-   (pad~0 :initform 3 :type xcb:-pad)
+   (pad~1 :initform 3 :type xcb:-pad)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)
    (stride0 :initarg :stride0 :type xcb:CARD32)
@@ -158,7 +159,7 @@
    (offset3 :initarg :offset3 :type xcb:CARD32)
    (depth :initarg :depth :type xcb:CARD8)
    (bpp :initarg :bpp :type xcb:CARD8)
-   (pad~1 :initform 2 :type xcb:-pad)
+   (pad~2 :initform 2 :type xcb:-pad)
    (modifier :initarg :modifier :type xcb:CARD64)
    (buffers :initarg :buffers :type xcb:-ignore)
    (buffers~ :initform
@@ -172,28 +173,27 @@
    (pixmap :initarg :pixmap :type xcb:PIXMAP)))
 (defclass xcb:dri3:BuffersFromPixmap~reply
   (xcb:-reply)
-  ((nfd :initarg :nfd :type xcb:CARD8)
+  ((pad~0 :initform 8 :type xcb:-pad-align)
    (~sequence :type xcb:CARD16)
    (length :type xcb:CARD32)
+   (nfd :initarg :nfd :type xcb:CARD8)
    (width :initarg :width :type xcb:CARD16)
    (height :initarg :height :type xcb:CARD16)
-   (pad~0 :initform 4 :type xcb:-pad)
+   (pad~1 :initform 4 :type xcb:-pad)
    (modifier :initarg :modifier :type xcb:CARD64)
    (depth :initarg :depth :type xcb:CARD8)
    (bpp :initarg :bpp :type xcb:CARD8)
-   (pad~1 :initform 6 :type xcb:-pad)
+   (pad~2 :initform 6 :type xcb:-pad)
    (strides :initarg :strides :type xcb:-ignore)
    (strides~ :initform
 	     '(name strides type xcb:CARD32 size
 		    (xcb:-fieldref 'nfd))
 	     :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (offsets :initarg :offsets :type xcb:-ignore)
    (offsets~ :initform
 	     '(name offsets type xcb:CARD32 size
 		    (xcb:-fieldref 'nfd))
 	     :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (buffers :initarg :buffers :type xcb:-ignore)
    (buffers~ :initform
 	     '(name buffers type xcb:fd size

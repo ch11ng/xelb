@@ -96,7 +96,6 @@
 		 '(name driver-name type xcb:char size
 			(xcb:-fieldref 'driver-name-length))
 		 :type xcb:-list)
-   (pad~2 :initform 4 :type xcb:-pad-align)
    (alignment-pad :initarg :alignment-pad :type xcb:-ignore)
    (alignment-pad~ :initform
 		   '(name alignment-pad type xcb:void size
@@ -108,7 +107,6 @@
 			    (lognot 3))
 			   (xcb:-fieldref 'driver-name-length)))
 		   :type xcb:-list)
-   (pad~3 :initform 4 :type xcb:-pad-align)
    (device-name :initarg :device-name :type xcb:-ignore)
    (device-name~ :initform
 		 '(name device-name type xcb:char size
