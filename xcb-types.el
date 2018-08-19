@@ -60,7 +60,7 @@
   (when xcb:debug-on
     `(message (concat "[XELB LOG] " ,format-string) ,@args)))
 
-;;;; Fix backward compatibility issues with Emacs < 25
+;;;; Fix backward compatibility issues with Emacs 24
 
 (eval-and-compile
   (when (< emacs-major-version 25)
@@ -78,22 +78,21 @@
                       spec-list)
            ,@body)))))
 
-;; Backport some new functions from Emacs 25
+;; Backport some functions to Emacs 24
 
 (eval-and-compile
   (unless (fboundp 'eieio-class-slots)
-    (eval-and-compile
-      (defun eieio-class-slots (class)
-        (let* ((tmp (class-v class))
-               (names (eieio--class-public-a tmp))
-               (initforms (eieio--class-public-d tmp))
-               (types (eieio--class-public-type tmp))
-               result)
-          (dotimes (i (length names))
-            (setq result (nconc result (list (vector (elt names i)
-                                                     (elt initforms i)
-                                                     (elt types i))))))
-          result)))))
+    (defun eieio-class-slots (class)
+      (let* ((tmp (get class 'eieio-class-definition))
+             (names (aref tmp 5))
+             (initforms (aref tmp 6))
+             (types (aref tmp 8))
+             result)
+        (dotimes (i (length names))
+          (setq result (nconc result (list (vector (elt names i)
+                                                   (elt initforms i)
+                                                   (elt types i))))))
+        result))))
 
 (eval-and-compile
   (unless (fboundp 'eieio-slot-descriptor-name)
@@ -453,10 +452,10 @@ Consider let-bind it rather than change its global value."))
 (defclass xcb:--struct ()
   nil)
 
-(cl-defmethod slot-unbound ((object xcb:--struct) class slot-name fn)
-  (xcb:-log "unbount-slot: %s" (list (eieio-class-name class)
-                                     (eieio-object-name object)
-			             slot-name fn))
+(cl-defmethod slot-unbound ((_object xcb:--struct) _class _slot-name _fn)
+  (xcb:-log "unbount-slot: %s" (list (eieio-class-name _class)
+                                     (eieio-object-name _object)
+			             _slot-name _fn))
   nil)
 
 (defclass xcb:-struct (xcb:--struct)
