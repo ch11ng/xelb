@@ -395,18 +395,22 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                 (substring message-cache (- cache-length (length cache))))
           (when (/= current-cache-length cache-length)
             (xcb:-connection-filter process []))))
-      (with-slots (event-lock event-queue) connection
-        (unless (< 0 event-lock)
-          (cl-incf event-lock)
-          (unwind-protect
-              (let (event data synthetic)
-                (while (setq event (pop event-queue))
-                  (setq data (aref event 1)
-                        synthetic (aref event 2))
-                  (dolist (listener (aref event 0))
-                    (with-demoted-errors "[XELB ERROR] %S"
-                      (funcall listener data synthetic)))))
-            (cl-decf event-lock)))))))
+      (xcb:-process-events connection))))
+
+(cl-defmethod xcb:-process-events ((conn xcb:connection))
+  "Process cached events."
+  (with-slots (event-lock event-queue) conn
+    (unless (< 0 event-lock)
+      (cl-incf event-lock)
+      (unwind-protect
+          (let (event data synthetic)
+            (while (setq event (pop event-queue))
+              (setq data (aref event 1)
+                    synthetic (aref event 2))
+              (dolist (listener (aref event 0))
+                (with-demoted-errors "[XELB ERROR] %S"
+                  (funcall listener data synthetic)))))
+        (cl-decf event-lock)))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
   "Disconnect from X server."
@@ -464,7 +468,8 @@ classes of EVENT (since they have the same event number)."
       (unwind-protect
           (process-send-string (slot-value obj 'process)
                                (apply #'unibyte-string (append cache nil)))
-        (cl-decf (slot-value obj 'event-lock))))))
+        (cl-decf (slot-value obj 'event-lock)))
+      (xcb:-process-events obj))))
 
 (cl-defmethod xcb:get-extension-data ((obj xcb:connection) namespace)
   "Fetch the extension data from X server (block until data is retrieved)."
@@ -627,7 +632,8 @@ Otherwise no error will ever be reported."
             (while (and (> sequence (slot-value obj 'last-seen-sequence))
                         (<= sequence (slot-value obj 'request-sequence)))
               (accept-process-output process 1 nil 1)))
-        (cl-decf (slot-value obj 'event-lock)))))
+        (cl-decf (slot-value obj 'event-lock)))
+      (xcb:-process-events obj)))
   (let* ((reply-plist (slot-value obj 'reply-plist))
          (reply-data (plist-get reply-plist sequence))
          (error-plist (slot-value obj 'error-plist))
@@ -742,6 +748,7 @@ Sync by sending a GetInputFocus request and waiting until it's processed."
                       (<= sequence (slot-value obj 'request-sequence)))
             (accept-process-output process 1 nil 1)))
       (cl-decf (slot-value obj 'event-lock)))
+    (xcb:-process-events obj)
     ;; Discard any reply or error.
     (cl-remf (slot-value obj 'reply-plist) sequence)
     (cl-remf (slot-value obj 'error-plist) sequence)))
