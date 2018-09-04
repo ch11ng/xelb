@@ -409,7 +409,10 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
                     synthetic (aref event 2))
               (dolist (listener (aref event 0))
                 (with-demoted-errors "[XELB ERROR] %S"
-                  (funcall listener data synthetic)))))
+                  (if xcb:debug-on
+                      (xcb-debug-backtrace-on-error
+                       (funcall listener data synthetic))
+                    (funcall listener data synthetic))))))
         (cl-decf event-lock)))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
