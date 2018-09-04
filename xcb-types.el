@@ -56,6 +56,16 @@
 (eval-when-compile
   (defvar xcb:debug-on nil "Non-nil to turn on debug."))
 
+(defun xcb:-debug-toggle (&optional arg)
+  "Toggle XELB debugging output.
+When ARG is positive, turn debugging on; when negative off.  When
+ARG is nil, toggle debugging output."
+  (interactive
+   (list (or current-prefix-arg 'toggle)))
+  (setq xcb:debug-on (if (eq arg 'toggle)
+                         (not xcb:debug-on)
+                       (> 0 arg))))
+
 (defmacro xcb:-log (&optional format-string &rest objects)
   "Emit a message prepending the name of the function being executed.
 
