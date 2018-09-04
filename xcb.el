@@ -564,7 +564,7 @@ classes of EVENT (since they have the same event number)."
               last-seen-sequence 0))
       (setf request-cache (vconcat cache msg)
             request-sequence (1+ request-sequence))
-      (xcb:-log "Cache request #%d: %s" request-sequence request)
+      (xcb:-log "Cache request #%d: %s" request-sequence msg)
       request-sequence)))
 
 (cl-defmethod xcb:-+request ((obj xcb:connection) request)
