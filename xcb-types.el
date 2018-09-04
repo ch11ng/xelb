@@ -461,7 +461,7 @@ Consider let-bind it rather than change its global value."))
   nil)
 
 (cl-defmethod slot-unbound ((_object xcb:--struct) _class _slot-name _fn)
-  (xcb:-log "unbount-slot: %s" (list (eieio-class-name _class)
+  (xcb:-log "unbound-slot: %s" (list (eieio-class-name _class)
                                      (eieio-object-name _object)
 			             _slot-name _fn))
   nil)
