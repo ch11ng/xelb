@@ -51,14 +51,22 @@
 (eval-when-compile (require 'cl-lib))
 (require 'cl-generic)
 (require 'eieio)
+(require 'xcb-debug)
 
 (eval-when-compile
   (defvar xcb:debug-on nil "Non-nil to turn on debug."))
 
-(defmacro xcb:-log (format-string &rest args)
-  "Print debug info."
-  (when xcb:debug-on
-    `(message (concat "[XELB LOG] " ,format-string) ,@args)))
+(defmacro xcb:-log (&optional format-string &rest objects)
+  "Emit a message prepending the name of the function being executed.
+
+FORMAT-STRING is a string specifying the message to output, as in
+`format'.  The OBJECTS arguments specify the substitutions."
+  (unless format-string (setq format-string ""))
+  `(when xcb:debug-on
+     (xcb-debug-message ,(concat "%s:\t" format-string "\n")
+                        (xcb-debug-compile-time-function-name)
+                        ,@objects)
+     nil))
 
 ;;;; Fix backward compatibility issues with Emacs 24
 
