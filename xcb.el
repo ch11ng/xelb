@@ -408,8 +408,9 @@ Concurrency is disabled as it breaks the orders of errors, replies and events."
               (setq data (aref event 1)
                     synthetic (aref event 2))
               (dolist (listener (aref event 0))
-                (with-demoted-errors "[XELB ERROR] %S"
-                  (funcall listener data synthetic)))))
+                (unwind-protect
+                    (xcb-debug:backtrace-on-error
+                     (funcall listener data synthetic))))))
         (cl-decf event-lock)))))
 
 (cl-defmethod xcb:disconnect ((obj xcb:connection))
@@ -564,7 +565,7 @@ classes of EVENT (since they have the same event number)."
               last-seen-sequence 0))
       (setf request-cache (vconcat cache msg)
             request-sequence (1+ request-sequence))
-      (xcb:-log "Cache request #%d: %s" request-sequence request)
+      (xcb:-log "Cache request #%d: %s" request-sequence msg)
       request-sequence)))
 
 (cl-defmethod xcb:-+request ((obj xcb:connection) request)

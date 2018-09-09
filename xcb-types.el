@@ -51,14 +51,31 @@
 (eval-when-compile (require 'cl-lib))
 (require 'cl-generic)
 (require 'eieio)
+(require 'xcb-debug)
 
-(eval-when-compile
-  (defvar xcb:debug-on nil "Non-nil to turn on debug."))
+(defvar xcb:debug-on nil "Non-nil to turn on debug.")
 
-(defmacro xcb:-log (format-string &rest args)
-  "Print debug info."
-  (when xcb:debug-on
-    `(message (concat "[XELB LOG] " ,format-string) ,@args)))
+(defun xcb:debug-toggle (&optional arg)
+  "Toggle XELB debugging output.
+When ARG is positive, turn debugging on; when negative off.  When
+ARG is nil, toggle debugging output."
+  (interactive
+   (list (or current-prefix-arg 'toggle)))
+  (setq xcb:debug-on (if (eq arg 'toggle)
+                         (not xcb:debug-on)
+                       (> 0 arg))))
+
+(defmacro xcb:-log (&optional format-string &rest objects)
+  "Emit a message prepending the name of the function being executed.
+
+FORMAT-STRING is a string specifying the message to output, as in
+`format'.  The OBJECTS arguments specify the substitutions."
+  (unless format-string (setq format-string ""))
+  `(when xcb:debug-on
+     (xcb-debug:message ,(concat "%s:\t" format-string "\n")
+                        (xcb-debug:compile-time-function-name)
+                        ,@objects)
+     nil))
 
 ;;;; Fix backward compatibility issues with Emacs 24
 
@@ -452,11 +469,11 @@ Consider let-bind it rather than change its global value."))
 (defclass xcb:--struct ()
   nil)
 
-(cl-defmethod slot-unbound ((_object xcb:--struct) _class _slot-name _fn)
-  (xcb:-log "unbount-slot: %s" (list (eieio-class-name _class)
-                                     (eieio-object-name _object)
-			             _slot-name _fn))
-  nil)
+(cl-defmethod slot-unbound ((object xcb:--struct) class slot-name fn)
+  (unless (eq fn #'oref-default)
+    (xcb:-log "unbound-slot: %s" (list (eieio-class-name class)
+                                       (eieio-object-name object)
+			               slot-name fn))))
 
 (defclass xcb:-struct (xcb:--struct)
   ((~lsb :initarg :~lsb
@@ -778,6 +795,9 @@ This method auto-pads short results to 32 bytes."
 (defclass xcb:-union (xcb:-struct)
   ((~size :initarg :~size :type xcb:-ignore)) ;Size of the largest member.
   :documentation "Union type.")
+;;
+(cl-defmethod slot-unbound ((_object xcb:-union) _class _slot-name _fn)
+  nil)
 ;;
 (cl-defmethod xcb:marshal ((obj xcb:-union))
   "Return the byte-array representation of union OBJ.
