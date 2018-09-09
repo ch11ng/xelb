@@ -25,25 +25,22 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (defvar xcb-debug-on nil "Non-nil to turn on debug for XELB."))
+(defvar xcb-debug:buffer "*XELB-DEBUG*" "Buffer to write debug messages to.")
 
-(defvar xcb-debug-buffer "*XELB-DEBUG*" "Buffer to write debug messages to.")
-
-(defvar xcb-debug-backtrace-start-frame 5
+(defvar xcb-debug:backtrace-start-frame 5
   "From which frame to start collecting backtraces.")
 
-(defun xcb-debug--call-stack ()
+(defun xcb-debug:-call-stack ()
   "Return the current call stack frames."
   (let (frames frame
         ;; No need to acount for our setq, while, let, ...
-        (index xcb-debug-backtrace-start-frame))
+        (index xcb-debug:backtrace-start-frame))
     (while (setq frame (backtrace-frame index))
       (push frame frames)
       (cl-incf index))
     (cl-remove-if-not 'car frames)))
 
-(defmacro xcb-debug-compile-time-function-name ()
+(defmacro xcb-debug:compile-time-function-name ()
   "Get the name of outermost definition at expansion time."
   (let* ((frame (cl-find-if
 		 (lambda (frame)
@@ -51,7 +48,7 @@
 		     (let ((clause (car (cl-third frame))))
 		       (or (equal clause 'defalias)
 			   (equal clause 'cl-defmethod)))))
-		 (reverse (xcb-debug--call-stack))))
+		 (reverse (xcb-debug:-call-stack))))
 	 (defn (cl-third frame))
 	 (deftype (car defn)))
     (cl-case deftype
@@ -59,12 +56,12 @@
       ((cl-defmethod) (symbol-name (cadr defn)))
       (t "<unknown function>"))))
 
-(defmacro xcb-debug--with-debug-buffer (&rest forms)
-  "Evaluate FORMS making sure `xcb-debug-buffer' is correctly updated."
-  `(with-current-buffer (get-buffer-create xcb-debug-buffer)
+(defmacro xcb-debug:-with-debug-buffer (&rest forms)
+  "Evaluate FORMS making sure `xcb-debug:buffer' is correctly updated."
+  `(with-current-buffer (get-buffer-create xcb-debug:buffer)
      (let (windows-eob)
        ;; Note windows whose point is at EOB.
-       (dolist (w (get-buffer-window-list xcb-debug-buffer t 'nomini))
+       (dolist (w (get-buffer-window-list xcb-debug:buffer t 'nomini))
          (when (= (window-point w) (point-max))
            (push w windows-eob)))
        (save-excursion
@@ -74,36 +71,36 @@
        (dolist (w windows-eob)
          (set-window-point w (point-max))))))
 
-(defun xcb-debug-message (format-string &rest objects)
-  "Print a message to `xcb-debug-buffer'.
+(defun xcb-debug:message (format-string &rest objects)
+  "Print a message to `xcb-debug:buffer'.
 
 The FORMAT-STRING argument follows the speficies how to print each of
 the passed OBJECTS.  See `format' for details."
-  (xcb-debug--with-debug-buffer
+  (xcb-debug:-with-debug-buffer
    (insert (apply #'format format-string objects))))
 
-(defmacro xcb-debug-backtrace ()
-  "Print a backtrace to the `xcb-debug-buffer'."
-  '(xcb-debug--with-debug-buffer
-    (let ((standard-output (get-buffer-create xcb-debug-buffer)))
+(defmacro xcb-debug:backtrace ()
+  "Print a backtrace to the `xcb-debug:buffer'."
+  '(xcb-debug:-with-debug-buffer
+    (let ((standard-output (get-buffer-create xcb-debug:buffer)))
       (backtrace))))
 
-(defmacro xcb-debug-backtrace-on-error (&rest forms)
+(defmacro xcb-debug:backtrace-on-error (&rest forms)
   "Evaluate FORMS.  Printing a backtrace if an error is signaled."
   `(let ((debug-on-error t)
-         (debugger (lambda (&rest _) (xcb-debug--backtrace))))
+         (debugger (lambda (&rest _) (xcb-debug:backtrace))))
      ,@forms))
 
-(defun xcb-debug-clear ()
+(defun xcb-debug:clear ()
   "Clear the debug buffer."
   (interactive)
-  (xcb-debug--with-debug-buffer
+  (xcb-debug:-with-debug-buffer
    (erase-buffer)))
 
-(defun xcb-debug-mark ()
+(defun xcb-debug:mark ()
   "Insert a mark in the debug buffer."
   (interactive)
-  (xcb-debug--with-debug-buffer
+  (xcb-debug:-with-debug-buffer
    (insert "\n")))
 
 
