@@ -44,10 +44,6 @@
 ;;   - `xcb:generate-id'
 ;; Please refer to their documentations for more details.
 
-;; If you ever encountered errors when using this library, please set
-;; `xcb:debug-on' to `t' before loading it; this should provide you more clues
-;; on what is going wrong.
-
 ;; Todo:
 ;; + Use XC-MISC extension for `xcb:generate-id' when IDs are used up.
 

@@ -53,17 +53,9 @@
 (require 'eieio)
 (require 'xcb-debug)
 
-(defvar xcb:debug-on nil "Non-nil to turn on debug.")
-
-(defun xcb:debug-toggle (&optional arg)
-  "Toggle XELB debugging output.
-When ARG is positive, turn debugging on; when negative off.  When
-ARG is nil, toggle debugging output."
-  (interactive
-   (list (or current-prefix-arg 'toggle)))
-  (setq xcb:debug-on (if (eq arg 'toggle)
-                         (not xcb:debug-on)
-                       (> 0 arg))))
+(define-minor-mode xcb:debug
+  "Debug-logging enabled if non-nil"
+  :global t)
 
 (defmacro xcb:-log (&optional format-string &rest objects)
   "Emit a message prepending the name of the function being executed.
@@ -71,7 +63,7 @@ ARG is nil, toggle debugging output."
 FORMAT-STRING is a string specifying the message to output, as in
 `format'.  The OBJECTS arguments specify the substitutions."
   (unless format-string (setq format-string ""))
-  `(when xcb:debug-on
+  `(when xcb:debug
      (xcb-debug:message ,(concat "%s:\t" format-string "\n")
                         (xcb-debug:compile-time-function-name)
                         ,@objects)
@@ -421,7 +413,9 @@ FORMAT-STRING is a string specifying the message to output, as in
 (defmacro xcb:deftypealias (new-type old-type)
   "Define NEW-TYPE as an alias of type OLD-TYPE."
   `(progn
-     (cl-deftype ,(eval new-type) nil ,old-type)
+     ;; FIXME: `new-type' should probably just not be eval'd at all,
+     ;; but that requires changing all callers not to quote their arg.
+     (cl-deftype ,(eval new-type t) nil ,old-type)
      (defvaralias ,new-type ,old-type)))
 
 ;; 1/2/4 B signed/unsigned integer
