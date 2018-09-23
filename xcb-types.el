@@ -411,12 +411,16 @@ FORMAT-STRING is a string specifying the message to output, as in
 
 ;; typedef in C
 (defmacro xcb:deftypealias (new-type old-type)
-  "Define NEW-TYPE as an alias of type OLD-TYPE."
+  "Define NEW-TYPE as an alias of type OLD-TYPE.
+
+Also the fundamental type is stored in 'the xcb--typealias' variable
+property (for internal use only)."
   `(progn
      ;; FIXME: `new-type' should probably just not be eval'd at all,
      ;; but that requires changing all callers not to quote their arg.
      (cl-deftype ,(eval new-type t) nil ,old-type)
-     (defvaralias ,new-type ,old-type)))
+     (put ,new-type 'xcb--typealias
+          (or (get ,old-type 'xcb--typealias) ,old-type))))
 
 ;; 1/2/4 B signed/unsigned integer
 (cl-deftype xcb:-i1 () t)
@@ -500,7 +504,7 @@ and value VALUE.
 
 The optional POS argument indicates current byte index of the field (used by
 `xcb:-pad-align' type)."
-  (pcase (indirect-variable type)
+  (pcase (or (get type 'xcb--typealias) type)
     (`xcb:-u1 (xcb:-pack-u1 value))
     (`xcb:-i1 (xcb:-pack-i1 value))
     (`xcb:-u2
@@ -611,7 +615,7 @@ The optional argument CTX is for <paramref>.
 
 This method returns a list of two components, with the first being the result
 and the second the consumed length."
-  (pcase (indirect-variable type)
+  (pcase (or (get type 'xcb--typealias) type)
     (`xcb:-u1 (list (aref data offset) 1))
     (`xcb:-i1 (let ((result (aref data offset)))
                 (list (if (< result 128) result (- result 255)) 1)))

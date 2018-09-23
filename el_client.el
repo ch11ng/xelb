@@ -156,7 +156,7 @@ an `xelb-auto-padding' attribute."
 
 (defun xelb-type-size (type &optional slot)
   "Return size of TYPE in bytes."
-  (pcase (indirect-variable type)
+  (pcase (or (get type 'xcb--typealias) type)
     (`xcb:-ignore 0)
     ((or `xcb:-u1 `xcb:-i1 `xcb:void) 1)
     ((or `xcb:-u2 `xcb:-i2) 2)
