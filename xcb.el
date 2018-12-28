@@ -147,7 +147,11 @@
 (defun xcb:create-auth-info ()
   "Create the default `auth-info'."
   (let ((xauth-output (shell-command-to-string
-                       "xauth list ${DISPLAY#localhost} 2>/dev/null"))
+                       (concat
+                        "xauth list "
+                        (replace-regexp-in-string "^localhost" ""
+                                                  (getenv "DISPLAY"))
+                        " 2>/dev/null")))
         (name "MIT-MAGIC-COOKIE-1") ;only support MIT-MAGIC-COOKIE-1 protocol.
         (data ""))
     (if (string= "" xauth-output)
