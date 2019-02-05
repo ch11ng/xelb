@@ -1,6 +1,6 @@
 ;;; xcb-debug.el --- Debugging helpers for XELB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: Adrián Medraño Calvo <adrian@medranocalvo.com>
 

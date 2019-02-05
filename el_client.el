@@ -1,6 +1,6 @@
 ;;; el_client.el --- XELB Code Generator  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
 
@@ -198,7 +198,7 @@ an `xelb-auto-padding' attribute."
       (princ (format "\
 ;;; xcb-%s.el --- X11 %s  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

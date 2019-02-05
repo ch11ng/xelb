@@ -1,6 +1,6 @@
 ;;; xcb-xim.el --- XIM Protocol  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Chris Feng <chris.w.feng@gmail.com>
 
