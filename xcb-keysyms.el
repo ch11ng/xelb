@@ -103,11 +103,11 @@ This method must be called before using any other method in this module."
     (xcb:keysyms:-update-modkeys obj xcb:xkb:ID:UseCoreKbd)
     ;; Attach event listeners.
     (xcb:+event obj 'xcb:xkb:NewKeyboardNotify
-                `(lambda (data _)
-                   (xcb:keysyms:-on-NewKeyboardNotify ,obj data)))
+                (lambda (data _)
+                  (xcb:keysyms:-on-NewKeyboardNotify obj data)))
     (xcb:+event obj 'xcb:xkb:MapNotify
-                `(lambda (data _)
-                   (xcb:keysyms:-on-MapNotify ,obj data)))
+                (lambda (data _)
+                  (xcb:keysyms:-on-MapNotify obj data)))
     ;; Select XKB MapNotify and NewKeyboardNotify events.
     (let ((map (logior xcb:xkb:MapPart:KeyTypes
                        xcb:xkb:MapPart:KeySyms
