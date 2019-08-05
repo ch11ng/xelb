@@ -471,7 +471,8 @@ whose fields are explicitly listed out."
   (xcb:icccm:-GetProperty-single~reply)
   nil)
 (defclass xcb:icccm:set-WM_TRANSIENT_FOR (xcb:icccm:-ChangeProperty-single)
-  ((property :initform xcb:Atom:WM_TRANSIENT_FOR)))
+  ((property :initform xcb:Atom:WM_TRANSIENT_FOR)
+   (type :initform xcb:Atom:WINDOW)))
 
 ;; WM_PROTOCOLS
 (defclass xcb:icccm:get-WM_PROTOCOLS (xcb:icccm:-GetProperty)
