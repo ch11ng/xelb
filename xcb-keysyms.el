@@ -371,9 +371,14 @@ FIRST-KEYCODE and COUNT specify the keycode range to update."
 
 (cl-defmethod xcb:keysyms:keycode->keysym ((obj xcb:connection) keycode
                                            modifiers)
-  "Convert keycode to (keysym . mod-mask).
+  "Convert KEYCODE to keysym or get possible modifier combinations for keycode.
 
-Return (0 . 0) when conversion fails."
+If MODIFIERS is non-nil, return (KEYSYM . CONSUMED-MODIFIERS) where
+CONSUMED-MODIFIERS should be lognot'ed with MODIFIERS so as to make further
+conversion correct.  (0 . 0) is returned when conversion fails.
+
+If MODIFIERS is nil, return all possible modifier combinations for this
+keycode.  The caller is responsible for checking which modifiers to use."
   (let ((preserve 0)
         group group-info group-number index keytype)
     (with-slots (keytypes keycodes min-keycode max-keycode)
@@ -390,7 +395,9 @@ Return (0 . 0) when conversion fails."
         ;; Check group number.
         (when (= group-number 0)
           (throw 'return '(0 . 0)))
-        (setq group (logand (lsh modifiers -13) #b11)) ;The 13, 14 bits.
+        (setq group (if (null modifiers)
+                        0
+                      (logand (lsh modifiers -13) #b11))) ;The 13, 14 bits.
         ;; Wrap group.
         (when (>= group group-number)
           (pcase (logand group-info #xC0) ;See <XKBstr.h>.
@@ -408,23 +415,28 @@ Return (0 . 0) when conversion fails."
         ;; Get key type.
         (setq keytype (aref keytypes
                             (elt (slot-value keycode 'kt-index) group)))
-        ;; Find the shift level and preserved modifiers.
         (with-slots (mods-mask hasPreserve map (preserve* preserve)) keytype
-          (catch 'break
-            (dolist (entry map)
-              (with-slots (active (mods-mask* mods-mask) level) entry
-                (when (and (= 1 active)
-                           (= (logand modifiers mods-mask) mods-mask*))
-                  (cl-incf index level)
-                  (when (= 1 hasPreserve)
-                    (setq preserve (slot-value (elt preserve*
-                                                    (cl-position entry map))
-                                               'mask)))
-                  (throw 'break nil)))))
-          ;; FIXME: Use of preserved modifiers (e.g. capitalize the keysym
-          ;;        when LOCK is preserved)?
-          (cons (elt (slot-value keycode 'syms) index)
-                (logand mods-mask (lognot preserve))))))))
+          (if (null modifiers)
+              ;; Return all possible modifier combinations.
+              (delq nil
+                    (mapcar (lambda (entry)
+                              (when (= (slot-value entry 'active) 1)
+                                (slot-value entry 'mods-mask)))
+                            map))
+            ;; Find the shift level and preserved modifiers.
+            (catch 'break
+              (dolist (entry map)
+                (with-slots (active (mods-mask* mods-mask) level) entry
+                  (when (and (= 1 active)
+                             (= (logand modifiers mods-mask) mods-mask*))
+                    (cl-incf index level)
+                    (when (= 1 hasPreserve)
+                      (setq preserve (slot-value (elt preserve*
+                                                      (cl-position entry map))
+                                                 'mask)))
+                    (throw 'break nil)))))
+            (cons (elt (slot-value keycode 'syms) index)
+                  (logand mods-mask (lognot preserve)))))))))
 
 (cl-defmethod xcb:keysyms:keysym->keycode ((obj xcb:connection) keysym)
   "Convert keysym to (the first matching) keycode.
@@ -574,9 +586,13 @@ Return 0 if conversion fails."
   "Emacs event representations of XF86keysym (#x1008ff00 - #x1008ffff).")
 
 (cl-defmethod xcb:keysyms:event->keysym ((obj xcb:connection) event)
-  "Translate Emacs key event EVENT to (keysym . mod-mask).
+  (declare (obsolete nil "27"))
+  (car (xcb:keysyms:event->keysyms obj event)))
 
-Return (0 . 0) when conversion fails."
+(cl-defmethod xcb:keysyms:event->keysyms ((obj xcb:connection) event)
+  "Translate Emacs key event EVENT to list of (keysym . mod-mask).
+
+Return ((0 . 0)) when conversion fails."
   (let ((modifiers (event-modifiers event))
         (event (event-basic-type event))
         keysym)
@@ -626,14 +642,7 @@ Return (0 . 0) when conversion fails."
                                 (throw 'break key)))
                             x-keysym-table)))))))
     (if (not keysym)
-        '(0 . 0)
-      (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
-            keysym*)
-        (when (/= 0 keycode)
-          (setq keysym* (xcb:keysyms:keycode->keysym obj keycode 0))
-          (unless (= keysym (car keysym*))
-            ;; This keysym requires additional modifiers to input.
-            (push (cdr keysym*) modifiers))))
+        '((0 . 0))
       (when modifiers
         ;; Do transforms: * -> x-*-keysym -> xcb:keysyms:*-mask.
         (setq modifiers (mapcar (lambda (i)
@@ -674,8 +683,26 @@ Return (0 . 0) when conversion fails."
                                     (_
                                      ;; Include but not limit to: down.
                                      0)))
-                                modifiers)))
-      (cons keysym (apply #'logior modifiers)))))
+                                modifiers)
+              modifiers (apply #'logior modifiers)))
+      (let ((keycode (xcb:keysyms:keysym->keycode obj keysym))
+            extra-modifiers)
+        (when (/= 0 keycode)
+          (setq extra-modifiers (xcb:keysyms:keycode->keysym obj keycode nil)
+                ;; Always try without other modifier.
+                extra-modifiers (append '(0) extra-modifiers)
+                ;; Keep all modifiers helping convert keycode to this keysym.
+                extra-modifiers
+                (delq nil
+                      (mapcar (lambda (modifier)
+                                (when (= (car (xcb:keysyms:keycode->keysym
+                                               obj keycode modifier))
+                                         keysym)
+                                  modifier))
+                              extra-modifiers))))
+        (mapcar (lambda (extra-modifier)
+                  (cons keysym (logior (or modifiers 0) extra-modifier)))
+                extra-modifiers)))))
 
 (cl-defmethod xcb:keysyms:keysym->event ((_obj xcb:connection) keysym
                                          &optional mask allow-modifiers)
