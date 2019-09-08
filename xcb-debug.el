@@ -30,6 +30,22 @@
 (defvar xcb-debug:backtrace-start-frame 5
   "From which frame to start collecting backtraces.")
 
+(defvar xcb-debug:log-time-function #'xcb-debug:log-uptime
+  "Function used for generating timestamps in XELB debug logs.
+
+Here are some predefined candidates:
+`xcb-debug:log-uptime': Display the uptime of this Emacs instance.
+`xcb-debug:log-time': Display time of day.
+`nil': Disable timestamp.")
+
+(defun xcb-debug:log-uptime ()
+  "Add uptime to XELB debug logs."
+  (emacs-uptime "[%.2h:%.2m:%.2s] "))
+
+(defun xcb-debug:log-time ()
+  "Add time of day to XELB debug logs."
+  (format-time-string "[%T] "))
+
 (defun xcb-debug:-call-stack ()
   "Return the current call stack frames."
   (let (frames frame

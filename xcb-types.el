@@ -64,7 +64,10 @@ FORMAT-STRING is a string specifying the message to output, as in
 `format'.  The OBJECTS arguments specify the substitutions."
   (unless format-string (setq format-string ""))
   `(when xcb:debug
-     (xcb-debug:message ,(concat "%s:\t" format-string "\n")
+     (xcb-debug:message ,(concat "%s%s:\t" format-string "\n")
+                        (if xcb-debug:log-time-function
+                            (funcall xcb-debug:log-time-function)
+                          "")
                         (xcb-debug:compile-time-function-name)
                         ,@objects)
      nil))
