@@ -289,6 +289,9 @@ The result would be 29 or 61 bits, depending on the machine."
 
 Concurrency is disabled as it breaks the orders of errors, replies and events."
   (let* ((connection (plist-get (process-plist process) 'connection))
+         ;; Temporarily disable GC here as typically it's about to do
+         ;; lots of marshaling/unmarshaling.
+         (gc-cons-threshold most-positive-fixnum)
          (cache (vconcat (slot-value connection 'message-cache) message))
          (cache-length (length cache)))
     (setf (slot-value connection 'message-cache) cache)
