@@ -545,7 +545,14 @@ The optional POS argument indicates current byte index of the field (used by
          (unless list-size
            (setq list-size (length data)))) ;list-size can be nil
        (cl-assert (= list-size (length data)))
-       (mapconcat (lambda (i) (xcb:-marshal-field obj list-type i)) data [])))
+       ;; The data may be large, and if it's a string that's supposed
+       ;; to be converted to a vector of bytes, then the transform can
+       ;; be done trivially and much faster by just coercing.
+       (if (and (eq list-type 'xcb:BYTE)
+		(eq (type-of data) 'string))
+	   (cl-coerce data 'vector)
+	 (mapconcat (lambda (i) (xcb:-marshal-field obj list-type i))
+		    data []))))
     (`xcb:-switch
      (let ((slots (eieio-class-slots (eieio-object-class obj)))
            (expression (plist-get value 'expression))
