@@ -599,22 +599,21 @@ The optional argument CTX is for <paramref>."
   (unless total-length
     (setq total-length (length byte-array)))
   (let ((slots (eieio-class-slots (eieio-object-class obj)))
-        (result 0)
+        (offset 0)
         slot-name tmp type)
     (catch 'break
       (dolist (slot slots)
         (setq type (cl--slot-descriptor-type slot))
         (unless (eq type 'xcb:-ignore)
           (setq slot-name (eieio-slot-descriptor-name slot)
-                tmp (xcb:-unmarshal-field obj type byte-array 0
+                tmp (xcb:-unmarshal-field obj type byte-array offset
                                           (eieio-oref-default obj slot-name)
                                           ctx total-length))
           (setf (slot-value obj slot-name) (car tmp))
-          (setq byte-array (substring byte-array (cadr tmp)))
-          (setq result (+ result (cadr tmp)))
+          (setq offset (+ offset (cadr tmp)))
           (when (eq type 'xcb:-switch) ;xcb:-switch always finishes a struct
             (throw 'break 'nil)))))
-    result))
+    offset))
 
 (cl-defmethod xcb:-unmarshal-field ((obj xcb:-struct) type data offset
                                     initform &optional ctx total-length)
